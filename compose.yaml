@@ -9,7 +9,8 @@ services:
       POSTGRES_USER: havilor
       POSTGRES_PASSWORD: havilor
     ports:
-      - "5432:5432"
+      # Host port 5433: a local Windows PostgreSQL service already owns 5432
+      - "5433:5432"
     volumes:
       - havilor-db-data:/var/lib/postgresql
 
