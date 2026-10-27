@@ -1,0 +1,17 @@
+# Local development services. Start: docker compose up -d   Stop: docker compose down
+services:
+  db:
+    image: postgres:18
+    container_name: havilor-db
+    environment:
+      # Local dev only. Never reuse these values anywhere real.
+      POSTGRES_DB: havilor
+      POSTGRES_USER: havilor
+      POSTGRES_PASSWORD: havilor
+    ports:
+      - "5432:5432"
+    volumes:
+      - havilor-db-data:/var/lib/postgresql
+
+volumes:
+  havilor-db-data:
