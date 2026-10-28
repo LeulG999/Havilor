@@ -10,15 +10,13 @@ Owner: Leul Tsige (GitHub: LeulG999). Java/Spring Boot developer, MSCS student.
 2. Help a working security analyst do her job efficiently while Havilor teaches her.
 
 ## HOW WE WORK (most important section)
-Claude writes the code, but the goal is that Leul **understands every line and could write it himself**. For every step ("brick"):
-1. **Concept first** — what it is, what problem it solves, where it sits in the architecture. Simple English. Numbered, in the order things happen.
-2. **Write the code** for ONE small brick only (a few files max). Never jump ahead, and never build a whole module at once — follow the vertical flow order below.
-3. **Walk through it line by line**, in order, in very simple English, as if he knows nothing. Show exactly where each piece lives. No Java-vs-other-language comparisons.
-4. **He runs it** (mvn, Postman, or a test) and sees it work.
-5. **Check understanding** — 2–3 short questions, plus one small change he makes himself (add a field, a rule, a test case). Review his change.
-6. Only when he says he understands: **commit and push** to GitHub (see Git rules). Then a short journal note. Then the next brick.
-- Do not move to the next brick until he confirms.
-- Keep answers short and focused; explain one concept at a time ("A, B, C, then word, then sentence").
+Claude (here) is the **builder**. Teaching happens in a **separate Claude chat**, which uses the progress docs below. For each flow:
+1. **Build it brick by brick** — ONE small brick at a time (a few files max), following the vertical flow order below. Never jump ahead, never build a whole module at once.
+2. **One commit per brick**, conventional message (see Git rules).
+3. **Keep explanations in chat short**: what was built and how to check it. No line-by-line teaching here.
+4. **Push when the flow's tests pass.**
+5. **Write `docs/progress/flow-N.md`**: files created/changed and what each does, commands run, how to verify, new concepts introduced. Commit and push it.
+6. **STOP and wait for Leul** before starting the next flow. Never start the next flow on your own.
 - Diagrams: detailed components and flow, not plain boxes.
 - No code during pure design/concept discussions unless he asks.
 - YAGNI: keep it simple; just-in-time design before each slice.
@@ -72,7 +70,7 @@ User, Alert (with embedded EmailDetails), Recipient, Url, Attachment, ClickEvent
 ## Slice 1 coding order — VERTICAL FLOWS, NOT LAYERS
 Never build layer by layer (all entities, then all repositories...). Build ONE small flow end to end
 (migration → entity → repository → service → DTO → controller → test), see it work, commit, then the next flow.
-Each flow adds exactly ONE new idea. Inside a flow, still go one brick at a time with the working loop.
+Each flow adds exactly ONE new idea. Inside a flow, still go one brick at a time (see HOW WE WORK).
 Only add the tables/fields/classes the current flow needs (Flyway: one new migration file per flow).
 
 0. **Foundation** — app starts; PostgreSQL in Docker; application.yml; Flyway added; empty module folders.
@@ -86,12 +84,12 @@ Only add the tables/fields/classes the current flow needs (Flyway: one new migra
 8. **Steps on an alert** — attach playbook when an alert arrives; GET /alerts/{id}/steps; PATCH /alerts/{id}/steps/{stepId}. New idea: crossing a module border through a Service.
 9. **Close an alert** — POST /alerts/{id}/close. New idea: @Transactional with several rules.
 10. **Finish the slice** — ClickEvent, fake alert generator, Testcontainers integration tests, full loop in Postman.
-Every flow ends with: tests passing → Leul confirms understanding → commit + push.
+Every flow ends with: tests passing → push → `docs/progress/flow-N.md` → README updated → STOP for Leul.
 
 ## Git rules
 - One branch per feature (e.g. `feature/alert-entities`); small commits, one per brick.
 - Conventional commit messages: `feat(alert): ...`, `fix(...)`, `test(...)`, `docs(...)`, `chore(...)`.
-- Commit and push only after Leul confirms he understands the brick. Merge to `main` via PR when a feature is complete.
+- Commit each brick as it is built; push when the flow's tests pass. Merge to `main` via PR when a feature is complete.
 
 ## Learning journal
 Claude Doc "Havilor Learning Journal": https://claude.ai/artifact/AiVxLxhtikjL5hC1C3AeKu

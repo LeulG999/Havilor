@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: Havilor
+
+  # Matches compose.yaml (local dev only)
+  datasource:
+    url: jdbc:postgresql://localhost:5433/havilor
+    username: havilor
+    password: havilor
+
+  jpa:
+    # Flyway owns the schema; Hibernate only checks entities match it
+    hibernate:
+      ddl-auto: validate
+    # Close the DB session when the service call ends, not after the HTTP response
+    open-in-view: false

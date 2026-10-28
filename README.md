@@ -11,7 +11,7 @@ but the analyst always makes the decision.
 
 ## Current status: Slice 1 (core loop)
 
-- [ ] 0. Foundation: app starts, PostgreSQL in Docker, Flyway, module folders
+- [x] 0. Foundation: app starts, PostgreSQL in Docker, Flyway, module folders
 - [ ] 1. Save one alert and read it back (`POST /alerts`, `GET /alerts/{id}`)
 - [ ] 2. List alerts with paging (`GET /alerts`)
 - [ ] 3. Handle mistakes: validation (400), not found (404), one error format
@@ -26,10 +26,10 @@ but the analyst always makes the decision.
 ## Tech stack
 
 - Java 21, Spring Boot 4.1, Maven
-- Spring Web, Spring Data JPA
-- PostgreSQL (in Docker)
+- Spring Web, Spring Data JPA, Bean Validation, Lombok
+- PostgreSQL 18 (in Docker), Flyway migrations
 
-Planned: Flyway, Testcontainers, OpenAPI/Swagger, Spring Security + JWT, an LLM client, pgvector (RAG),
+Planned: Testcontainers, OpenAPI/Swagger, Spring Security + JWT, an LLM client, pgvector (RAG),
 GitHub Actions, and a React + TypeScript front end.
 
 ## Architecture
@@ -43,7 +43,24 @@ Havilor is a **modular monolith**: one Spring Boot application split into featur
 
 ## Run locally
 
-_Coming in flow 0._
+You need **JDK 21+** and **Docker Desktop** (running).
+
+```bash
+# 1. Start PostgreSQL (container "havilor-db", host port 5433)
+docker compose up -d
+
+# 2. Run the tests (they need the database from step 1)
+./mvnw test
+
+# 3. Start the app on http://localhost:8080
+./mvnw spring-boot:run
+
+# Stop the database when you are done (data is kept in a Docker volume)
+docker compose down
+```
+
+The database uses host port **5433**, not the default 5432, so it doesn't clash with a locally installed
+PostgreSQL. The credentials in `compose.yaml` and `application.yml` are for local development only.
 
 ## Roadmap
 
