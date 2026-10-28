@@ -12,7 +12,7 @@ but the analyst always makes the decision.
 ## Current status: Slice 1 (core loop)
 
 - [x] 0. Foundation: app starts, PostgreSQL in Docker, Flyway, module folders
-- [ ] 1. Save one alert and read it back (`POST /alerts`, `GET /alerts/{id}`)
+- [x] 1. Save one alert and read it back (`POST /alerts`, `GET /alerts/{id}`), idempotent on `ticketNumber`
 - [ ] 2. List alerts with paging (`GET /alerts`)
 - [ ] 3. Handle mistakes: validation (400), not found (404), one error format
 - [ ] 4. Grow the alert: full fields, embedded email details, enums
@@ -40,6 +40,19 @@ Havilor is a **modular monolith**: one Spring Boot application split into featur
 - Each module is layered: **Controller → Service → Repository → PostgreSQL**.
 - Modules have strict borders. A module never touches another module's repository. It calls that module's service.
 - The REST API lives under `/api/v1` and only returns DTOs, never database entities.
+
+## API so far
+
+| Method | Path | Result |
+|---|---|---|
+| `POST` | `/api/v1/alerts` | **201** + `Location` for a new `ticketNumber`; **200** + `Location` with the stored alert if that ticket already exists (nothing is changed) |
+| `GET` | `/api/v1/alerts/{id}` | **200** with the alert, **404** if there is none |
+
+```bash
+curl -i -X POST http://localhost:8080/api/v1/alerts \
+  -H "Content-Type: application/json" \
+  -d '{"ticketNumber":"INC-DEMO-0001","subject":"Fake invoice overdue","receivedAt":"2026-10-28T14:00:00Z"}'
+```
 
 ## Run locally
 
