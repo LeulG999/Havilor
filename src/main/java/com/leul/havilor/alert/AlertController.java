@@ -1,5 +1,7 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.common.PageResponse;
+import com.leul.havilor.common.Paging;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -7,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -33,6 +36,14 @@ public class AlertController {
                 .toUri();
         HttpStatus status = result.wasCreated() ? HttpStatus.CREATED : HttpStatus.OK;
         return ResponseEntity.status(status).location(location).body(result.alert());
+    }
+
+    // Newest first. Out-of-range page/size are corrected by the service (max size 100).
+    @GetMapping
+    public PageResponse<AlertResponse> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "" + Paging.DEFAULT_SIZE) int size) {
+        return alertService.list(page, size);
     }
 
     // Flow 3 replaces this Optional → 404 mapping with an exception + global error handler.
