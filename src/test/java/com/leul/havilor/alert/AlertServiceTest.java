@@ -38,7 +38,7 @@ class AlertServiceTest {
 
         CreateAlertResult result = alertService.create(request("Fake invoice overdue"));
 
-        assertThat(result.created()).isTrue();
+        assertThat(result.wasCreated()).isTrue();
         assertThat(result.alert().id()).isEqualTo(1L);
         assertThat(result.alert().status()).isEqualTo("NEW");
         assertThat(result.alert().subject()).isEqualTo("Fake invoice overdue");
@@ -51,7 +51,7 @@ class AlertServiceTest {
 
         CreateAlertResult result = alertService.create(request("Different subject on resend"));
 
-        assertThat(result.created()).isFalse();
+        assertThat(result.wasCreated()).isFalse();
         assertThat(result.alert().id()).isEqualTo(7L);
         assertThat(result.alert().subject()).isEqualTo("Original subject"); // stored alert is not changed
         verify(alertRepository, never()).saveAndFlush(any());
@@ -67,7 +67,7 @@ class AlertServiceTest {
 
         CreateAlertResult result = alertService.create(request("Fake invoice overdue"));
 
-        assertThat(result.created()).isFalse();
+        assertThat(result.wasCreated()).isFalse();
         assertThat(result.alert().id()).isEqualTo(9L);
     }
 

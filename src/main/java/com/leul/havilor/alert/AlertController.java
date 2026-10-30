@@ -31,7 +31,7 @@ public class AlertController {
                 .path("/{id}")
                 .buildAndExpand(result.alert().id())
                 .toUri();
-        HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;
+        HttpStatus status = result.wasCreated() ? HttpStatus.CREATED : HttpStatus.OK;
         return ResponseEntity.status(status).location(location).body(result.alert());
     }
 

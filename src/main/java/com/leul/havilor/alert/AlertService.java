@@ -27,19 +27,19 @@ public class AlertService {
     public CreateAlertResult create(CreateAlertRequest request) {
         Optional<Alert> existing = alertRepository.findByTicketNumber(request.ticketNumber());
         if (existing.isPresent()) {
-            return CreateAlertResult.existing(AlertResponse.from(existing.get()));
+            return CreateAlertResult.alreadyExisted(AlertResponse.from(existing.get()));
         }
 
         try {
             Alert saved = alertRepository.saveAndFlush(
                     new Alert(request.ticketNumber(), request.subject(), request.receivedAt()));
-            return CreateAlertResult.created(AlertResponse.from(saved));
+            return CreateAlertResult.newlyCreated(AlertResponse.from(saved));
         } catch (DataIntegrityViolationException e) {
             // Two requests with the same ticket both passed the check above; the other one
             // inserted first and the database constraint stopped us. Its row is the alert.
             // If no row exists, the insert failed for another reason: rethrow.
             return alertRepository.findByTicketNumber(request.ticketNumber())
-                    .map(winner -> CreateAlertResult.existing(AlertResponse.from(winner)))
+                    .map(winner -> CreateAlertResult.alreadyExisted(AlertResponse.from(winner)))
                     .orElseThrow(() -> e);
         }
     }

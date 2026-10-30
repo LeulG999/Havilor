@@ -43,20 +43,20 @@ sequenceDiagram
     R->>DB: SELECT ... WHERE ticket_number = ?
     alt Layer 1: ticket already stored
         DB-->>SV: row found
-        SV-->>C: CreateAlertResult(alert, created=false)
+        SV-->>C: CreateAlertResult(alert, wasCreated=false)
         C-->>S: 200 OK + Location + stored alert
     else not stored yet
         SV->>R: saveAndFlush(new Alert)  (own transaction)
         R->>DB: INSERT
         alt insert succeeds
             DB-->>SV: new row (id)
-            SV-->>C: CreateAlertResult(alert, created=true)
+            SV-->>C: CreateAlertResult(alert, wasCreated=true)
             C-->>S: 201 Created + Location + new alert
         else Layer 2: another request inserted the same ticket first
             DB-->>SV: unique violation → DataIntegrityViolationException
             SV->>R: findByTicketNumber(ticket)  (fresh transaction)
             alt winner's row found
-                SV-->>C: CreateAlertResult(winner, created=false)
+                SV-->>C: CreateAlertResult(winner, wasCreated=false)
                 C-->>S: 200 OK + Location + winner's alert
             else no row: insert failed for another reason
                 SV-->>C: rethrow the exception (→ 500 for now; 400 in Flow 3)
@@ -94,9 +94,9 @@ All Java files are in package `com.leul.havilor.alert` (`src/main/java/com/leul/
 | `AlertRepository.java` (new) | `JpaRepository<Alert, Long>` gives save/find/delete for free. Adds `findByTicketNumber`; Spring Data builds the SQL from the method name. |
 | `CreateAlertRequest.java` (new) | Record (immutable DTO) for the POST body: `ticketNumber`, `subject`, `receivedAt`. No `status`: the server decides it. |
 | `AlertResponse.java` (new) | Record the API returns: `id`, `ticketNumber`, `subject`, `status`, `receivedAt`. `from(Alert)` maps entity → DTO so the entity never leaves the service. |
-| `CreateAlertResult.java` (new) | What `create()` returns: the `AlertResponse` plus `created` (true → 201, false → 200). Lets the service say *what happened* without knowing about HTTP. |
+| `CreateAlertResult.java` (new) | What `create()` returns: the `AlertResponse` plus `wasCreated` (true → 201, false → 200). Lets the service say *what happened* without knowing about HTTP. |
 | `AlertService.java` (new) | The business logic: idempotent `create()` (the two layers above) and `findById()` returning `Optional`. Constructor injection. |
-| `AlertController.java` (new) | `@RestController` at `/api/v1/alerts`. `POST` hands off to the service, picks 201 or 200 from `created`, and builds the `Location` URL with `ServletUriComponentsBuilder`. `GET /{id}` maps the `Optional` to 200 or 404. No business logic. |
+| `AlertController.java` (new) | `@RestController` at `/api/v1/alerts`. `POST` hands off to the service, picks 201 or 200 from `wasCreated`, and builds the `Location` URL with `ServletUriComponentsBuilder`. `GET /{id}` maps the `Optional` to 200 or 404. No business logic. |
 | `src/test/.../alert/AlertRepositoryTest.java` (new) | `@DataJpaTest` against the real PostgreSQL (`@AutoConfigureTestDatabase(replace = NONE)`); each test is rolled back. Proves save + `findByTicketNumber` work and that the **database itself** rejects a duplicate ticket. |
 | `src/test/.../alert/AlertServiceTest.java` (new) | Unit test, no Spring, no DB: `AlertRepository` is a Mockito mock. 6 cases: new ticket → created; existing ticket → existing, unchanged, **no save**; race (insert throws, re-read finds the winner) → existing; insert fails for another reason → exception rethrown; findById found / missing. |
 | `src/test/.../alert/AlertControllerIntegrationTest.java` (new) | `@SpringBootTest` + `@AutoConfigureMockMvc`: the full app over HTTP-like calls against PostgreSQL. POST → 201 + Location + body, then GET → 200; unknown id → 404; same ticket twice → 201 then 200, same id, original subject, 1 row; **8 concurrent POSTs** of one ticket → exactly one 201, seven 200s, one id, 1 row. Test rows use the prefix `INC-IT-` and are deleted after each test. |
