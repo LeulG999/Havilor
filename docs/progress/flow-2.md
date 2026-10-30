@@ -155,6 +155,11 @@ git push -u origin feature/alert-list-paging
 - During the smoke test my script built an invalid date (`2026-10-32`), and the POST got **400** from Spring's JSON
   reader. That was a script bug, not an app bug, and it shows unreadable dates are already rejected before our code runs.
 
+- **An unrelated change slipped into a commit.** `d5a8503` also deleted `alert/package-info.java`, because a deletion
+  was already staged locally and `git commit` (with no paths) commits everything staged. Fixed in `d8b24b5`, which
+  restores the file. Lesson: when the index holds someone else's work, commit with explicit paths
+  (`git commit -- <paths>`) and check `git show --stat HEAD` before pushing.
+
 ## Next
 
 Flow 3: **Handle mistakes**: validation (400), not found (404), one error format via `@RestControllerAdvice`.
