@@ -1,44 +1,46 @@
 package com.leul.havilor;
 
-import org.junit.jupiter.api.Test;
+import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.junit.AnalyzeClasses;
+import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchRule;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.stream.Stream;
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAnyPackage;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-// The border rule (CLAUDE.md): a module calls another module's Service and uses its DTOs, never its
-// entities or repository. PlaybookRepository is package-private, so the compiler already blocks it;
-// this test also catches the entities, which have to be public for JPA.
+// The border rule (CLAUDE.md), checked on the compiled main classes by ArchUnit.
+// A module is reached from outside only through its service/ and api/response/ packages:
+// never its domain (entities, enums), repository, controllers or request DTOs.
+@AnalyzeClasses(packages = "com.leul.havilor", importOptions = ImportOption.DoNotIncludeTests.class)
 class ModuleBorderTest {
 
-    private static final Path ALERT_MODULE = Path.of("src/main/java/com/leul/havilor/alert");
-    private static final List<String> FORBIDDEN = List.of(
-            "import com.leul.havilor.playbook.Playbook;",
-            "import com.leul.havilor.playbook.PlaybookStep;",
-            "import com.leul.havilor.playbook.PlaybookRepository;",
-            "import com.leul.havilor.playbook.*;");
+    @ArchTest
+    static final ArchRule nobodyOutsideAlertUsesItsDomainOrRepository = noClasses()
+            .that().resideOutsideOfPackage("com.leul.havilor.alert..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "com.leul.havilor.alert.domain..", "com.leul.havilor.alert.repository..");
 
-    @Test
-    void alertModuleUsesOnlyThePlaybookServiceAndItsDtos() throws IOException {
-        try (Stream<Path> files = Files.walk(ALERT_MODULE)) {
-            List<String> violations = files.filter(f -> f.toString().endsWith(".java"))
-                    .flatMap(ModuleBorderTest::forbiddenImports)
-                    .toList();
+    @ArchTest
+    static final ArchRule nobodyOutsidePlaybookUsesItsDomainOrRepository = noClasses()
+            .that().resideOutsideOfPackage("com.leul.havilor.playbook..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "com.leul.havilor.playbook.domain..", "com.leul.havilor.playbook.repository..");
 
-            assertThat(violations).isEmpty();
-        }
-    }
+    @ArchTest
+    static final ArchRule alertIsReachedOnlyThroughServiceAndResponses = onlyThroughServiceAndResponses("alert");
 
-    private static Stream<String> forbiddenImports(Path file) {
-        try {
-            String source = Files.readString(file);
-            return FORBIDDEN.stream().filter(source::contains).map(imp -> file.getFileName() + ": " + imp);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
+    @ArchTest
+    static final ArchRule playbookIsReachedOnlyThroughServiceAndResponses = onlyThroughServiceAndResponses("playbook");
+
+    private static ArchRule onlyThroughServiceAndResponses(String module) {
+        String root = "com.leul.havilor." + module;
+        return noClasses()
+                .that().resideOutsideOfPackage(root + "..")
+                .should().dependOnClassesThat(resideInAPackage(root + "..")
+                        .and(not(resideInAnyPackage(root + ".service..", root + ".api.response.."))))
+                .because("other modules may use only " + module + "'s service and api.response packages")
+                .allowEmptyShould(true);
     }
 }

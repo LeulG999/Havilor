@@ -103,12 +103,12 @@ sequenceDiagram
 | File | What it does |
 |---|---|
 | `db/migration/V5__alert_version.sql` (new) | `version BIGINT NOT NULL DEFAULT 0`. |
-| `alert/Alert.java` | `@Version long version`; `ensureOpen`, `changePriority`, `assignTo` (NEW → INVESTIGATING), `changeWaitingOn`, `changeExternalCaseNumber`, `changeFollowUpOn`. |
-| `alert/UpdateAlertRequest.java` (new) | All-optional PATCH body with `@Positive assigneeId`, length limits, optional `version`. |
-| `alert/AlertService.java` | `update(id, request)`: load, version check, `ensureOpen`, apply sent fields, flush. `loadWithChildren` is shared with `readDetail`. |
-| `alert/AlertController.java` | `@PatchMapping("/{id}")`. |
-| `alert/AlertDetailResponse.java` | Adds `version`. |
-| `common/GlobalExceptionHandler.java` | `OptimisticLockingFailureException` → 409. |
+| `alert/domain/Alert.java` | `@Version long version`; `ensureOpen`, `changePriority`, `assignTo` (NEW → INVESTIGATING), `changeWaitingOn`, `changeExternalCaseNumber`, `changeFollowUpOn`. |
+| `alert/api/request/UpdateAlertRequest.java` (new) | All-optional PATCH body with `@Positive assigneeId`, length limits, optional `version`. |
+| `alert/service/AlertService.java` | `update(id, request)`: load, version check, `ensureOpen`, apply sent fields, flush. `loadWithChildren` is shared with `readDetail`. |
+| `alert/api/AlertController.java` | `@PatchMapping("/{id}")`. |
+| `alert/api/response/AlertDetailResponse.java` | Adds `version`. |
+| `common/error/GlobalExceptionHandler.java` | `OptimisticLockingFailureException` → 409. |
 | `test/.../alert/AlertTest.java` (new) | Unit tests of the entity rules (assign, re-assign keeps status, blank clears, closed refuses everything). |
 | `test/.../alert/AlertServiceTest.java` | Only sent fields change; a stale version is refused and nothing changes. |
 | `test/.../alert/AlertUpdateIntegrationTest.java` (new) | Partial updates and version increments; closed → 409; stale version → 409; **two concurrent PATCHes → exactly one 200 and one 409**; 400/404. |

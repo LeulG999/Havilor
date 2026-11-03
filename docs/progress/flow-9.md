@@ -102,13 +102,13 @@ sequenceDiagram
 
 | File | What it does |
 |---|---|
-| `alert/Alert.java` | `close(verdict)` with the three rules and the four field changes. |
-| `alert/DecidedVerdict.java` (new) | Custom constraint annotation + nested `ConstraintValidator`. |
-| `alert/CloseAlertRequest.java` (new) | `@NotNull @DecidedVerdict Verdict verdict`. |
-| `alert/AlertRepository.java` | `findForChangeById` (`@Lock(OPTIMISTIC_FORCE_INCREMENT)`) + default `findForChangeWithStepProgressById`. |
-| `alert/AlertService.java` | `close(id, request)`: lock and load, `alert.close`, flush, return the detail. |
-| `alert/AlertStepService.java` | `updateStep` uses the same lock-and-load, so step changes bump the alert version. |
-| `alert/AlertController.java` | `@PostMapping("/{id}/close")`. |
+| `alert/domain/Alert.java` | `close(verdict)` with the three rules and the four field changes. |
+| `alert/api/request/DecidedVerdict.java` (new) | Custom constraint annotation + nested `ConstraintValidator`. |
+| `alert/api/request/CloseAlertRequest.java` (new) | `@NotNull @DecidedVerdict Verdict verdict`. |
+| `alert/repository/AlertRepository.java` | `findForChangeById` (`@Lock(OPTIMISTIC_FORCE_INCREMENT)`) + default `findForChangeWithStepProgressById`. |
+| `alert/service/AlertService.java` | `close(id, request)`: lock and load, `alert.close`, flush, return the detail. |
+| `alert/service/AlertStepService.java` | `updateStep` uses the same lock-and-load, so step changes bump the alert version. |
+| `alert/api/AlertController.java` | `@PostMapping("/{id}/close")`. |
 | `test/.../alert/AlertTest.java` | Close sets the 4 fields; pending steps refuse (message counts them); twice / UNDECIDED refused. |
 | `test/.../alert/AlertCloseIntegrationTest.java` (new) | Close after finishing all 8 steps via the API; pending → 409 and the DB is unchanged; no playbook → closes; twice → 409; 400s; a step change bumps the alert version. |
 

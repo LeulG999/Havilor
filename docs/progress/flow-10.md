@@ -101,19 +101,19 @@ Every request has test scripts. **Ran with Newman** against the real app (dev pr
 | File | What it does |
 |---|---|
 | `db/migration/V8__click_event.sql` (new) | `click_event` with FKs to `url` and `recipient` (cascade) and an index on each. |
-| `alert/ClickEvent.java` (new) | The entity; created only through `Url.addClick`. |
-| `alert/Url.java` | Owns `clicks`; `addClick` (same-alert check); `clicksOfNewUrl`. |
-| `alert/Alert.java` | `clicksOfNewAlert()` for the create response. |
-| `alert/ClickRequest.java`, `ClickResponse.java` (new) | The click DTOs (by address in, with id out). |
-| `alert/CreateAlertRequest.java` | `clicks` (max 1000); `toAlert()` resolves addresses and throws `BadRequestException` on a miss. |
-| `alert/AlertRepository.java` | `findClicksByAlertId` (the 4th detail query). |
-| `alert/AlertDetailResponse.java`, `AlertService.java` | `clicks` in the detail; `detailOf(alert)` adds the clicks query. |
-| `common/BadRequestException.java` (new), `common/GlobalExceptionHandler.java` | 400 for cross-field problems, 400 for `HandlerMethodValidationException`. |
-| `dev/DevAlertController.java`, `dev/FakeAlertFactory.java` (new) | The generator. |
+| `alert/domain/ClickEvent.java` (new) | The entity; created only through `Url.addClick`. |
+| `alert/domain/Url.java` | Owns `clicks`; `addClick` (same-alert check); `clicksOfNewUrl`. |
+| `alert/domain/Alert.java` | `clicksOfNewAlert()` for the create response. |
+| `alert/api/request/ClickRequest.java`, `ClickResponse.java` (new) | The click DTOs (by address in, with id out). |
+| `alert/api/request/CreateAlertRequest.java` | `clicks` (max 1000); `toAlert()` resolves addresses and throws `BadRequestException` on a miss. |
+| `alert/repository/AlertRepository.java` | `findClicksByAlertId` (the 4th detail query). |
+| `alert/api/response/AlertDetailResponse.java`, `AlertService.java` | `clicks` in the detail; `detailOf(alert)` adds the clicks query. |
+| `common/error/BadRequestException.java` (new), `common/error/GlobalExceptionHandler.java` | 400 for cross-field problems, 400 for `HandlerMethodValidationException`. |
+| `alert/dev/DevAlertController.java`, `alert/dev/FakeAlertFactory.java` (new) | The generator. |
 | `pom.xml` | `spring-boot-testcontainers`, `testcontainers-postgresql` (test scope). |
 | `test/.../TestcontainersConfiguration.java` (new) + every DB test | Shared PostgreSQL container via `@ServiceConnection`. |
 | `test/.../alert/AlertChildrenIntegrationTest.java` | Click round trip and ordering; click naming an unknown recipient → 400; detail = **4** queries with 1 or 25 of each child (25 clicks too). |
-| `test/.../dev/FakeAlertFactoryTest.java`, `DevAlertControllerIntegrationTest.java` (new) | Generated data is valid and fake-only; endpoint works with `dev` (5 alerts, recipients, playbook steps), `count=500` → 400, 404 without the profile (`@Nested` classes, one context each). |
+| `test/.../alert/dev/FakeAlertFactoryTest.java`, `DevAlertControllerIntegrationTest.java` (new) | Generated data is valid and fake-only; endpoint works with `dev` (5 alerts, recipients, playbook steps), `count=500` → 400, 404 without the profile (`@Nested` classes, one context each). |
 | `docs/postman/havilor.postman_collection.json` (new) | The collection above. |
 | `README.md` | Slice 1 complete, full endpoint table, how to run tests/app/generator/Postman. |
 

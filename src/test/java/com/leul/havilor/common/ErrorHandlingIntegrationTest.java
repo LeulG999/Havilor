@@ -1,6 +1,7 @@
 package com.leul.havilor.common;
 
 import com.leul.havilor.TestcontainersConfiguration;
+import com.leul.havilor.common.error.ConflictException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

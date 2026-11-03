@@ -124,15 +124,15 @@ erDiagram
 | File | What it does |
 |---|---|
 | `db/migration/V4__alert_children.sql` (new) | `recipient`, `url`, `attachment` tables, FKs with `ON DELETE CASCADE`, one index per `alert_id`, CHECKs on enum columns. |
-| `alert/DeliveryStatus.java` (new) | `DELIVERED`, `QUARANTINED`, `RELEASED`. |
-| `alert/Recipient.java`, `Url.java`, `Attachment.java` (new) | Child entities: `@ManyToOne(LAZY)` to `Alert`, package-private `belongTo(alert)`. `Url` derives the domain; `Attachment` lower-cases the hash. |
-| `alert/Alert.java` | Three `@OneToMany(mappedBy, cascade ALL, orphanRemoval)` lists with `@OrderBy("id")`; `addRecipient/addUrl/addAttachment`; read-only getters. |
-| `alert/RecipientRequest.java`, `UrlRequest.java`, `AttachmentRequest.java` (new) | Validated child parts of the request, each with a `toX()` mapper. |
-| `alert/CreateAlertRequest.java` | `recipients` (`@NotEmpty`), `urls`, `attachments` with list caps and `List<@Valid ...>`; `toAlert()` builds the whole graph. |
-| `alert/AlertRepository.java` | `findIdByTicketNumber`; three `left join fetch` queries for the detail load. |
-| `alert/AlertService.java` | `readDetail` (3 queries in a `TransactionTemplate`); `list` returns summaries; `create` uses `toAlert()` and the id-only duplicate check. |
-| `alert/AlertDetailResponse.java` (renamed from `AlertResponse`), `AlertSummaryResponse.java` (new), `RecipientResponse`, `UrlResponse`, `AttachmentResponse` (new) | Detail vs list DTOs. |
-| `alert/AlertController.java` | The list returns `PageResponse<AlertSummaryResponse>`. |
+| `alert/domain/DeliveryStatus.java` (new) | `DELIVERED`, `QUARANTINED`, `RELEASED`. |
+| `alert/domain/Recipient.java`, `Url.java`, `Attachment.java` (new) | Child entities: `@ManyToOne(LAZY)` to `Alert`, package-private `belongTo(alert)`. `Url` derives the domain; `Attachment` lower-cases the hash. |
+| `alert/domain/Alert.java` | Three `@OneToMany(mappedBy, cascade ALL, orphanRemoval)` lists with `@OrderBy("id")`; `addRecipient/addUrl/addAttachment`; read-only getters. |
+| `alert/api/request/RecipientRequest.java`, `UrlRequest.java`, `AttachmentRequest.java` (new) | Validated child parts of the request, each with a `toX()` mapper. |
+| `alert/api/request/CreateAlertRequest.java` | `recipients` (`@NotEmpty`), `urls`, `attachments` with list caps and `List<@Valid ...>`; `toAlert()` builds the whole graph. |
+| `alert/repository/AlertRepository.java` | `findIdByTicketNumber`; three `left join fetch` queries for the detail load. |
+| `alert/service/AlertService.java` | `readDetail` (3 queries in a `TransactionTemplate`); `list` returns summaries; `create` uses `toAlert()` and the id-only duplicate check. |
+| `alert/api/response/AlertDetailResponse.java` (renamed from `AlertResponse`), `AlertSummaryResponse.java` (new), `RecipientResponse`, `UrlResponse`, `AttachmentResponse` (new) | Detail vs list DTOs. |
+| `alert/api/AlertController.java` | The list returns `PageResponse<AlertSummaryResponse>`. |
 | `test/.../alert/AlertChildrenIntegrationTest.java` (new) | Children round-trip (domain derivation, hash lower-casing); list has no children; **3 statements** for detail with 1 or 25 children; 1–2 for a list page; validation of children. |
 | `test/.../alert/AlertServiceTest.java` | Built by hand with a mocked `PlatformTransactionManager`; new tests: children created and pointing back to the alert. |
 | `test/.../alert/TestAlerts.java`, other tests | One recipient in every fake alert; id regex now takes the *first* `"id"` (children have ids too). |

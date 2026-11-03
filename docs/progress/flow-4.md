@@ -135,13 +135,13 @@ classDiagram
 | File | What it does |
 |---|---|
 | `db/migration/V3__grow_alert.sql` (new) | Adds 27 columns, backfills NOT NULL ones with temporary defaults, drops the defaults, adds CHECK constraints. |
-| `common/CaseType.java` + `alert/{AlertStatus,Priority,Source,Verdict,AuthResult}.java` (new) | The enums above. |
-| `alert/EmailDetails.java` (new) | `@Embeddable`, Lombok `@Builder`, 14 fields with column names and lengths. |
-| `alert/Alert.java` | All ERD fields; `@Enumerated(STRING)`; `@Embedded email`; constructor sets `NEW` + `UNDECIDED`; `@PrePersist/@PreUpdate` timestamps. The old `STATUS_NEW` string constant is gone. |
-| `alert/EmailDetailsRequest.java` (new) | Validated email part of the request; `toEmailDetails()` maps to the embeddable. |
-| `alert/CreateAlertRequest.java` | `ticketNumber`, `source`, `caseType`, `priority`, `receivedAt`, `@Valid email`. |
-| `alert/EmailDetailsResponse.java` (new), `alert/AlertResponse.java` | The full response, with `email` nested. |
-| `alert/AlertService.java` | Builds the new `Alert` from the request. |
+| `common/CaseType.java` + `alert/domain/{AlertStatus,Priority,Source,Verdict,AuthResult}.java` (new) | The enums above. |
+| `alert/domain/EmailDetails.java` (new) | `@Embeddable`, Lombok `@Builder`, 14 fields with column names and lengths. |
+| `alert/domain/Alert.java` | All ERD fields; `@Enumerated(STRING)`; `@Embedded email`; constructor sets `NEW` + `UNDECIDED`; `@PrePersist/@PreUpdate` timestamps. The old `STATUS_NEW` string constant is gone. |
+| `alert/api/request/EmailDetailsRequest.java` (new) | Validated email part of the request; `toEmailDetails()` maps to the embeddable. |
+| `alert/api/request/CreateAlertRequest.java` | `ticketNumber`, `source`, `caseType`, `priority`, `receivedAt`, `@Valid email`. |
+| `alert/api/response/EmailDetailsResponse.java` (new), `alert/AlertResponse.java` | The full response, with `email` nested. |
+| `alert/service/AlertService.java` | Builds the new `Alert` from the request. |
 | `test/.../alert/TestAlerts.java` (new) | One place for fake test alerts, requests and the minimal JSON body (`example.com`/`example.net` addresses only). |
 | `test/.../alert/FullAlertIntegrationTest.java` (new) | Every field round-trips; enums are stored as names; `status`/`verdict` in the request are ignored; the DB CHECK rejects `URGENT`. |
 | `test/.../common/ErrorHandlingIntegrationTest.java` | Validation now reports 8 fields, including nested `email.fromAddress`; new test: an unknown enum value gives 400 naming the field. |

@@ -30,7 +30,7 @@ Build notes for every flow are in [`docs/progress/`](docs/progress).
 - Java 21, Spring Boot 4.1, Maven
 - Spring Web, Spring Data JPA (Hibernate 7), Bean Validation, Lombok
 - PostgreSQL 18 (in Docker), Flyway migrations
-- Tests: JUnit 5, Mockito, MockMvc, **Testcontainers** (a throwaway PostgreSQL per test run)
+- Tests: JUnit 5, Mockito, MockMvc, **Testcontainers** (a throwaway PostgreSQL per test run), **ArchUnit** (module borders)
 
 Planned: JaCoCo, OpenAPI/Swagger, Spring Security + JWT, Redis, the Claude API (Anthropic) as the LLM client,
 pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
@@ -38,21 +38,28 @@ pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
 ## Architecture
 
 Havilor is a **modular monolith**: one Spring Boot application split into feature modules.
-Today `alert`, `playbook`, `common` and a dev-only `dev` module hold code; `user`, `finding`, `escalation`, `audit`
-and `standup` are waiting for their slices.
+Today `alert`, `playbook` and `common` hold code; `user`, `finding`, `escalation`, `audit` and `standup` are
+waiting for their slices.
 
-- Each module is layered: **Controller → Service → Repository → PostgreSQL**.
-- Modules have strict borders. The `alert` module gets playbooks only through `PlaybookService` and its DTOs.
-  `PlaybookRepository` is package-private, and a test (`ModuleBorderTest`) fails if `alert/` imports playbook entities.
+- Each module is layered: **Controller → Service → Repository → PostgreSQL**, with one sub-package per layer.
+- Modules have strict borders: another module may use only a module's `service` and `api.response` packages,
+  never its `domain` or `repository`. An **ArchUnit** test (`ModuleBorderTest`) fails the build otherwise.
+  For example, `alert` gets playbooks only through `PlaybookService`.
 - Business rules live on the entities (`Alert.assignTo`, `Alert.close`...), not in setters spread over services.
 - The REST API lives under `/api/v1` and only returns DTOs, never database entities.
 - Every error goes through one `@RestControllerAdvice` and has one shape.
 
 ```
-alert/     Alert (+ embedded EmailDetails), Recipient, Url, Attachment, ClickEvent, StepProgress
-playbook/  Playbook, PlaybookStep (seeded, immutable, versioned)
-common/    CaseType, paging, ApiError + GlobalExceptionHandler, NotFound/Conflict/BadRequest exceptions
-dev/       fake alert generator (only with the "dev" profile)
+alert/
+  api/            controllers           api/request/   request DTOs     api/response/  response DTOs
+  domain/         Alert (+ embedded EmailDetails), Recipient, Url, Attachment, ClickEvent, StepProgress, enums
+  repository/     AlertRepository       service/       AlertService, AlertStepService
+  dev/            fake alert generator (only with the "dev" profile)
+playbook/
+  api/  api/response/  domain/ (Playbook, PlaybookStep: seeded, immutable, versioned)  repository/  service/
+common/           CaseType
+  error/          ApiError, GlobalExceptionHandler, NotFound/Conflict/BadRequest exceptions
+  paging/         PageResponse, Paging
 ```
 
 ## API

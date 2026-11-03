@@ -7,6 +7,8 @@ when it applies, and how to do it. Read it with `GET /api/v1/playbooks` and `GET
 
 **Built on:** `main` · **Status:** done, 61 tests passing, pushed
 
+> **Later change (layer refactor, after Flow 10):** classes moved into `api/`, `api/request/`, `api/response/`, `domain/`, `repository/` and `service/` sub-packages (paths below are the new ones). `PlaybookRepository` had to become public for `playbook/service/` to use it, so the border is now enforced by an ArchUnit test (`ModuleBorderTest`) instead of Java visibility. See [refactor-layers.md](refactor-layers.md).
+
 ## The API
 
 | Method | Path | Result |
@@ -87,15 +89,15 @@ flowchart LR
 | File | What it does |
 |---|---|
 | `db/migration/V6__playbook.sql` (new) | `playbook` + `playbook_step` tables, UNIQUE/CHECK constraints, partial unique index, and the seed (1 playbook, 8 steps via `INSERT … SELECT … CROSS JOIN (VALUES …)`). |
-| `playbook/Playbook.java`, `PlaybookStep.java` (new) | `@Immutable` entities; steps `@OrderBy("orderNo")`. |
-| `playbook/AnswerOptionsConverter.java` (new) | `List<String>` ↔ `'a|b|c'`. |
-| `playbook/PlaybookRepository.java` (new, package-private) | `findAll(Sort)`, `findWithStepsById`, `findActiveWithStepsByCaseType` (for Flow 8). |
-| `playbook/PlaybookService.java` (new) | `list()`, `getById(id)` → DTOs; 404 via `NotFoundException`. |
-| `playbook/PlaybookController.java` (new) | The two GET endpoints. |
-| `playbook/Playbook{Summary,Detail,Step}Response.java` (new) | DTOs. `PlaybookStepResponse` is public for the alert module. |
+| `playbook/domain/Playbook.java`, `PlaybookStep.java` (new) | `@Immutable` entities; steps `@OrderBy("orderNo")`. |
+| `playbook/domain/AnswerOptionsConverter.java` (new) | `List<String>` ↔ `'a|b|c'`. |
+| `playbook/repository/PlaybookRepository.java` (new, package-private) | `findAll(Sort)`, `findWithStepsById`, `findActiveWithStepsByCaseType` (for Flow 8). |
+| `playbook/service/PlaybookService.java` (new) | `list()`, `getById(id)` → DTOs; 404 via `NotFoundException`. |
+| `playbook/api/PlaybookController.java` (new) | The two GET endpoints. |
+| `playbook/api/response/Playbook{Summary,Detail,Step}Response.java` (new) | DTOs. `PlaybookStepResponse` is public for the alert module. |
 | `playbook/package-info.java` | Removed (the module has real classes now). |
 | `test/.../playbook/PlaybookIntegrationTest.java` (new) | List, detail (8 steps in order, options, `appliesWhen`, **1 query**), 404, partial unique index, duplicate step number. |
-| `test/.../playbook/AnswerOptionsConverterTest.java` (new) | Round trip, empty and missing values. |
+| `test/.../playbook/domain/AnswerOptionsConverterTest.java` (new) | Round trip, empty and missing values. |
 
 ## How to verify
 

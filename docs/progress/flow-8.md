@@ -6,6 +6,8 @@ progress row per step. The analyst reads the steps (with *why it matters*) and w
 
 **Built on:** `main` · **Status:** done, 69 tests passing, pushed
 
+> **Later change (layer refactor, after Flow 10):** classes moved into `api/`, `api/request/`, `api/response/`, `domain/`, `repository/` and `service/` sub-packages (paths below are the new ones). `PlaybookRepository` had to become public for `playbook/service/` to use it, so the border is now enforced by an ArchUnit test (`ModuleBorderTest`) instead of Java visibility. See [refactor-layers.md](refactor-layers.md).
+
 ## The API
 
 | Method | Path | Result |
@@ -101,13 +103,13 @@ sequenceDiagram
 | File | What it does |
 |---|---|
 | `db/migration/V7__alert_steps.sql` (new) | `alert.playbook_id` (FK + index) and `playbook_version`; `step_progress` table with UNIQUE, CHECKs and FK index; backfill. |
-| `alert/StepStatus.java`, `alert/StepProgress.java` (new) | The association entity; `record(status, answer)` keeps `completedAt` in step with the status. |
-| `alert/Alert.java` | `playbookId`, `playbookVersion`, `stepProgress` list; `attachPlaybook`, `recordStep` (404 / 409 / NEW → INVESTIGATING), `pendingStepCount` (for Flow 9). |
-| `playbook/ActivePlaybook.java` (new), `playbook/PlaybookService.java` | `findActiveFor(caseType)`, `getSteps(playbookId)`. |
-| `alert/AlertService.java` | Takes `PlaybookService`; attaches the active playbook before saving. |
-| `alert/AlertRepository.java` | `findWithStepProgressById`. |
-| `alert/AlertStepService.java`, `AlertStepController.java`, `AlertStepResponse.java`, `UpdateStepRequest.java` (new) | The steps endpoints. |
-| `alert/AlertDetailResponse.java` | `playbookId`, `playbookVersion`. |
+| `alert/domain/StepStatus.java`, `alert/domain/StepProgress.java` (new) | The association entity; `record(status, answer)` keeps `completedAt` in step with the status. |
+| `alert/domain/Alert.java` | `playbookId`, `playbookVersion`, `stepProgress` list; `attachPlaybook`, `recordStep` (404 / 409 / NEW → INVESTIGATING), `pendingStepCount` (for Flow 9). |
+| `playbook/service/ActivePlaybook.java` (new), `playbook/service/PlaybookService.java` | `findActiveFor(caseType)`, `getSteps(playbookId)`. |
+| `alert/service/AlertService.java` | Takes `PlaybookService`; attaches the active playbook before saving. |
+| `alert/repository/AlertRepository.java` | `findWithStepProgressById`. |
+| `alert/service/AlertStepService.java`, `AlertStepController.java`, `AlertStepResponse.java`, `UpdateStepRequest.java` (new) | The steps endpoints. |
+| `alert/api/response/AlertDetailResponse.java` | `playbookId`, `playbookVersion`. |
 | `test/.../alert/AlertStepsIntegrationTest.java` (new) | 8 pending steps; no playbook → `[]`; DONE/undo and NEW → INVESTIGATING; **2 queries**; 400/404/409; UNIQUE constraint. |
 | `test/.../ModuleBorderTest.java` (new) | No playbook entity/repository imports in `alert/`. |
 | `test/.../alert/AlertServiceTest.java` | Mocks `PlaybookService`; a new alert gets one PENDING row per step id. |

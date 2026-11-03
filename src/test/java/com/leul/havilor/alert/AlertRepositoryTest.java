@@ -1,6 +1,8 @@
 package com.leul.havilor.alert;
 
 import com.leul.havilor.TestcontainersConfiguration;
+import com.leul.havilor.alert.domain.Alert;
+import com.leul.havilor.alert.repository.AlertRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

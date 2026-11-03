@@ -93,13 +93,13 @@ sequenceDiagram
 
 | File | What it does |
 |---|---|
-| `alert/CreateAlertRequest.java` | `@NotBlank @Size(max = 50) ticketNumber`, `@NotBlank @Size(max = 500) subject`, `@NotNull receivedAt`. |
-| `alert/AlertController.java` | `@Valid` on the POST body. `GET /{id}` now just returns `alertService.getById(id)`. |
-| `alert/AlertService.java` | `findById` → `getById`: returns `AlertResponse` or throws `NotFoundException.of("Alert", id)`. |
-| `common/NotFoundException.java` (new) | Unchecked; `of(what, id)` builds "`<what> <id> not found`". |
-| `common/ConflictException.java` (new) | Unchecked; for broken business rules (used from Flow 6). |
-| `common/ApiError.java` (new) | The error record plus nested `FieldViolation(field, message)`. |
-| `common/GlobalExceptionHandler.java` (new) | One `@ExceptionHandler` per case in the table above; every body goes through one `build(...)` method. |
+| `alert/api/request/CreateAlertRequest.java` | `@NotBlank @Size(max = 50) ticketNumber`, `@NotBlank @Size(max = 500) subject`, `@NotNull receivedAt`. |
+| `alert/api/AlertController.java` | `@Valid` on the POST body. `GET /{id}` now just returns `alertService.getById(id)`. |
+| `alert/service/AlertService.java` | `findById` → `getById`: returns `AlertResponse` or throws `NotFoundException.of("Alert", id)`. |
+| `common/error/NotFoundException.java` (new) | Unchecked; `of(what, id)` builds "`<what> <id> not found`". |
+| `common/error/ConflictException.java` (new) | Unchecked; for broken business rules (used from Flow 6). |
+| `common/error/ApiError.java` (new) | The error record plus nested `FieldViolation(field, message)`. |
+| `common/error/GlobalExceptionHandler.java` (new) | One `@ExceptionHandler` per case in the table above; every body goes through one `build(...)` method. |
 | `alert/package-info.java`, `common/package-info.java` | Removed (Leul had staged this). The folders hold real classes now, so the empty markers aren't needed. |
 | `test/.../common/ErrorHandlingIntegrationTest.java` (new) | 8 MockMvc tests, one per row of the table. A test-only `ThrowingController` (pulled in with `@Import`, so it exists only in this test's context) throws `ConflictException` and an unexpected exception. |
 | `test/.../alert/AlertServiceTest.java` | `getById` found / throws `NotFoundException`. |

@@ -1,5 +1,7 @@
 package com.leul.havilor.common;
 
+import com.leul.havilor.common.paging.PageResponse;
+import com.leul.havilor.common.paging.Paging;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
