@@ -11,6 +11,7 @@ import com.leul.havilor.playbook.service.PlaybookService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -23,10 +24,12 @@ public class AlertStepService {
 
     private final AlertRepository alertRepository;
     private final PlaybookService playbookService;
+    private final Clock clock;
 
-    public AlertStepService(AlertRepository alertRepository, PlaybookService playbookService) {
+    public AlertStepService(AlertRepository alertRepository, PlaybookService playbookService, Clock clock) {
         this.alertRepository = alertRepository;
         this.playbookService = playbookService;
+        this.clock = clock;
     }
 
     // 2 queries: the alert with its progress rows, then the playbook with its steps.
@@ -50,7 +53,7 @@ public class AlertStepService {
     public AlertStepResponse updateStep(Long alertId, Long stepId, UpdateStepRequest request) {
         Alert alert = alertRepository.findForChangeWithStepProgressById(alertId)
                 .orElseThrow(() -> NotFoundException.of("Alert", alertId));
-        StepProgress progress = alert.recordStep(stepId, request.status(), request.answer());
+        StepProgress progress = alert.recordStep(stepId, request.status(), request.answer(), clock);
         PlaybookStepResponse step = playbookService.getSteps(alert.getPlaybookId()).stream()
                 .filter(s -> s.id().equals(stepId))
                 .findFirst()

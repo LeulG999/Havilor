@@ -1,5 +1,6 @@
 package com.leul.havilor.common;
 
+import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
 import com.leul.havilor.common.error.ConflictException;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // ThrowingController is imported only here, so its test endpoints exist in no other context.
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, ErrorHandlingIntegrationTest.ThrowingController.class})
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class, ErrorHandlingIntegrationTest.ThrowingController.class})
 class ErrorHandlingIntegrationTest {
 
     private static final String ALERTS = "/api/v1/alerts";
@@ -46,7 +47,7 @@ class ErrorHandlingIntegrationTest {
                 .andExpect(jsonPath("$.error").value("Bad Request"))
                 .andExpect(jsonPath("$.message").value("Validation failed"))
                 .andExpect(jsonPath("$.path").value(ALERTS))
-                .andExpect(jsonPath("$.timestamp").isNotEmpty())
+                .andExpect(jsonPath("$.timestamp").value(FixedClockConfiguration.NOW.toString()))
                 .andExpect(jsonPath("$.fieldErrors", hasSize(9)))
                 .andExpect(jsonPath("$.fieldErrors[*].field", contains(
                         "caseType", "email.fromAddress", "email.phishScore", "email.subject",

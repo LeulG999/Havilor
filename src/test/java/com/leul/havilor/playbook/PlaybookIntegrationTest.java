@@ -1,5 +1,6 @@
 package com.leul.havilor.playbook;
 
+import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
 import jakarta.persistence.EntityManagerFactory;
 import org.hibernate.SessionFactory;
@@ -25,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Flow 7: the seeded phishing playbook, read through the API.
 @SpringBootTest(properties = "spring.jpa.properties.hibernate.generate_statistics=true")
 @AutoConfigureMockMvc
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
 class PlaybookIntegrationTest {
 
     private static final String PLAYBOOKS = "/api/v1/playbooks";

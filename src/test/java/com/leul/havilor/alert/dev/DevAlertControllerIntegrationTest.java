@@ -1,5 +1,6 @@
 package com.leul.havilor.alert.dev;
 
+import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -27,7 +28,7 @@ class DevAlertControllerIntegrationTest {
     @SpringBootTest
     @AutoConfigureMockMvc
     @ActiveProfiles("dev")
-    @Import(TestcontainersConfiguration.class)
+    @Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
     class WithTheDevProfile {
 
         @Autowired
@@ -75,7 +76,7 @@ class DevAlertControllerIntegrationTest {
     @Nested
     @SpringBootTest
     @AutoConfigureMockMvc
-    @Import(TestcontainersConfiguration.class)
+    @Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
     class WithoutTheDevProfile {
 
         @Autowired

@@ -1,5 +1,6 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Flow 4: every field survives POST → PostgreSQL → GET, and enums are stored as their names.
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
 class FullAlertIntegrationTest {
 
     private static final String ALERTS = "/api/v1/alerts";
@@ -72,8 +73,8 @@ class FullAlertIntegrationTest {
                 .andExpect(jsonPath("$.status").value("NEW"))
                 .andExpect(jsonPath("$.verdict").value("UNDECIDED"))
                 .andExpect(jsonPath("$.suggestedVerdict").isEmpty())
-                .andExpect(jsonPath("$.createdAt").isNotEmpty())
-                .andExpect(jsonPath("$.updatedAt").isNotEmpty())
+                .andExpect(jsonPath("$.createdAt").value(FixedClockConfiguration.NOW.toString()))
+                .andExpect(jsonPath("$.updatedAt").value(FixedClockConfiguration.NOW.toString()))
                 .andExpect(jsonPath("$.email.subject").value("Your mailbox is full"))
                 .andExpect(jsonPath("$.email.envelopeSender").value("bounce@mailer.example.net"))
                 .andExpect(jsonPath("$.email.replyTo").value("collect@harvest.example.net"))

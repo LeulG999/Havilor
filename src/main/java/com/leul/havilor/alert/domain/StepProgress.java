@@ -15,6 +15,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Clock;
 import java.time.Instant;
 
 // The association class between Alert and PlaybookStep: how far this alert is with that step.
@@ -61,9 +62,9 @@ public class StepProgress {
     }
 
     // Finishing sets completedAt; going back to PENDING clears it (the DB CHECK enforces the same pairing).
-    void record(StepStatus newStatus, String newAnswer) {
+    void record(StepStatus newStatus, String newAnswer, Clock clock) {
         this.status = newStatus;
         this.answer = newAnswer;
-        this.completedAt = newStatus == StepStatus.PENDING ? null : Instant.now();
+        this.completedAt = newStatus == StepStatus.PENDING ? null : clock.instant();
     }
 }

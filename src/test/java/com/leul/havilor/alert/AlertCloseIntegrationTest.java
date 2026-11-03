@@ -1,5 +1,6 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Flow 9: POST /api/v1/alerts/{id}/close and its rules, against PostgreSQL.
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
 class AlertCloseIntegrationTest {
 
     private static final String ALERTS = "/api/v1/alerts";
@@ -50,7 +51,7 @@ class AlertCloseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CLOSED"))
                 .andExpect(jsonPath("$.verdict").value("MALICIOUS"))
-                .andExpect(jsonPath("$.closedAt").isNotEmpty())
+                .andExpect(jsonPath("$.closedAt").value(FixedClockConfiguration.NOW.toString()))
                 .andExpect(jsonPath("$.waitingOn").isEmpty())
                 .andExpect(jsonPath("$.recipients.length()").value(1));
 

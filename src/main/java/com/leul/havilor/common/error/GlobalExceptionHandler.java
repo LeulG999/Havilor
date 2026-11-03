@@ -16,7 +16,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import tools.jackson.core.JacksonException;
 
-import java.time.Instant;
+import java.time.Clock;
 import java.util.Comparator;
 import java.util.List;
 
@@ -26,6 +26,12 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    private final Clock clock;
+
+    public GlobalExceptionHandler(Clock clock) {
+        this.clock = clock;
+    }
 
     // 400: @Valid found broken fields in the request body.
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -107,11 +113,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error", request, List.of());
     }
 
-    private static ResponseEntity<ApiError> build(HttpStatusCode status, String message,
+    private ResponseEntity<ApiError> build(HttpStatusCode status, String message,
                                                   HttpServletRequest request,
                                                   List<ApiError.FieldViolation> fieldErrors) {
         ApiError body = new ApiError(status.value(), reason(status), message,
-                request.getRequestURI(), Instant.now(), fieldErrors);
+                request.getRequestURI(), clock.instant(), fieldErrors);
         return ResponseEntity.status(status).body(body);
     }
 

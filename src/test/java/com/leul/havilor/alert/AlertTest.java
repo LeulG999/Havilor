@@ -13,6 +13,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.leul.havilor.FixedClockConfiguration.CLOCK;
+import static com.leul.havilor.FixedClockConfiguration.NOW;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -55,36 +57,36 @@ class AlertTest {
     void closingRecordsTheVerdictAndClearsWaiting() {
         alert.changeWaitingOn("Vendor security team");
 
-        alert.close(Verdict.MALICIOUS);
+        alert.close(Verdict.MALICIOUS, CLOCK);
 
         assertThat(alert.getStatus()).isEqualTo(AlertStatus.CLOSED);
         assertThat(alert.getVerdict()).isEqualTo(Verdict.MALICIOUS);
-        assertThat(alert.getClosedAt()).isNotNull();
+        assertThat(alert.getClosedAt()).isEqualTo(NOW);
         assertThat(alert.getWaitingOn()).isNull();
     }
 
     @Test
     void closingNeedsEveryStepFinished() {
         alert.attachPlaybook(1L, 1, List.of(11L, 12L, 13L));
-        alert.recordStep(11L, StepStatus.DONE, "Spoofed");
+        alert.recordStep(11L, StepStatus.DONE, "Spoofed", CLOCK);
 
-        assertThatThrownBy(() -> alert.close(Verdict.MALICIOUS))
+        assertThatThrownBy(() -> alert.close(Verdict.MALICIOUS, CLOCK))
                 .isInstanceOf(ConflictException.class)
                 .hasMessageEndingWith("has 2 pending steps. Finish or skip every step before closing.");
 
-        alert.recordStep(12L, StepStatus.SKIPPED, null);
-        alert.recordStep(13L, StepStatus.DONE, "Clean");
-        alert.close(Verdict.MALICIOUS);
+        alert.recordStep(12L, StepStatus.SKIPPED, null, CLOCK);
+        alert.recordStep(13L, StepStatus.DONE, "Clean", CLOCK);
+        alert.close(Verdict.MALICIOUS, CLOCK);
         assertThat(alert.getStatus()).isEqualTo(AlertStatus.CLOSED);
     }
 
     @Test
     void closingTwiceOrWithoutADecisionIsRefused() {
-        assertThatThrownBy(() -> alert.close(Verdict.UNDECIDED)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> alert.close(Verdict.UNDECIDED, CLOCK)).isInstanceOf(IllegalArgumentException.class);
 
-        alert.close(Verdict.BENIGN);
+        alert.close(Verdict.BENIGN, CLOCK);
 
-        assertThatThrownBy(() -> alert.close(Verdict.MALICIOUS))
+        assertThatThrownBy(() -> alert.close(Verdict.MALICIOUS, CLOCK))
                 .isInstanceOf(ConflictException.class)
                 .hasMessageEndingWith("is already closed");
         assertThat(alert.getVerdict()).isEqualTo(Verdict.BENIGN);

@@ -20,6 +20,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Clock;
 import java.util.Optional;
 
 @Service
@@ -31,16 +32,18 @@ public class AlertService {
     private final AlertRepository alertRepository;
     private final PlaybookService playbookService;
     private final AlertFactory alertFactory;
+    private final Clock clock;
     // Read-only transaction for loading an alert with its children. A TransactionTemplate (instead of
     // @Transactional) because create() needs it too, and create() calling an annotated method on
     // "this" would skip Spring's proxy, so no transaction would start.
     private final TransactionTemplate readOnlyTx;
 
     public AlertService(AlertRepository alertRepository, PlaybookService playbookService,
-                        AlertFactory alertFactory, PlatformTransactionManager transactionManager) {
+                        AlertFactory alertFactory, Clock clock, PlatformTransactionManager transactionManager) {
         this.alertRepository = alertRepository;
         this.playbookService = playbookService;
         this.alertFactory = alertFactory;
+        this.clock = clock;
         this.readOnlyTx = new TransactionTemplate(transactionManager);
         this.readOnlyTx.setReadOnly(true);
     }
@@ -136,7 +139,7 @@ public class AlertService {
     public AlertDetailResponse close(Long id, CloseAlertRequest request) {
         Alert alert = alertRepository.findForChangeWithStepProgressById(id)
                 .orElseThrow(() -> NotFoundException.of("Alert", id));
-        alert.close(request.verdict());
+        alert.close(request.verdict(), clock);
         alertRepository.flush();
         // Same instance (persistence context): these just fill in the child lists for the response.
         return detailOf(loadWithChildren(id));

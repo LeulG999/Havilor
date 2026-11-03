@@ -1,5 +1,6 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.alert.api.request.CreateAlertRequest;
 import com.leul.havilor.alert.api.request.UpdateAlertRequest;
 import com.leul.havilor.alert.api.response.AlertDetailResponse;
@@ -66,7 +67,7 @@ class AlertServiceTest {
     @BeforeEach
     void setUp() {
         alertService = new AlertService(alertRepository, playbookService, new AlertFactory(),
-                mock(PlatformTransactionManager.class));
+                FixedClockConfiguration.CLOCK, mock(PlatformTransactionManager.class));
     }
 
     @Test

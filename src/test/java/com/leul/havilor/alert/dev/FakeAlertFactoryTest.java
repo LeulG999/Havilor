@@ -1,5 +1,6 @@
 package com.leul.havilor.alert.dev;
 
+import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.alert.api.request.ClickRequest;
 import com.leul.havilor.alert.api.request.CreateAlertRequest;
 import com.leul.havilor.alert.api.request.RecipientRequest;
@@ -19,7 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FakeAlertFactoryTest {
 
     // A fixed seed makes the run repeatable: if a generated alert ever fails, it fails the same way again.
-    private final FakeAlertFactory factory = new FakeAlertFactory(RandomGenerator.of("L64X128MixRandom"));
+    private final FakeAlertFactory factory = new FakeAlertFactory(RandomGenerator.of("L64X128MixRandom"),
+            FixedClockConfiguration.CLOCK);
     private final List<CreateAlertRequest> alerts = IntStream.range(0, 200).mapToObj(i -> factory.next()).toList();
 
     @Test

@@ -1,6 +1,8 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
+import com.leul.havilor.common.ClockConfiguration;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.repository.AlertRepository;
 import org.junit.jupiter.api.Test;
@@ -20,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 // Each test runs in a transaction that is rolled back, so nothing is left behind.
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import(TestcontainersConfiguration.class)
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class, ClockConfiguration.class})
 class AlertRepositoryTest {
 
     @Autowired

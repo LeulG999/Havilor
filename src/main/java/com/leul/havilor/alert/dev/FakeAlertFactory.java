@@ -12,6 +12,7 @@ import com.leul.havilor.alert.domain.Priority;
 import com.leul.havilor.alert.domain.Source;
 import com.leul.havilor.alert.domain.Verdict;
 import com.leul.havilor.common.CaseType;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -43,9 +44,11 @@ class FakeAlertFactory {
             {"statement_%d.html", "text/html"}};
 
     private final RandomGenerator random;
+    private final Clock clock;
 
-    FakeAlertFactory(RandomGenerator random) {
+    FakeAlertFactory(RandomGenerator random, Clock clock) {
         this.random = random;
+        this.clock = clock;
     }
 
     CreateAlertRequest next() {
@@ -71,7 +74,7 @@ class FakeAlertFactory {
             attachments.add(new AttachmentRequest(file[0].formatted(n + i), file[1], fakeSha256(),
                     random.nextBoolean() ? null : Verdict.MALICIOUS));
         }
-        Instant receivedAt = Instant.now().minus(Duration.ofMinutes(random.nextInt(1, 3 * 24 * 60)));
+        Instant receivedAt = clock.instant().minus(Duration.ofMinutes(random.nextInt(1, 3 * 24 * 60)));
         List<ClickRequest> clicks = new ArrayList<>();
         for (UrlRequest url : urls) {
             for (RecipientRequest recipient : recipients) {

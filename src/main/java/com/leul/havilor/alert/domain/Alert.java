@@ -7,6 +7,7 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -14,15 +15,17 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -31,6 +34,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "alert")
+@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA needs it; our code uses the constructor below
 public class Alert {
@@ -125,9 +129,12 @@ public class Alert {
     @OrderBy("id")
     private List<StepProgress> stepProgress = new ArrayList<>();
 
+    // Set by Spring Data JPA auditing from the app Clock (see common/ClockConfiguration).
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @LastModifiedDate
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
@@ -204,13 +211,13 @@ public class Alert {
     }
 
     // Rule: working on a step of a NEW alert means the investigation has started.
-    public StepProgress recordStep(Long stepId, StepStatus status, String answer) {
+    public StepProgress recordStep(Long stepId, StepStatus status, String answer, Clock clock) {
         ensureOpen();
         StepProgress progress = stepProgress.stream()
                 .filter(p -> p.getPlaybookStepId().equals(stepId))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Step " + stepId + " is not part of alert " + id));
-        progress.record(status, blankToNull(answer));
+        progress.record(status, blankToNull(answer), clock);
         if (status != StepStatus.PENDING && this.status == AlertStatus.NEW) {
             this.status = AlertStatus.INVESTIGATING;
         }
@@ -220,7 +227,7 @@ public class Alert {
     // Closing is final. The rules, in the order they are checked:
     // already closed → 409; any step still PENDING → 409. (A real verdict is checked at the API boundary
     // too, but the entity refuses UNDECIDED itself so no other code path can close without a decision.)
-    public void close(Verdict finalVerdict) {
+    public void close(Verdict finalVerdict, Clock clock) {
         if (finalVerdict == null || finalVerdict == Verdict.UNDECIDED) {
             throw new IllegalArgumentException("Closing needs a verdict other than UNDECIDED");
         }
@@ -234,7 +241,7 @@ public class Alert {
         }
         this.status = AlertStatus.CLOSED;
         this.verdict = finalVerdict;
-        this.closedAt = Instant.now();
+        this.closedAt = clock.instant();
         this.waitingOn = null; // nothing to wait for any more
     }
 
@@ -282,16 +289,5 @@ public class Alert {
 
     public List<Attachment> getAttachments() {
         return Collections.unmodifiableList(attachments);
-    }
-
-    @PrePersist
-    void onCreate() {
-        createdAt = Instant.now();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = Instant.now();
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Clock;
 import java.util.List;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
@@ -26,10 +27,11 @@ import java.util.stream.IntStream;
 public class DevAlertController {
 
     private final AlertService alertService;
-    private final FakeAlertFactory factory = new FakeAlertFactory(RandomGenerator.getDefault());
+    private final FakeAlertFactory factory;
 
-    public DevAlertController(AlertService alertService) {
+    public DevAlertController(AlertService alertService, Clock clock) {
         this.alertService = alertService;
+        this.factory = new FakeAlertFactory(RandomGenerator.getDefault(), clock);
     }
 
     @PostMapping("/generate-alerts")
