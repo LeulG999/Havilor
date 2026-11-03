@@ -2,6 +2,7 @@ package com.leul.havilor.alert;
 
 import com.leul.havilor.common.PageResponse;
 import com.leul.havilor.common.Paging;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,7 +29,7 @@ public class AlertController {
     // 201 Created for a new ticket, 200 OK with the stored alert for a ticket we already have.
     // Both point Location at the alert.
     @PostMapping
-    public ResponseEntity<AlertResponse> create(@RequestBody CreateAlertRequest request) {
+    public ResponseEntity<AlertResponse> create(@Valid @RequestBody CreateAlertRequest request) {
         CreateAlertResult result = alertService.create(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
