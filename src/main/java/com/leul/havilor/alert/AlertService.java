@@ -118,6 +118,21 @@ public class AlertService {
         return AlertDetailResponse.from(alert);
     }
 
+    /**
+     * Close with the analyst's verdict. Several rules, one transaction: either every check passes and the
+     * alert is closed, or nothing changes. Alert.close checks "already closed" and "pending steps";
+     * the controller already refused a missing or UNDECIDED verdict (400).
+     */
+    @Transactional
+    public AlertDetailResponse close(Long id, CloseAlertRequest request) {
+        Alert alert = alertRepository.findWithStepProgressForChangeById(id)
+                .orElseThrow(() -> NotFoundException.of("Alert", id));
+        alert.close(request.verdict());
+        alertRepository.flush();
+        // Same instance (persistence context): these just fill in the child lists for the response.
+        return AlertDetailResponse.from(loadWithChildren(id));
+    }
+
     private AlertDetailResponse readDetail(Long id) {
         return readOnlyTx.execute(status -> AlertDetailResponse.from(loadWithChildren(id)));
     }

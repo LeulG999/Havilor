@@ -1,6 +1,8 @@
 package com.leul.havilor.alert;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
@@ -26,7 +28,16 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     @Query("select a from Alert a left join fetch a.attachments where a.id = :id")
     Optional<Alert> findWithAttachmentsById(Long id);
 
-    // For the steps endpoints and closing: the alert and its step progress, in one query.
+    // For reading steps: the alert and its step progress, in one query.
     @Query("select a from Alert a left join fetch a.stepProgress where a.id = :id")
     Optional<Alert> findWithStepProgressById(Long id);
+
+    // For changing steps and for closing. OPTIMISTIC_FORCE_INCREMENT bumps the alert's @Version at commit
+    // even if no alert column changed. So "tick a step" and "close the alert" can't both succeed from the
+    // same starting point: the second one to commit gets an optimistic-lock failure (409).
+    // Without it, a step set back to PENDING while the alert is being closed could leave a closed alert
+    // with a pending step.
+    @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
+    @Query("select a from Alert a left join fetch a.stepProgress where a.id = :id")
+    Optional<Alert> findWithStepProgressForChangeById(Long id);
 }

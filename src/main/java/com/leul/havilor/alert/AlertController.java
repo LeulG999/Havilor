@@ -54,6 +54,12 @@ public class AlertController {
         return alertService.getById(id);
     }
 
+    // The analyst's final decision. 400: no verdict / UNDECIDED; 409: already closed or steps still pending.
+    @PostMapping("/{id}/close")
+    public AlertDetailResponse close(@PathVariable Long id, @Valid @RequestBody CloseAlertRequest request) {
+        return alertService.close(id, request);
+    }
+
     // Partial update: only the fields that are sent change. Closed alert or stale version → 409.
     @PatchMapping("/{id}")
     public AlertDetailResponse update(@PathVariable Long id, @Valid @RequestBody UpdateAlertRequest request) {

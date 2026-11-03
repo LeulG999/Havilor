@@ -43,7 +43,8 @@ public class AlertStepService {
     // Closed alert → 409 (Alert.ensureOpen); step not on this alert → 404.
     @Transactional
     public AlertStepResponse updateStep(Long alertId, Long stepId, UpdateStepRequest request) {
-        Alert alert = loadWithProgress(alertId);
+        Alert alert = alertRepository.findWithStepProgressForChangeById(alertId)
+                .orElseThrow(() -> NotFoundException.of("Alert", alertId));
         StepProgress progress = alert.recordStep(stepId, request.status(), request.answer());
         PlaybookStepResponse step = playbookService.getSteps(alert.getPlaybookId()).stream()
                 .filter(s -> s.id().equals(stepId))
