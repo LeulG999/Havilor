@@ -1,5 +1,6 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.common.ConflictException;
 import com.leul.havilor.common.NotFoundException;
 import com.leul.havilor.common.PageResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -153,6 +154,33 @@ class AlertServiceTest {
         PageResponse<AlertSummaryResponse> page = alertService.list(0, 500);
 
         assertThat(page.size()).isEqualTo(100);
+    }
+
+    @Test
+    void updateChangesOnlyTheFieldsThatWereSent() {
+        Alert alert = withId(TestAlerts.alert(TICKET, "Fake", RECEIVED_AT), 11L);
+        stubDetailLoad(alert);
+
+        AlertDetailResponse updated = alertService.update(11L,
+                new UpdateAlertRequest(null, 7L, null, null, null, null));
+
+        assertThat(updated.assigneeId()).isEqualTo(7L);
+        assertThat(updated.status()).isEqualTo(AlertStatus.INVESTIGATING);
+        assertThat(updated.priority()).isEqualTo(Priority.MEDIUM);
+        verify(alertRepository).flush();
+    }
+
+    @Test
+    void updateRefusesAStaleVersion() {
+        Alert alert = withId(TestAlerts.alert(TICKET, "Fake", RECEIVED_AT), 12L);
+        ReflectionTestUtils.setField(alert, "version", 3L);
+        stubDetailLoad(alert);
+
+        assertThatThrownBy(() -> alertService.update(12L,
+                new UpdateAlertRequest(Priority.LOW, null, null, null, null, 2L)))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("version 3, you sent 2");
+        assertThat(alert.getPriority()).isEqualTo(Priority.MEDIUM);
     }
 
     private void stubDetailLoad(Alert alert) {
