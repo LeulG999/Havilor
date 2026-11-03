@@ -4,7 +4,7 @@
 module border with ArchUnit. **No behaviour change**: the same endpoints, JSON, SQL and rules. 89 tests passing:
 the 86 from Flow 10, minus the old import-scanning `ModuleBorderTest`, plus 4 ArchUnit rules.
 
-**Commit:** `refactor: organize modules into layer sub-packages`
+**Commits:** `refactor: organize modules into layer sub-packages` (steps 1–2), then one commit each for steps 3–6 below.
 
 ## New layout
 
@@ -18,7 +18,7 @@ alert/
   domain/         Alert, EmailDetails, Recipient, Url, Attachment, ClickEvent, StepProgress,
                   AlertStatus, Priority, Source, Verdict, AuthResult, DeliveryStatus, StepStatus
   repository/     AlertRepository
-  service/        AlertService, AlertStepService, CreateAlertResult
+  service/        AlertService, AlertStepService, AlertFactory, CreateAlertResult
   dev/            DevAlertController, FakeAlertFactory   (was top-level dev/, see below)
 playbook/
   api/            PlaybookController
@@ -26,7 +26,7 @@ playbook/
   domain/         Playbook, PlaybookStep, AnswerOptionsConverter
   repository/     PlaybookRepository
   service/        PlaybookService, ActivePlaybook
-common/           CaseType
+common/           CaseType, ClockConfiguration
   error/          ApiError, GlobalExceptionHandler, NotFoundException, ConflictException, BadRequestException
   paging/         PageResponse, Paging
 ```
@@ -84,10 +84,33 @@ Today the only cross-module use is `alert.service` → `playbook.service.Playboo
 5. `./mvnw test` → 89 tests, 0 failures.
 6. Updated the file paths in `docs/progress/flow-*.md` and the README.
 
+## Follow-up steps 3–6
+
+| Step | Commit | Change |
+|---|---|---|
+| 3 | `refactor(alert): move alert graph building from CreateAlertRequest into AlertFactory` | New `alert/service/AlertFactory` (`@Component`, injected into `AlertService`) builds the `Alert`, its children and clicks from a `CreateAlertRequest`, including the click-matching 400s. `toAlert()` and the child `toX()` mappers are gone: request DTOs are **data-only** (fields + validation annotations, plus `CreateAlertRequest`'s null-list normalising). |
+| 4 | `refactor: inject a Clock instead of calling Instant.now(); fixed clock in tests` | `common/ClockConfiguration` defines a `Clock` bean (`systemUTC`). The domain receives it as an argument (`Alert.close(verdict, clock)`, `Alert.recordStep(..., clock)` → `StepProgress.record(..., clock)`), and services, `GlobalExceptionHandler` and the fake generator inject it. `createdAt`/`updatedAt` moved from `@PrePersist`/`@PreUpdate` to Spring Data JPA auditing (`@CreatedDate`, `@LastModifiedDate`, `@EnableJpaAuditing(dateTimeProviderRef)`), whose `DateTimeProvider` reads the same `Clock`. Tests import `FixedClockConfiguration` (`@Primary` `Clock.fixed(2026-11-01T12:00:00Z)`), so `createdAt`, `updatedAt`, `closedAt`, `completedAt` and error `timestamp` are asserted **exactly**. |
+| 5 | `fix(alert): refuse closing without a decided verdict with BadRequestException` | `Alert.close` throws `BadRequestException("verdict", …)` → 400, instead of `IllegalArgumentException`, which would have been a 500. The only behaviour change, and only reachable if a future code path skipped `@DecidedVerdict`. |
+| 6 | `refactor(alert): remove unused AlertRepository.findByTicketNumber` | Production code uses `findIdByTicketNumber` since Flow 5; the repository test was switched to it. |
+
+Step decisions:
+- **Why pass the `Clock` into domain methods instead of injecting it:** entities are created by JPA, not Spring, so
+  they can't have beans injected. A method argument keeps the dependency visible and makes unit tests trivial
+  (`alert.close(MALICIOUS, fixedClock)`).
+- **Why JPA auditing for the timestamps:** `@PrePersist`/`@PreUpdate` run inside the entity, where there is no
+  `Clock`. Spring Data's `AuditingEntityListener` is a Spring-aware listener that takes "now" from our
+  `DateTimeProvider`. `@DataJpaTest` doesn't load `@Configuration` classes, so `AlertRepositoryTest` imports
+  `ClockConfiguration` explicitly.
+- **Response DTOs keep their static `from(...)` factories.** Step 3 was about request-side graph building;
+  read-side mapping stays a one-line factory per DTO.
+
 ## New concepts introduced
 
 - **Package by feature, then by layer** inside the feature.
 - **ArchUnit**: architecture rules as unit tests (`noClasses().that()…should().dependOnClassesThat()…`).
 - **Visibility vs architecture tests**: package-private works only while caller and callee share a package; once
   layers split, a rule test takes over.
+- **`java.time.Clock` as an injectable dependency**, and fixed clocks for deterministic tests.
+- **Spring Data JPA auditing** (`@CreatedDate`, `@LastModifiedDate`, `DateTimeProvider`).
+- **Factories in the service layer** to keep DTOs as plain data.
 - **Refactoring safely**: `git mv` + mechanical rewrite + compiler-driven fixes + an unchanged test suite.

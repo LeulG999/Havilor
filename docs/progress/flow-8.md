@@ -6,6 +6,8 @@ progress row per step. The analyst reads the steps (with *why it matters*) and w
 
 **Built on:** `main` · **Status:** done, 69 tests passing, pushed
 
+> **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** `Alert.recordStep(...)` now takes the app `Clock` for `completedAt`.
+
 > **Later change (layer refactor, after Flow 10):** classes moved into `api/`, `api/request/`, `api/response/`, `domain/`, `repository/` and `service/` sub-packages (paths below are the new ones). `PlaybookRepository` had to become public for `playbook/service/` to use it, so the border is now enforced by an ArchUnit test (`ModuleBorderTest`) instead of Java visibility. See [refactor-layers.md](refactor-layers.md).
 
 ## The API

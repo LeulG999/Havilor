@@ -8,6 +8,8 @@ creates a duplicate.
 
 **Branch:** `feature/alert-save-and-read` · **Status:** done, 13 tests passing, pushed
 
+> **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** `AlertRepository.findByTicketNumber` was removed; the duplicate check uses `findIdByTicketNumber` (Flow 5), and the repository test now does too.
+
 ## Decision: what the API returns for a duplicate
 
 | Request | Status | Body | `Location` |

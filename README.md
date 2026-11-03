@@ -48,16 +48,18 @@ waiting for their slices.
 - Business rules live on the entities (`Alert.assignTo`, `Alert.close`...), not in setters spread over services.
 - The REST API lives under `/api/v1` and only returns DTOs, never database entities.
 - Every error goes through one `@RestControllerAdvice` and has one shape.
+- "Now" comes from one injected `java.time.Clock` (tests use a fixed one), never `Instant.now()`.
+- Request DTOs are plain data; `AlertFactory` turns a request into an alert with its children.
 
 ```
 alert/
   api/            controllers           api/request/   request DTOs     api/response/  response DTOs
   domain/         Alert (+ embedded EmailDetails), Recipient, Url, Attachment, ClickEvent, StepProgress, enums
-  repository/     AlertRepository       service/       AlertService, AlertStepService
+  repository/     AlertRepository       service/       AlertService, AlertStepService, AlertFactory
   dev/            fake alert generator (only with the "dev" profile)
 playbook/
   api/  api/response/  domain/ (Playbook, PlaybookStep: seeded, immutable, versioned)  repository/  service/
-common/           CaseType
+common/           CaseType, ClockConfiguration (the one Clock for "now")
   error/          ApiError, GlobalExceptionHandler, NotFound/Conflict/BadRequest exceptions
   paging/         PageResponse, Paging
 ```

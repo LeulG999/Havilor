@@ -6,6 +6,8 @@ timestamps, and the **embedded email details** (14 columns in the `alert` table,
 
 **Built on:** `main` · **Status:** done, 37 tests passing, pushed
 
+> **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** `createdAt`/`updatedAt` are now set by Spring Data JPA auditing (`@CreatedDate`, `@LastModifiedDate`) from the app `Clock`, not by `@PrePersist`/`@PreUpdate`; `EmailDetailsRequest.toEmailDetails()` moved into `alert/service/AlertFactory.java`.
+
 ## The API now
 
 ```json

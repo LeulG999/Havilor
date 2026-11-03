@@ -11,6 +11,8 @@ contract-style API tests in Postman.
 
 **Built on:** `main` · **Status:** done, **86 tests** passing (Testcontainers), Postman loop 23 requests / 25 assertions green, pushed
 
+> **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** click matching (`BadRequestException` for an unknown recipient/URL) moved from `CreateAlertRequest.toAlert()` into `alert/service/AlertFactory.java`; the fake generator and the error `timestamp` use the app `Clock`.
+
 ## 1. Click events
 
 ```json

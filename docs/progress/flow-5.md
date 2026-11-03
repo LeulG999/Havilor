@@ -6,6 +6,8 @@ child rows of the alert. The list returns a light summary; the detail view retur
 
 **Built on:** `main` · **Status:** done, 43 tests passing, pushed
 
+> **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** the request mappers (`toAlert()`, `toRecipient()`, `toUrl()`, `toAttachment()`) moved into `alert/service/AlertFactory.java`; the request DTOs are data-only now.
+
 ## The API now
 
 ```json

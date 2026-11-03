@@ -6,6 +6,8 @@ rule allows it.
 
 **Built on:** `main` · **Status:** done, 78 tests passing, pushed
 
+> **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** `Alert.close(verdict, clock)` takes the app `Clock` for `closedAt`, and a missing/UNDECIDED verdict now throws `BadRequestException` (400) instead of `IllegalArgumentException` (which would have been a 500 if any code path ever reached it).
+
 ## The API
 
 ```json
