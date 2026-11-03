@@ -13,7 +13,7 @@ but the analyst always makes the decision.
 
 - [x] 0. Foundation: app starts, PostgreSQL in Docker, Flyway, module folders
 - [x] 1. Save one alert and read it back (`POST /alerts`, `GET /alerts/{id}`), idempotent on `ticketNumber`
-- [ ] 2. List alerts with paging (`GET /alerts`)
+- [x] 2. List alerts with paging (`GET /alerts`), newest first
 - [ ] 3. Handle mistakes: validation (400), not found (404), one error format
 - [ ] 4. Grow the alert: full fields, embedded email details, enums
 - [ ] 5. Alert children: recipients, URLs, attachments
@@ -46,6 +46,7 @@ Havilor is a **modular monolith**: one Spring Boot application split into featur
 | Method | Path | Result |
 |---|---|---|
 | `POST` | `/api/v1/alerts` | **201** + `Location` for a new `ticketNumber`; **200** + `Location` with the stored alert if that ticket already exists (nothing is changed) |
+| `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alerts, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
 | `GET` | `/api/v1/alerts/{id}` | **200** with the alert, **404** if there is none |
 
 ```bash

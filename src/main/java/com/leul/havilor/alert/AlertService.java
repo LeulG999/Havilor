@@ -1,6 +1,10 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.common.PageResponse;
+import com.leul.havilor.common.Paging;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -8,6 +12,9 @@ import java.util.Optional;
 
 @Service
 public class AlertService {
+
+    // Newest first; id breaks ties so alerts with the same receivedAt never jump between pages.
+    private static final Sort NEWEST_FIRST = Sort.by(Sort.Order.desc("receivedAt"), Sort.Order.desc("id"));
 
     private final AlertRepository alertRepository;
 
@@ -47,5 +54,13 @@ public class AlertService {
     @Transactional(readOnly = true)
     public Optional<AlertResponse> findById(Long id) {
         return alertRepository.findById(id).map(AlertResponse::from);
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<AlertResponse> list(int page, int size) {
+        Page<AlertResponse> alerts = alertRepository
+                .findAll(Paging.pageRequest(page, size, NEWEST_FIRST))
+                .map(AlertResponse::from);
+        return PageResponse.from(alerts);
     }
 }

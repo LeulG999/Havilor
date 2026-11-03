@@ -1,14 +1,20 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.common.PageResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,6 +100,37 @@ class AlertServiceTest {
         when(alertRepository.findById(404L)).thenReturn(Optional.empty());
 
         assertThat(alertService.findById(404L)).isEmpty();
+    }
+
+    @Test
+    void listAsksForNewestFirstAndMapsToPageResponse() {
+        Alert alert = withId(new Alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 5L);
+        when(alertRepository.findAll(any(Pageable.class)))
+                .thenAnswer(call -> new PageImpl<>(List.of(alert), call.getArgument(0), 41));
+
+        PageResponse<AlertResponse> page = alertService.list(2, 20);
+
+        ArgumentCaptor<Pageable> asked = ArgumentCaptor.forClass(Pageable.class);
+        verify(alertRepository).findAll(asked.capture());
+        assertThat(asked.getValue().getPageNumber()).isEqualTo(2);
+        assertThat(asked.getValue().getPageSize()).isEqualTo(20);
+        assertThat(asked.getValue().getSort())
+                .isEqualTo(Sort.by(Sort.Order.desc("receivedAt"), Sort.Order.desc("id")));
+
+        assertThat(page.content()).extracting(AlertResponse::id).containsExactly(5L);
+        assertThat(page.page()).isEqualTo(2);
+        assertThat(page.totalElements()).isEqualTo(41);
+        assertThat(page.totalPages()).isEqualTo(3);
+    }
+
+    @Test
+    void listCapsOversizedPages() {
+        when(alertRepository.findAll(any(Pageable.class)))
+                .thenAnswer(call -> new PageImpl<>(List.of(), call.getArgument(0), 0));
+
+        PageResponse<AlertResponse> page = alertService.list(0, 500);
+
+        assertThat(page.size()).isEqualTo(100);
     }
 
     private static CreateAlertRequest request(String subject) {
