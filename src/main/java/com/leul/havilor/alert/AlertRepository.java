@@ -25,4 +25,8 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
 
     @Query("select a from Alert a left join fetch a.attachments where a.id = :id")
     Optional<Alert> findWithAttachmentsById(Long id);
+
+    // For the steps endpoints and closing: the alert and its step progress, in one query.
+    @Query("select a from Alert a left join fetch a.stepProgress where a.id = :id")
+    Optional<Alert> findWithStepProgressById(Long id);
 }
