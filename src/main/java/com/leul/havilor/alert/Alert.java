@@ -2,6 +2,7 @@ package com.leul.havilor.alert;
 
 import com.leul.havilor.common.CaseType;
 import com.leul.havilor.common.ConflictException;
+import com.leul.havilor.common.NotFoundException;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -112,6 +113,18 @@ public class Alert {
     @OrderBy("id")
     private List<Attachment> attachments = new ArrayList<>();
 
+    // The playbook chosen when the alert arrived, by id + version only (it lives in another module).
+    // null when no playbook is active for the case type.
+    @Column(name = "playbook_id")
+    private Long playbookId;
+
+    @Column(name = "playbook_version")
+    private Integer playbookVersion;
+
+    @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id")
+    private List<StepProgress> stepProgress = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -174,6 +187,42 @@ public class Alert {
     public void changeFollowUpOn(LocalDate followUpOn) {
         ensureOpen();
         this.followUpOn = followUpOn;
+    }
+
+    // Called once, when the alert is created: one PENDING progress row per playbook step.
+    public void attachPlaybook(Long playbookId, int playbookVersion, List<Long> stepIds) {
+        if (this.playbookId != null) {
+            throw new IllegalStateException("Alert already follows playbook " + this.playbookId);
+        }
+        this.playbookId = playbookId;
+        this.playbookVersion = playbookVersion;
+        for (Long stepId : stepIds) {
+            StepProgress progress = new StepProgress(stepId);
+            stepProgress.add(progress);
+            progress.belongTo(this);
+        }
+    }
+
+    // Rule: working on a step of a NEW alert means the investigation has started.
+    public StepProgress recordStep(Long stepId, StepStatus status, String answer) {
+        ensureOpen();
+        StepProgress progress = stepProgress.stream()
+                .filter(p -> p.getPlaybookStepId().equals(stepId))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("Step " + stepId + " is not part of alert " + id));
+        progress.record(status, blankToNull(answer));
+        if (status != StepStatus.PENDING && this.status == AlertStatus.NEW) {
+            this.status = AlertStatus.INVESTIGATING;
+        }
+        return progress;
+    }
+
+    public long pendingStepCount() {
+        return stepProgress.stream().filter(StepProgress::isPending).count();
+    }
+
+    public List<StepProgress> getStepProgress() {
+        return Collections.unmodifiableList(stepProgress);
     }
 
     private static String blankToNull(String text) {
