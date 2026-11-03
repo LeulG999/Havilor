@@ -12,6 +12,7 @@ import com.leul.havilor.alert.domain.StepProgress;
 import com.leul.havilor.alert.domain.StepStatus;
 import com.leul.havilor.alert.domain.Verdict;
 import com.leul.havilor.alert.repository.AlertRepository;
+import com.leul.havilor.alert.service.AlertFactory;
 import com.leul.havilor.alert.service.AlertService;
 import com.leul.havilor.alert.service.CreateAlertResult;
 import com.leul.havilor.common.CaseType;
@@ -64,7 +65,8 @@ class AlertServiceTest {
 
     @BeforeEach
     void setUp() {
-        alertService = new AlertService(alertRepository, playbookService, mock(PlatformTransactionManager.class));
+        alertService = new AlertService(alertRepository, playbookService, new AlertFactory(),
+                mock(PlatformTransactionManager.class));
     }
 
     @Test
@@ -104,7 +106,7 @@ class AlertServiceTest {
 
     @Test
     void childrenPointBackToTheirAlert() {
-        Alert alert = TestAlerts.request(TICKET, "Fake", RECEIVED_AT).toAlert();
+        Alert alert = new AlertFactory().create(TestAlerts.request(TICKET, "Fake", RECEIVED_AT));
 
         assertThat(alert.getRecipients()).allSatisfy(r -> assertThat(r.getAlert()).isSameAs(alert));
     }

@@ -30,15 +30,17 @@ public class AlertService {
 
     private final AlertRepository alertRepository;
     private final PlaybookService playbookService;
+    private final AlertFactory alertFactory;
     // Read-only transaction for loading an alert with its children. A TransactionTemplate (instead of
     // @Transactional) because create() needs it too, and create() calling an annotated method on
     // "this" would skip Spring's proxy, so no transaction would start.
     private final TransactionTemplate readOnlyTx;
 
     public AlertService(AlertRepository alertRepository, PlaybookService playbookService,
-                        PlatformTransactionManager transactionManager) {
+                        AlertFactory alertFactory, PlatformTransactionManager transactionManager) {
         this.alertRepository = alertRepository;
         this.playbookService = playbookService;
+        this.alertFactory = alertFactory;
         this.readOnlyTx = new TransactionTemplate(transactionManager);
         this.readOnlyTx.setReadOnly(true);
     }
@@ -58,7 +60,7 @@ public class AlertService {
             return CreateAlertResult.alreadyExisted(readDetail(existingId.get()));
         }
 
-        Alert alert = request.toAlert();
+        Alert alert = alertFactory.create(request);
         // Crossing the module border: ask the playbook module, get ids back, never touch its entities.
         playbookService.findActiveFor(alert.getCaseType())
                 .ifPresent(p -> alert.attachPlaybook(p.id(), p.version(), p.stepIds()));

@@ -1,6 +1,5 @@
 package com.leul.havilor.alert.api.request;
 
-import com.leul.havilor.alert.domain.Url;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -11,8 +10,4 @@ public record UrlRequest(
         @Size(max = 253) String domain,
         Boolean onBadList
 ) {
-
-    Url toUrl() {
-        return new Url(address, domain, Boolean.TRUE.equals(onBadList));
-    }
 }

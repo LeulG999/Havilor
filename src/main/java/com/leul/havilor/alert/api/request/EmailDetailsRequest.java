@@ -1,7 +1,6 @@
 package com.leul.havilor.alert.api.request;
 
 import com.leul.havilor.alert.domain.AuthResult;
-import com.leul.havilor.alert.domain.EmailDetails;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -26,23 +25,4 @@ public record EmailDetailsRequest(
         @Size(max = 100) String quarantineFolder,
         @Size(max = 100_000) String rawHeaders
 ) {
-
-    EmailDetails toEmailDetails() {
-        return EmailDetails.builder()
-                .subject(subject)
-                .fromAddress(fromAddress)
-                .envelopeSender(envelopeSender)
-                .senderHeader(senderHeader)
-                .replyTo(replyTo)
-                .xMailer(xMailer)
-                .spfResult(spfResult)
-                .dkimResult(dkimResult)
-                .dmarcResult(dmarcResult)
-                .phishScore(phishScore)
-                .spamScore(spamScore)
-                .filterAction(filterAction)
-                .quarantineFolder(quarantineFolder)
-                .rawHeaders(rawHeaders)
-                .build();
-    }
 }
