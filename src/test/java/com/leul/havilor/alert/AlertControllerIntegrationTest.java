@@ -57,7 +57,7 @@ class AlertControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.ticketNumber").value(ticket))
-                .andExpect(jsonPath("$.subject").value("Fake invoice overdue"))
+                .andExpect(jsonPath("$.email.subject").value("Fake invoice overdue"))
                 .andExpect(jsonPath("$.status").value("NEW"))
                 .andExpect(jsonPath("$.receivedAt").value("2026-10-28T14:00:00Z"))
                 .andReturn();
@@ -95,7 +95,7 @@ class AlertControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string("Location", endsWith(ALERTS + "/" + firstId)))
                 .andExpect(jsonPath("$.id").value(firstId))
-                .andExpect(jsonPath("$.subject").value("Fake invoice overdue"));
+                .andExpect(jsonPath("$.email.subject").value("Fake invoice overdue"));
 
         assertThat(rowsFor(ticket)).isEqualTo(1);
     }
@@ -151,9 +151,7 @@ class AlertControllerIntegrationTest {
     }
 
     private static String json(String ticket, String subject) {
-        return """
-                {"ticketNumber": "%s", "subject": "%s", "receivedAt": "2026-10-28T14:00:00Z"}
-                """.formatted(ticket, subject);
+        return TestAlerts.json(ticket, subject, "2026-10-28T14:00:00Z");
     }
 
     private static String uniqueTicket() {

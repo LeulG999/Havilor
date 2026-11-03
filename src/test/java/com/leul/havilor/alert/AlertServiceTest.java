@@ -47,26 +47,27 @@ class AlertServiceTest {
 
         assertThat(result.wasCreated()).isTrue();
         assertThat(result.alert().id()).isEqualTo(1L);
-        assertThat(result.alert().status()).isEqualTo("NEW");
-        assertThat(result.alert().subject()).isEqualTo("Fake invoice overdue");
+        assertThat(result.alert().status()).isEqualTo(AlertStatus.NEW);
+        assertThat(result.alert().verdict()).isEqualTo(Verdict.UNDECIDED);
+        assertThat(result.alert().email().subject()).isEqualTo("Fake invoice overdue");
     }
 
     @Test
     void returnsExistingAlertWhenTicketAlreadyExists() {
-        Alert existing = withId(new Alert(TICKET, "Original subject", RECEIVED_AT), 7L);
+        Alert existing = withId(TestAlerts.alert(TICKET, "Original subject", RECEIVED_AT), 7L);
         when(alertRepository.findByTicketNumber(TICKET)).thenReturn(Optional.of(existing));
 
         CreateAlertResult result = alertService.create(request("Different subject on resend"));
 
         assertThat(result.wasCreated()).isFalse();
         assertThat(result.alert().id()).isEqualTo(7L);
-        assertThat(result.alert().subject()).isEqualTo("Original subject"); // stored alert is not changed
+        assertThat(result.alert().email().subject()).isEqualTo("Original subject"); // stored alert is not changed
         verify(alertRepository, never()).saveAndFlush(any());
     }
 
     @Test
     void returnsExistingAlertWhenAConcurrentRequestWinsTheRace() {
-        Alert winner = withId(new Alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 9L);
+        Alert winner = withId(TestAlerts.alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 9L);
         // First check: not there yet. After our insert fails: the other request's row is there.
         when(alertRepository.findByTicketNumber(TICKET)).thenReturn(Optional.empty(), Optional.of(winner));
         when(alertRepository.saveAndFlush(any(Alert.class)))
@@ -91,7 +92,7 @@ class AlertServiceTest {
     @Test
     void getByIdReturnsAlertWhenPresent() {
         when(alertRepository.findById(3L))
-                .thenReturn(Optional.of(withId(new Alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 3L)));
+                .thenReturn(Optional.of(withId(TestAlerts.alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 3L)));
 
         assertThat(alertService.getById(3L).ticketNumber()).isEqualTo(TICKET);
     }
@@ -107,7 +108,7 @@ class AlertServiceTest {
 
     @Test
     void listAsksForNewestFirstAndMapsToPageResponse() {
-        Alert alert = withId(new Alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 5L);
+        Alert alert = withId(TestAlerts.alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 5L);
         when(alertRepository.findAll(any(Pageable.class)))
                 .thenAnswer(call -> new PageImpl<>(List.of(alert), call.getArgument(0), 41));
 
@@ -137,7 +138,7 @@ class AlertServiceTest {
     }
 
     private static CreateAlertRequest request(String subject) {
-        return new CreateAlertRequest(TICKET, subject, RECEIVED_AT);
+        return TestAlerts.request(TICKET, subject, RECEIVED_AT);
     }
 
     // The database sets the id; in a unit test we set it ourselves.

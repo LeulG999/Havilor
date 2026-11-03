@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
@@ -36,7 +37,7 @@ class ErrorHandlingIntegrationTest {
     void invalidFieldsGive400WithFieldErrors() throws Exception {
         mockMvc.perform(post(ALERTS).contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"ticketNumber": "  ", "subject": "%s"}
+                                {"ticketNumber": "  ", "email": {"subject": "%s", "phishScore": 101}}
                                 """.formatted("x".repeat(501))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
@@ -44,10 +45,21 @@ class ErrorHandlingIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Validation failed"))
                 .andExpect(jsonPath("$.path").value(ALERTS))
                 .andExpect(jsonPath("$.timestamp").isNotEmpty())
-                .andExpect(jsonPath("$.fieldErrors", hasSize(3)))
-                .andExpect(jsonPath("$.fieldErrors[0].field").value("receivedAt"))
-                .andExpect(jsonPath("$.fieldErrors[1].field").value("subject"))
-                .andExpect(jsonPath("$.fieldErrors[2].field").value("ticketNumber"));
+                .andExpect(jsonPath("$.fieldErrors", hasSize(8)))
+                .andExpect(jsonPath("$.fieldErrors[*].field", contains(
+                        "caseType", "email.fromAddress", "email.phishScore", "email.subject",
+                        "priority", "receivedAt", "source", "ticketNumber")));
+    }
+
+    @Test
+    void unknownEnumValueGives400NamingTheField() throws Exception {
+        mockMvc.perform(post(ALERTS).contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"ticketNumber": "INC-X", "priority": "URGENT"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Request body has an unreadable value"))
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("priority"));
     }
 
     @Test

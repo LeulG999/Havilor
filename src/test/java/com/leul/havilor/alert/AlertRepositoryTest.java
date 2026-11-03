@@ -43,7 +43,7 @@ class AlertRepositoryTest {
     }
 
     private static Alert newAlert(String ticketNumber) {
-        return new Alert(ticketNumber, "Fake invoice overdue", Instant.parse("2026-10-28T14:00:00Z"));
+        return TestAlerts.alert(ticketNumber, "Fake invoice overdue", Instant.parse("2026-10-28T14:00:00Z"));
     }
 
     private static String uniqueTicket() {

@@ -98,9 +98,7 @@ class AlertListIntegrationTest {
         String ticket = "INC-IT-" + UUID.randomUUID();
         mockMvc.perform(post(ALERTS)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"ticketNumber": "%s", "subject": "Fake invoice overdue", "receivedAt": "%s"}
-                                """.formatted(ticket, receivedAt)))
+                        .content(TestAlerts.json(ticket, "Fake invoice overdue", receivedAt)))
                 .andExpect(status().isCreated());
         return ticket;
     }
