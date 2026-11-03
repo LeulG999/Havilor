@@ -217,6 +217,27 @@ public class Alert {
         return progress;
     }
 
+    // Closing is final. The rules, in the order they are checked:
+    // already closed → 409; any step still PENDING → 409. (A real verdict is checked at the API boundary
+    // too, but the entity refuses UNDECIDED itself so no other code path can close without a decision.)
+    public void close(Verdict finalVerdict) {
+        if (finalVerdict == null || finalVerdict == Verdict.UNDECIDED) {
+            throw new IllegalArgumentException("Closing needs a verdict other than UNDECIDED");
+        }
+        if (status == AlertStatus.CLOSED) {
+            throw new ConflictException("Alert " + id + " is already closed");
+        }
+        long pending = pendingStepCount();
+        if (pending > 0) {
+            throw new ConflictException("Alert " + id + " has " + pending + " pending step"
+                    + (pending == 1 ? "" : "s") + ". Finish or skip every step before closing.");
+        }
+        this.status = AlertStatus.CLOSED;
+        this.verdict = finalVerdict;
+        this.closedAt = Instant.now();
+        this.waitingOn = null; // nothing to wait for any more
+    }
+
     public long pendingStepCount() {
         return stepProgress.stream().filter(StepProgress::isPending).count();
     }
