@@ -74,7 +74,8 @@ class AlertControllerIntegrationTest {
     @Test
     void getUnknownIdReturns404() throws Exception {
         mockMvc.perform(get(ALERTS + "/{id}", Long.MAX_VALUE))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Alert " + Long.MAX_VALUE + " not found"));
     }
 
     @Test
