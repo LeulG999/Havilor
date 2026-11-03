@@ -12,6 +12,7 @@ import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import tools.jackson.core.JacksonException;
 
@@ -33,6 +34,17 @@ public class GlobalExceptionHandler {
                 .map(f -> new ApiError.FieldViolation(f.getField(), f.getDefaultMessage()))
                 .sorted(Comparator.comparing(ApiError.FieldViolation::field)
                         .thenComparing(ApiError.FieldViolation::message))
+                .toList();
+        return build(HttpStatus.BAD_REQUEST, "Validation failed", request, violations);
+    }
+
+    // 400: a constraint on a controller parameter failed, e.g. @Max(100) on ?count=500.
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    ResponseEntity<ApiError> invalidParameter(HandlerMethodValidationException e, HttpServletRequest request) {
+        List<ApiError.FieldViolation> violations = e.getParameterValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> new ApiError.FieldViolation(
+                                result.getMethodParameter().getParameterName(), error.getDefaultMessage())))
                 .toList();
         return build(HttpStatus.BAD_REQUEST, "Validation failed", request, violations);
     }
