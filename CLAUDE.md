@@ -12,13 +12,13 @@ Owner: Leul Tsige (GitHub: LeulG999). Java/Spring Boot developer, MSCS student.
 ## HOW WE WORK (most important section)
 Claude (here) is the **builder**. Teaching happens in a **separate Claude chat**, which uses the progress docs below.
 We build in **batches**. Leul names the flows in a batch; during a batch, build flow after flow **without stopping between flows**. Per flow:
-1. **New branch** `feature/<name>` from an up-to-date `main`.
+1. Work **directly on `main`** (no feature branches, no PRs, no `gh`).
 2. **Build it brick by brick** — ONE small brick at a time (a few files max), following the vertical flow order below. **One commit per brick**, conventional message (see Git rules).
 3. **Tests passing.**
 4. **Write `docs/progress/flow-N.md`**: files created/changed and what each does, new concepts, design decisions, how to verify.
-5. **Push, open a PR** (`& "C:\Program Files\GitHub CLI\gh.exe"`), **merge when tests pass**, pull `main`, delete the branch locally and on GitHub. Then the next flow.
+5. **Push `main`** once the flow's tests pass. Then the next flow.
 - **Only stop if blocked.** For design choices, pick the sensible default and document it in the flow doc.
-- At the end of a batch, STOP and give Leul a summary (flows, PR links, test count, decisions). Never start a new batch on your own.
+- At the end of a batch, STOP and give Leul a summary (flows, commits, test count, decisions). Never start a new batch on your own.
 - Keep explanations in chat short. No line-by-line teaching here.
 - Diagrams: detailed components and flow, not plain boxes.
 - No code during pure design/concept discussions unless he asks.
@@ -87,12 +87,12 @@ Only add the tables/fields/classes the current flow needs (Flyway: one new migra
 8. **Steps on an alert** — attach playbook when an alert arrives; GET /alerts/{id}/steps; PATCH /alerts/{id}/steps/{stepId}. New idea: crossing a module border through a Service.
 9. **Close an alert** — POST /alerts/{id}/close. New idea: @Transactional with several rules.
 10. **Finish the slice** — ClickEvent, fake alert generator, Testcontainers integration tests, full loop in Postman.
-Every flow ends with: tests passing → `docs/progress/flow-N.md` → README updated → push → PR merged → next flow (STOP only at the end of a batch).
+Every flow ends with: tests passing → `docs/progress/flow-N.md` → README updated → push `main` → next flow (STOP only at the end of a batch).
 
 ## Git rules
-- One branch per feature (e.g. `feature/alert-entities`); small commits, one per brick.
+- Build on `main`; small commits, one per brick. Don't use `gh`.
 - Conventional commit messages: `feat(alert): ...`, `fix(...)`, `test(...)`, `docs(...)`, `chore(...)`.
-- Commit each brick as it is built; push when the flow's tests pass. Merge to `main` via PR, then delete the branch locally and on GitHub.
+- Commit each brick as it is built; push `main` when the flow's tests pass.
 - Commit with explicit paths (`git commit -- <paths>`) so nothing else that is staged slips in.
 
 ## Learning journal
