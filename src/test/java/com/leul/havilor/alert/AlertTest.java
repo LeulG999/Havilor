@@ -6,6 +6,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,6 +44,45 @@ class AlertTest {
 
         assertThat(alert.getWaitingOn()).isNull();
         assertThat(alert.getExternalCaseNumber()).isNull();
+    }
+
+    @Test
+    void closingRecordsTheVerdictAndClearsWaiting() {
+        alert.changeWaitingOn("Vendor security team");
+
+        alert.close(Verdict.MALICIOUS);
+
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.CLOSED);
+        assertThat(alert.getVerdict()).isEqualTo(Verdict.MALICIOUS);
+        assertThat(alert.getClosedAt()).isNotNull();
+        assertThat(alert.getWaitingOn()).isNull();
+    }
+
+    @Test
+    void closingNeedsEveryStepFinished() {
+        alert.attachPlaybook(1L, 1, List.of(11L, 12L, 13L));
+        alert.recordStep(11L, StepStatus.DONE, "Spoofed");
+
+        assertThatThrownBy(() -> alert.close(Verdict.MALICIOUS))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageEndingWith("has 2 pending steps. Finish or skip every step before closing.");
+
+        alert.recordStep(12L, StepStatus.SKIPPED, null);
+        alert.recordStep(13L, StepStatus.DONE, "Clean");
+        alert.close(Verdict.MALICIOUS);
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.CLOSED);
+    }
+
+    @Test
+    void closingTwiceOrWithoutADecisionIsRefused() {
+        assertThatThrownBy(() -> alert.close(Verdict.UNDECIDED)).isInstanceOf(IllegalArgumentException.class);
+
+        alert.close(Verdict.BENIGN);
+
+        assertThatThrownBy(() -> alert.close(Verdict.MALICIOUS))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageEndingWith("is already closed");
+        assertThat(alert.getVerdict()).isEqualTo(Verdict.BENIGN);
     }
 
     @Test
