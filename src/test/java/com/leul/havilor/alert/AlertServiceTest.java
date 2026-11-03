@@ -1,5 +1,6 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.common.NotFoundException;
 import com.leul.havilor.common.PageResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,18 +89,20 @@ class AlertServiceTest {
     }
 
     @Test
-    void findByIdReturnsAlertWhenPresent() {
+    void getByIdReturnsAlertWhenPresent() {
         when(alertRepository.findById(3L))
                 .thenReturn(Optional.of(withId(new Alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 3L)));
 
-        assertThat(alertService.findById(3L)).get().extracting(AlertResponse::ticketNumber).isEqualTo(TICKET);
+        assertThat(alertService.getById(3L).ticketNumber()).isEqualTo(TICKET);
     }
 
     @Test
-    void findByIdReturnsEmptyWhenMissing() {
+    void getByIdThrowsNotFoundWhenMissing() {
         when(alertRepository.findById(404L)).thenReturn(Optional.empty());
 
-        assertThat(alertService.findById(404L)).isEmpty();
+        assertThatThrownBy(() -> alertService.getById(404L))
+                .isInstanceOf(NotFoundException.class)
+                .hasMessage("Alert 404 not found");
     }
 
     @Test

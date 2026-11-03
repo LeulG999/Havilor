@@ -1,5 +1,6 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.common.NotFoundException;
 import com.leul.havilor.common.PageResponse;
 import com.leul.havilor.common.Paging;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -52,8 +53,10 @@ public class AlertService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<AlertResponse> findById(Long id) {
-        return alertRepository.findById(id).map(AlertResponse::from);
+    public AlertResponse getById(Long id) {
+        return alertRepository.findById(id)
+                .map(AlertResponse::from)
+                .orElseThrow(() -> NotFoundException.of("Alert", id));
     }
 
     @Transactional(readOnly = true)

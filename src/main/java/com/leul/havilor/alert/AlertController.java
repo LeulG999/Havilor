@@ -47,11 +47,9 @@ public class AlertController {
         return alertService.list(page, size);
     }
 
-    // Flow 3 replaces this Optional → 404 mapping with an exception + global error handler.
+    // An unknown id throws NotFoundException in the service; GlobalExceptionHandler makes it a 404.
     @GetMapping("/{id}")
-    public ResponseEntity<AlertResponse> getById(@PathVariable Long id) {
-        return alertService.findById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public AlertResponse getById(@PathVariable Long id) {
+        return alertService.getById(id);
     }
 }
