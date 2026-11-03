@@ -15,7 +15,7 @@ but the analyst always makes the decision.
 - [x] 1. Save one alert and read it back (`POST /alerts`, `GET /alerts/{id}`), idempotent on `ticketNumber`
 - [x] 2. List alerts with paging (`GET /alerts`), newest first
 - [x] 3. Handle mistakes: validation (400), not found (404), conflict (409), one error format
-- [ ] 4. Grow the alert: full fields, embedded email details, enums
+- [x] 4. Grow the alert: full fields, embedded email details, enums
 - [ ] 5. Alert children: recipients, URLs, attachments
 - [ ] 6. Update an alert (`PATCH /alerts/{id}`) with business rules
 - [ ] 7. Playbook module: seeded phishing playbook (`GET /playbooks`)
@@ -56,7 +56,9 @@ without internal details.
 ```bash
 curl -i -X POST http://localhost:8080/api/v1/alerts \
   -H "Content-Type: application/json" \
-  -d '{"ticketNumber":"INC-DEMO-0001","subject":"Fake invoice overdue","receivedAt":"2026-10-28T14:00:00Z"}'
+  -d '{"ticketNumber":"INC-DEMO-0001","source":"TEST_GENERATOR","caseType":"DETECTED_PHISHING","priority":"HIGH",
+       "receivedAt":"2026-10-28T14:00:00Z",
+       "email":{"subject":"Fake invoice overdue","fromAddress":"billing@invoices.example.net","spfResult":"FAIL"}}'
 ```
 
 ## Run locally
