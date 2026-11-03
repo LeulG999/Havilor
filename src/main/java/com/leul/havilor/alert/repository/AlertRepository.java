@@ -12,8 +12,6 @@ import java.util.Optional;
 
 public interface AlertRepository extends JpaRepository<Alert, Long> {
 
-    Optional<Alert> findByTicketNumber(String ticketNumber);
-
     // Only the id: the duplicate check doesn't need the whole alert.
     @Query("select a.id from Alert a where a.ticketNumber = :ticketNumber")
     Optional<Long> findIdByTicketNumber(String ticketNumber);

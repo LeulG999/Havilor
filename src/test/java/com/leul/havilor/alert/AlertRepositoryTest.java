@@ -34,10 +34,7 @@ class AlertRepositoryTest {
         Alert saved = alertRepository.saveAndFlush(newAlert(ticket));
 
         assertThat(saved.getId()).isNotNull();
-        assertThat(alertRepository.findByTicketNumber(ticket))
-                .get()
-                .extracting(Alert::getId)
-                .isEqualTo(saved.getId());
+        assertThat(alertRepository.findIdByTicketNumber(ticket)).contains(saved.getId());
     }
 
     @Test
