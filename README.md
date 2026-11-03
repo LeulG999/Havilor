@@ -20,7 +20,7 @@ but the analyst always makes the decision.
 - [x] 6. Update an alert (`PATCH /alerts/{id}`) with business rules and optimistic locking
 - [x] 7. Playbook module: seeded phishing playbook with teaching steps (`GET /playbooks`, `GET /playbooks/{id}`)
 - [x] 8. Playbook steps on an alert (`GET/PATCH /alerts/{id}/steps`), attached through the playbook service
-- [ ] 9. Close an alert (`POST /alerts/{id}/close`)
+- [x] 9. Close an alert (`POST /alerts/{id}/close`): verdict required, no pending steps
 - [ ] 10. Finish the slice: click events, fake alert generator, integration tests
 
 ## Tech stack
@@ -49,6 +49,7 @@ Havilor is a **modular monolith**: one Spring Boot application split into featur
 | `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries* (no children), newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
 | `GET` | `/api/v1/alerts/{id}` | **200** with the full alert, its email details, recipients, URLs and attachments; **404** if there is none |
 | `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or the sent `version` is stale |
+| `POST` | `/api/v1/alerts/{id}/close` | Close with `{verdict}` (not `UNDECIDED`, else **400**). **409** if already closed or any step is still `PENDING` |
 | `GET` | `/api/v1/alerts/{id}/steps` | **200** with the alert's playbook steps in order: what to check, *why it matters*, and the alert's progress (`PENDING`/`DONE`/`SKIPPED`) |
 | `PATCH` | `/api/v1/alerts/{id}/steps/{stepId}` | Record a step `{status, answer}`. Working a step on a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed |
 | `GET` | `/api/v1/playbooks` | **200** with every playbook (name, case type, version, active) |
