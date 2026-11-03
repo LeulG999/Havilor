@@ -4,6 +4,7 @@ import com.leul.havilor.common.ConflictException;
 import com.leul.havilor.common.NotFoundException;
 import com.leul.havilor.common.PageResponse;
 import com.leul.havilor.common.Paging;
+import com.leul.havilor.playbook.PlaybookService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -21,13 +22,16 @@ public class AlertService {
     private static final Sort NEWEST_FIRST = Sort.by(Sort.Order.desc("receivedAt"), Sort.Order.desc("id"));
 
     private final AlertRepository alertRepository;
+    private final PlaybookService playbookService;
     // Read-only transaction for loading an alert with its children. A TransactionTemplate (instead of
     // @Transactional) because create() needs it too, and create() calling an annotated method on
     // "this" would skip Spring's proxy, so no transaction would start.
     private final TransactionTemplate readOnlyTx;
 
-    public AlertService(AlertRepository alertRepository, PlatformTransactionManager transactionManager) {
+    public AlertService(AlertRepository alertRepository, PlaybookService playbookService,
+                        PlatformTransactionManager transactionManager) {
         this.alertRepository = alertRepository;
+        this.playbookService = playbookService;
         this.readOnlyTx = new TransactionTemplate(transactionManager);
         this.readOnlyTx.setReadOnly(true);
     }
@@ -47,8 +51,13 @@ public class AlertService {
             return CreateAlertResult.alreadyExisted(readDetail(existingId.get()));
         }
 
+        Alert alert = request.toAlert();
+        // Crossing the module border: ask the playbook module, get ids back, never touch its entities.
+        playbookService.findActiveFor(alert.getCaseType())
+                .ifPresent(p -> alert.attachPlaybook(p.id(), p.version(), p.stepIds()));
+
         try {
-            Alert saved = alertRepository.saveAndFlush(request.toAlert());
+            Alert saved = alertRepository.saveAndFlush(alert);
             return CreateAlertResult.newlyCreated(AlertDetailResponse.from(saved));
         } catch (DataIntegrityViolationException e) {
             // Two requests with the same ticket both passed the check above; the other one
