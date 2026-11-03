@@ -39,8 +39,9 @@ public class AlertService {
         }
 
         try {
-            Alert saved = alertRepository.saveAndFlush(
-                    new Alert(request.ticketNumber(), request.subject(), request.receivedAt()));
+            Alert saved = alertRepository.saveAndFlush(new Alert(
+                    request.ticketNumber(), request.source(), request.caseType(), request.priority(),
+                    request.receivedAt(), request.email().toEmailDetails()));
             return CreateAlertResult.newlyCreated(AlertResponse.from(saved));
         } catch (DataIntegrityViolationException e) {
             // Two requests with the same ticket both passed the check above; the other one
