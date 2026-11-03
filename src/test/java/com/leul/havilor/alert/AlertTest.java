@@ -5,6 +5,7 @@ import com.leul.havilor.alert.domain.AlertStatus;
 import com.leul.havilor.alert.domain.Priority;
 import com.leul.havilor.alert.domain.StepStatus;
 import com.leul.havilor.alert.domain.Verdict;
+import com.leul.havilor.common.error.BadRequestException;
 import com.leul.havilor.common.error.ConflictException;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -82,7 +83,8 @@ class AlertTest {
 
     @Test
     void closingTwiceOrWithoutADecisionIsRefused() {
-        assertThatThrownBy(() -> alert.close(Verdict.UNDECIDED, CLOCK)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> alert.close(Verdict.UNDECIDED, CLOCK)).isInstanceOf(BadRequestException.class);
+        assertThatThrownBy(() -> alert.close(null, CLOCK)).isInstanceOf(BadRequestException.class);
 
         alert.close(Verdict.BENIGN, CLOCK);
 

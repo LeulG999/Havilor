@@ -1,6 +1,7 @@
 package com.leul.havilor.alert.domain;
 
 import com.leul.havilor.common.CaseType;
+import com.leul.havilor.common.error.BadRequestException;
 import com.leul.havilor.common.error.ConflictException;
 import com.leul.havilor.common.error.NotFoundException;
 import jakarta.persistence.CascadeType;
@@ -225,11 +226,13 @@ public class Alert {
     }
 
     // Closing is final. The rules, in the order they are checked:
-    // already closed → 409; any step still PENDING → 409. (A real verdict is checked at the API boundary
-    // too, but the entity refuses UNDECIDED itself so no other code path can close without a decision.)
+    // no real verdict → 400; already closed → 409; any step still PENDING → 409. The API boundary checks the
+    // verdict too (@DecidedVerdict), but the entity refuses UNDECIDED itself so no other code path can close
+    // without a decision, and if one tries, the caller still gets a clean 400 instead of a 500.
     public void close(Verdict finalVerdict, Clock clock) {
         if (finalVerdict == null || finalVerdict == Verdict.UNDECIDED) {
-            throw new IllegalArgumentException("Closing needs a verdict other than UNDECIDED");
+            throw new BadRequestException("verdict",
+                    "must be a decision (MALICIOUS, BENIGN or FALSE_POSITIVE), not UNDECIDED");
         }
         if (status == AlertStatus.CLOSED) {
             throw new ConflictException("Alert " + id + " is already closed");
