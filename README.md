@@ -18,7 +18,7 @@ but the analyst always makes the decision.
 - [x] 4. Grow the alert: full fields, embedded email details, enums
 - [x] 5. Alert children: recipients, URLs, attachments
 - [x] 6. Update an alert (`PATCH /alerts/{id}`) with business rules and optimistic locking
-- [ ] 7. Playbook module: seeded phishing playbook (`GET /playbooks`)
+- [x] 7. Playbook module: seeded phishing playbook with teaching steps (`GET /playbooks`, `GET /playbooks/{id}`)
 - [ ] 8. Playbook steps on an alert (`GET/PATCH /alerts/{id}/steps`)
 - [ ] 9. Close an alert (`POST /alerts/{id}/close`)
 - [ ] 10. Finish the slice: click events, fake alert generator, integration tests
