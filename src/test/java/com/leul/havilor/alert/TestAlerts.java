@@ -3,6 +3,7 @@ package com.leul.havilor.alert;
 import com.leul.havilor.common.CaseType;
 
 import java.time.Instant;
+import java.util.List;
 
 // Fake alerts for tests, in one place so every test builds them the same way.
 // All addresses use the reserved example.com / example.net domains (fake data only).
@@ -25,7 +26,8 @@ final class TestAlerts {
 
     static CreateAlertRequest request(String ticketNumber, String subject, Instant receivedAt) {
         return new CreateAlertRequest(ticketNumber, Source.TEST_GENERATOR, CaseType.DETECTED_PHISHING,
-                Priority.MEDIUM, receivedAt, emailRequest(subject));
+                Priority.MEDIUM, receivedAt, emailRequest(subject),
+                List.of(new RecipientRequest("victim@corp.example.com", DeliveryStatus.DELIVERED)), null, null);
     }
 
     static EmailDetailsRequest emailRequest(String subject) {
@@ -38,7 +40,8 @@ final class TestAlerts {
         return """
                 {"ticketNumber": "%s", "source": "TEST_GENERATOR", "caseType": "DETECTED_PHISHING",
                  "priority": "MEDIUM", "receivedAt": "%s",
-                 "email": {"subject": "%s", "fromAddress": "billing@invoices.example.net"}}
+                 "email": {"subject": "%s", "fromAddress": "billing@invoices.example.net"},
+                 "recipients": [{"address": "victim@corp.example.com", "delivery": "DELIVERED"}]}
                 """.formatted(ticketNumber, receivedAt, subject);
     }
 }

@@ -54,7 +54,8 @@ class FullAlertIntegrationTest {
                            "phishScore": 92, "spamScore": 40,
                            "filterAction": "quarantine", "quarantineFolder": "Phish",
                            "rawHeaders": "Received: from mailer.example.net\\nX-Fake: yes"
-                         }}
+                         },
+                         "recipients": [{"address": "victim@corp.example.com", "delivery": "DELIVERED"}]}
                         """.formatted(ticket)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
@@ -97,7 +98,8 @@ class FullAlertIntegrationTest {
                         {"ticketNumber": "%s", "source": "TEST_GENERATOR", "caseType": "DETECTED_PHISHING",
                          "priority": "LOW", "receivedAt": "2026-10-28T14:00:00Z",
                          "status": "CLOSED", "verdict": "BENIGN", "suggestedVerdict": "BENIGN",
-                         "email": {"subject": "Fake", "fromAddress": "a@example.com"}}
+                         "email": {"subject": "Fake", "fromAddress": "a@example.com"},
+                         "recipients": [{"address": "victim@corp.example.com", "delivery": "DELIVERED"}]}
                         """.formatted(ticket)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("NEW"))

@@ -146,7 +146,7 @@ class AlertControllerIntegrationTest {
 
     private static long idOf(MvcResult result) throws Exception {
         String body = result.getResponse().getContentAsString();
-        String digits = body.replaceAll("(?s).*\"id\"\\s*:\\s*(\\d+).*", "$1");
+        String digits = body.replaceAll("(?s).*?\"id\"\\s*:\\s*(\\d+).*", "$1");
         return Long.parseLong(digits);
     }
 

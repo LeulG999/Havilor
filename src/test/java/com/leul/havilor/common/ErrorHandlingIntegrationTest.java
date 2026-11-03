@@ -45,10 +45,10 @@ class ErrorHandlingIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Validation failed"))
                 .andExpect(jsonPath("$.path").value(ALERTS))
                 .andExpect(jsonPath("$.timestamp").isNotEmpty())
-                .andExpect(jsonPath("$.fieldErrors", hasSize(8)))
+                .andExpect(jsonPath("$.fieldErrors", hasSize(9)))
                 .andExpect(jsonPath("$.fieldErrors[*].field", contains(
                         "caseType", "email.fromAddress", "email.phishScore", "email.subject",
-                        "priority", "receivedAt", "source", "ticketNumber")));
+                        "priority", "receivedAt", "recipients", "source", "ticketNumber")));
     }
 
     @Test
