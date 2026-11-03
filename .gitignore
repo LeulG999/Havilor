@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Other AI tools (CLAUDE.md is the only instruction file) ###
+AGENTS.md

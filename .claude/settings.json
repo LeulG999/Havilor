@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(./mvnw *)",
+      "Bash(./mvnw.cmd *)",
+      "Bash(mvnw.cmd *)",
+      "Bash(docker *)",
+      "Bash(docker compose *)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" *)",
+      "PowerShell(git *)",
+      "PowerShell(./mvnw *)",
+      "PowerShell(./mvnw.cmd *)",
+      "PowerShell(.\\mvnw.cmd *)",
+      "PowerShell(docker *)",
+      "PowerShell(docker compose *)",
+      "PowerShell(& \"C:\\Program Files\\GitHub CLI\\gh.exe\" *)",
+      "Edit(/**)"
+    ]
+  }
+}

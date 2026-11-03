@@ -10,13 +10,16 @@ Owner: Leul Tsige (GitHub: LeulG999). Java/Spring Boot developer, MSCS student.
 2. Help a working security analyst do her job efficiently while Havilor teaches her.
 
 ## HOW WE WORK (most important section)
-Claude (here) is the **builder**. Teaching happens in a **separate Claude chat**, which uses the progress docs below. For each flow:
-1. **Build it brick by brick** — ONE small brick at a time (a few files max), following the vertical flow order below. Never jump ahead, never build a whole module at once.
-2. **One commit per brick**, conventional message (see Git rules).
-3. **Keep explanations in chat short**: what was built and how to check it. No line-by-line teaching here.
-4. **Push when the flow's tests pass.**
-5. **Write `docs/progress/flow-N.md`**: files created/changed and what each does, commands run, how to verify, new concepts introduced. Commit and push it.
-6. **STOP and wait for Leul** before starting the next flow. Never start the next flow on your own.
+Claude (here) is the **builder**. Teaching happens in a **separate Claude chat**, which uses the progress docs below.
+We build in **batches**. Leul names the flows in a batch; during a batch, build flow after flow **without stopping between flows**. Per flow:
+1. **New branch** `feature/<name>` from an up-to-date `main`.
+2. **Build it brick by brick** — ONE small brick at a time (a few files max), following the vertical flow order below. **One commit per brick**, conventional message (see Git rules).
+3. **Tests passing.**
+4. **Write `docs/progress/flow-N.md`**: files created/changed and what each does, new concepts, design decisions, how to verify.
+5. **Push, open a PR** (`& "C:\Program Files\GitHub CLI\gh.exe"`), **merge when tests pass**, pull `main`, delete the branch locally and on GitHub. Then the next flow.
+- **Only stop if blocked.** For design choices, pick the sensible default and document it in the flow doc.
+- At the end of a batch, STOP and give Leul a summary (flows, PR links, test count, decisions). Never start a new batch on your own.
+- Keep explanations in chat short. No line-by-line teaching here.
 - Diagrams: detailed components and flow, not plain boxes.
 - No code during pure design/concept discussions unless he asks.
 - YAGNI: keep it simple; just-in-time design before each slice.
@@ -29,7 +32,7 @@ Use **fake/synthetic data only**. Never real employer data, real email addresses
 - Dependencies now: Spring Web, Spring Data JPA, PostgreSQL Driver, Validation, Lombok
 - Package root: `com.leul.havilor`
 - PostgreSQL in Docker
-- Planned: Flyway migrations, Testcontainers, JaCoCo, OpenAPI/Swagger, Spring Security + JWT, SSE streaming, LLM client, pgvector (RAG), MuleSoft adapter, GitHub Actions, DigitalOcean, React + TypeScript front end
+- Planned: Flyway migrations, Testcontainers, JaCoCo, OpenAPI/Swagger, Spring Security + JWT, Redis, SSE streaming, LLM client (Claude API, Anthropic), pgvector (RAG), MuleSoft adapter, GitHub Actions, AWS, React + TypeScript front end
 
 ## Architecture
 **Modular monolith**: one Spring Boot app, split into **feature modules** with strict borders; inside each module, **layered**: Controller → Service → Repository → PostgreSQL.
@@ -65,7 +68,7 @@ User, Alert (with embedded EmailDetails), Recipient, Url, Attachment, ClickEvent
 - **S2:** automatic checks, Critical rule, findings, teaching text.
 - **S3:** AI explanations, summary + suggested verdict, email drafts, then RAG.
 - **S4:** login/roles (JWT), escalation, actions, audit log, standup notes.
-- Later: performance, MuleSoft (ServiceNow first), **identity investigation** (Entra ID sign-ins + Conditional Access posture via Microsoft Graph: posture lookup → correlation → per-user baseline), microservices split, React front end, Docker/DigitalOcean/CI.
+- Later: performance, MuleSoft (ServiceNow first), **identity investigation** (Entra ID sign-ins + Conditional Access posture via Microsoft Graph: posture lookup → correlation → per-user baseline), microservices split, React front end, Docker/AWS/CI.
 
 ## Slice 1 coding order — VERTICAL FLOWS, NOT LAYERS
 Never build layer by layer (all entities, then all repositories...). Build ONE small flow end to end
@@ -84,12 +87,13 @@ Only add the tables/fields/classes the current flow needs (Flyway: one new migra
 8. **Steps on an alert** — attach playbook when an alert arrives; GET /alerts/{id}/steps; PATCH /alerts/{id}/steps/{stepId}. New idea: crossing a module border through a Service.
 9. **Close an alert** — POST /alerts/{id}/close. New idea: @Transactional with several rules.
 10. **Finish the slice** — ClickEvent, fake alert generator, Testcontainers integration tests, full loop in Postman.
-Every flow ends with: tests passing → push → `docs/progress/flow-N.md` → README updated → STOP for Leul.
+Every flow ends with: tests passing → `docs/progress/flow-N.md` → README updated → push → PR merged → next flow (STOP only at the end of a batch).
 
 ## Git rules
 - One branch per feature (e.g. `feature/alert-entities`); small commits, one per brick.
 - Conventional commit messages: `feat(alert): ...`, `fix(...)`, `test(...)`, `docs(...)`, `chore(...)`.
-- Commit each brick as it is built; push when the flow's tests pass. Merge to `main` via PR when a feature is complete.
+- Commit each brick as it is built; push when the flow's tests pass. Merge to `main` via PR, then delete the branch locally and on GitHub.
+- Commit with explicit paths (`git commit -- <paths>`) so nothing else that is staged slips in.
 
 ## Learning journal
 Claude Doc "Havilor Learning Journal": https://claude.ai/artifact/AiVxLxhtikjL5hC1C3AeKu
