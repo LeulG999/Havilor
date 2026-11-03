@@ -1,6 +1,7 @@
 package com.leul.havilor.alert;
 
 import com.leul.havilor.common.CaseType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -9,6 +10,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -19,6 +22,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Entity
 @Table(name = "alert")
@@ -89,6 +95,21 @@ public class Alert {
     @Embedded
     private EmailDetails email;
 
+    // Alert owns its children: they are saved, updated and deleted with it (cascade ALL), and a child
+    // removed from the list is deleted from the table (orphanRemoval). mappedBy = the child's "alert"
+    // field holds the foreign key. Collections are LAZY by default; AlertService loads them on purpose.
+    @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id")
+    private List<Recipient> recipients = new ArrayList<>();
+
+    @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id")
+    private List<Url> urls = new ArrayList<>();
+
+    @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id")
+    private List<Attachment> attachments = new ArrayList<>();
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -106,6 +127,35 @@ public class Alert {
         this.email = email;
         this.status = AlertStatus.NEW;
         this.verdict = Verdict.UNDECIDED;
+    }
+
+    // The add methods keep both sides in sync: the list here and the child's alert field (which is what
+    // JPA actually writes as alert_id). Callers get read-only views, so nobody can skip these methods.
+    public void addRecipient(Recipient recipient) {
+        recipients.add(recipient);
+        recipient.belongTo(this);
+    }
+
+    public void addUrl(Url url) {
+        urls.add(url);
+        url.belongTo(this);
+    }
+
+    public void addAttachment(Attachment attachment) {
+        attachments.add(attachment);
+        attachment.belongTo(this);
+    }
+
+    public List<Recipient> getRecipients() {
+        return Collections.unmodifiableList(recipients);
+    }
+
+    public List<Url> getUrls() {
+        return Collections.unmodifiableList(urls);
+    }
+
+    public List<Attachment> getAttachments() {
+        return Collections.unmodifiableList(attachments);
     }
 
     @PrePersist
