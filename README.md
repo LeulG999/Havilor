@@ -17,7 +17,7 @@ but the analyst always makes the decision.
 - [x] 3. Handle mistakes: validation (400), not found (404), conflict (409), one error format
 - [x] 4. Grow the alert: full fields, embedded email details, enums
 - [x] 5. Alert children: recipients, URLs, attachments
-- [ ] 6. Update an alert (`PATCH /alerts/{id}`) with business rules
+- [x] 6. Update an alert (`PATCH /alerts/{id}`) with business rules and optimistic locking
 - [ ] 7. Playbook module: seeded phishing playbook (`GET /playbooks`)
 - [ ] 8. Playbook steps on an alert (`GET/PATCH /alerts/{id}/steps`)
 - [ ] 9. Close an alert (`POST /alerts/{id}/close`)
@@ -48,6 +48,7 @@ Havilor is a **modular monolith**: one Spring Boot application split into featur
 | `POST` | `/api/v1/alerts` | **201** + `Location` for a new `ticketNumber`; **200** + `Location` with the stored alert if that ticket already exists (nothing is changed) |
 | `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries* (no children), newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
 | `GET` | `/api/v1/alerts/{id}` | **200** with the full alert, its email details, recipients, URLs and attachments; **404** if there is none |
+| `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or the sent `version` is stale |
 
 Every error uses one body: `{status, error, message, path, timestamp, fieldErrors}`. Invalid input gives **400**
 (one entry per broken field), an unknown id **404**, a broken business rule **409**, and anything unexpected **500**
