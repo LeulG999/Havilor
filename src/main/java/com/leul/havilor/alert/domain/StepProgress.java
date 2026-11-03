@@ -1,5 +1,6 @@
 package com.leul.havilor.alert.domain;
 
+import com.leul.havilor.alert.domain.enums.StepStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

@@ -1,7 +1,7 @@
 package com.leul.havilor.alert.api.response;
 
 import com.leul.havilor.alert.domain.Attachment;
-import com.leul.havilor.alert.domain.Verdict;
+import com.leul.havilor.alert.domain.enums.Verdict;
 
 public record AttachmentResponse(Long id, String fileName, String fileType, String sha256, Verdict verdict) {
 

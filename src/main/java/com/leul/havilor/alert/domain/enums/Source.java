@@ -1,4 +1,4 @@
-package com.leul.havilor.alert.domain;
+package com.leul.havilor.alert.domain.enums;
 
 // Which system sent the alert in.
 public enum Source {

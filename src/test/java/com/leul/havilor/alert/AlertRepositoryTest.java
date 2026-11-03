@@ -2,15 +2,15 @@ package com.leul.havilor.alert;
 
 import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
-import com.leul.havilor.common.ClockConfiguration;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.repository.AlertRepository;
+import com.leul.havilor.common.ClockConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Instant;
 import java.util.UUID;

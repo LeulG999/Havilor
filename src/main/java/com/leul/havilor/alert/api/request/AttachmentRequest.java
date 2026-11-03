@@ -1,6 +1,6 @@
 package com.leul.havilor.alert.api.request;
 
-import com.leul.havilor.alert.domain.Verdict;
+import com.leul.havilor.alert.domain.enums.Verdict;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;

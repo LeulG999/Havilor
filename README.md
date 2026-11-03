@@ -54,7 +54,8 @@ waiting for their slices.
 ```
 alert/
   api/            controllers           api/request/   request DTOs     api/response/  response DTOs
-  domain/         Alert (+ embedded EmailDetails), Recipient, Url, Attachment, ClickEvent, StepProgress, enums
+  domain/         Alert (+ embedded EmailDetails), Recipient, Url, Attachment, ClickEvent, StepProgress
+  domain/enums/   AlertStatus, Priority, Source, Verdict, AuthResult, DeliveryStatus, StepStatus
   repository/     AlertRepository       service/       AlertService, AlertStepService, AlertFactory
   dev/            fake alert generator (only with the "dev" profile)
 playbook/

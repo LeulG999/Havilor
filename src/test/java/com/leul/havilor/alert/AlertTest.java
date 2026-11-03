@@ -1,10 +1,10 @@
 package com.leul.havilor.alert;
 
 import com.leul.havilor.alert.domain.Alert;
-import com.leul.havilor.alert.domain.AlertStatus;
-import com.leul.havilor.alert.domain.Priority;
-import com.leul.havilor.alert.domain.StepStatus;
-import com.leul.havilor.alert.domain.Verdict;
+import com.leul.havilor.alert.domain.enums.AlertStatus;
+import com.leul.havilor.alert.domain.enums.Priority;
+import com.leul.havilor.alert.domain.enums.StepStatus;
+import com.leul.havilor.alert.domain.enums.Verdict;
 import com.leul.havilor.common.error.BadRequestException;
 import com.leul.havilor.common.error.ConflictException;
 import org.junit.jupiter.api.Test;

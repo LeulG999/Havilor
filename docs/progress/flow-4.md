@@ -137,7 +137,7 @@ classDiagram
 | File | What it does |
 |---|---|
 | `db/migration/V3__grow_alert.sql` (new) | Adds 27 columns, backfills NOT NULL ones with temporary defaults, drops the defaults, adds CHECK constraints. |
-| `common/CaseType.java` + `alert/domain/{AlertStatus,Priority,Source,Verdict,AuthResult}.java` (new) | The enums above. |
+| `common/CaseType.java` + `alert/domain/enums/{AlertStatus,Priority,Source,Verdict,AuthResult}.java` (new) | The enums above. |
 | `alert/domain/EmailDetails.java` (new) | `@Embeddable`, Lombok `@Builder`, 14 fields with column names and lengths. |
 | `alert/domain/Alert.java` | All ERD fields; `@Enumerated(STRING)`; `@Embedded email`; constructor sets `NEW` + `UNDECIDED`; `@PrePersist/@PreUpdate` timestamps. The old `STATUS_NEW` string constant is gone. |
 | `alert/api/request/EmailDetailsRequest.java` (new) | Validated email part of the request; `toEmailDetails()` maps to the embeddable. |

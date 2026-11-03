@@ -1,6 +1,6 @@
 package com.leul.havilor.alert.api.request;
 
-import com.leul.havilor.alert.domain.Verdict;
+import com.leul.havilor.alert.domain.enums.Verdict;
 import jakarta.validation.constraints.NotNull;
 
 // POST /api/v1/alerts/{id}/close. The analyst's final decision.

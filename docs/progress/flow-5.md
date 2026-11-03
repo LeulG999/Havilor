@@ -126,7 +126,7 @@ erDiagram
 | File | What it does |
 |---|---|
 | `db/migration/V4__alert_children.sql` (new) | `recipient`, `url`, `attachment` tables, FKs with `ON DELETE CASCADE`, one index per `alert_id`, CHECKs on enum columns. |
-| `alert/domain/DeliveryStatus.java` (new) | `DELIVERED`, `QUARANTINED`, `RELEASED`. |
+| `alert/domain/enums/DeliveryStatus.java` (new) | `DELIVERED`, `QUARANTINED`, `RELEASED`. |
 | `alert/domain/Recipient.java`, `Url.java`, `Attachment.java` (new) | Child entities: `@ManyToOne(LAZY)` to `Alert`, package-private `belongTo(alert)`. `Url` derives the domain; `Attachment` lower-cases the hash. |
 | `alert/domain/Alert.java` | Three `@OneToMany(mappedBy, cascade ALL, orphanRemoval)` lists with `@OrderBy("id")`; `addRecipient/addUrl/addAttachment`; read-only getters. |
 | `alert/api/request/RecipientRequest.java`, `UrlRequest.java`, `AttachmentRequest.java` (new) | Validated child parts of the request, each with a `toX()` mapper. |

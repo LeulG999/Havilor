@@ -1,7 +1,7 @@
 package com.leul.havilor.alert.api.response;
 
-import com.leul.havilor.alert.domain.AuthResult;
 import com.leul.havilor.alert.domain.EmailDetails;
+import com.leul.havilor.alert.domain.enums.AuthResult;
 
 public record EmailDetailsResponse(
         String subject,

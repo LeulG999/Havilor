@@ -1,7 +1,7 @@
 package com.leul.havilor.alert.api.request;
 
-import com.leul.havilor.alert.domain.Priority;
-import com.leul.havilor.alert.domain.Source;
+import com.leul.havilor.alert.domain.enums.Priority;
+import com.leul.havilor.alert.domain.enums.Source;
 import com.leul.havilor.common.CaseType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

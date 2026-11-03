@@ -1,6 +1,6 @@
 package com.leul.havilor.alert.api.request;
 
-import com.leul.havilor.alert.domain.StepStatus;
+import com.leul.havilor.alert.domain.enums.StepStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 

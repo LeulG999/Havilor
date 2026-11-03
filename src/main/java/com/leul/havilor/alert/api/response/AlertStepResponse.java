@@ -1,7 +1,7 @@
 package com.leul.havilor.alert.api.response;
 
 import com.leul.havilor.alert.domain.StepProgress;
-import com.leul.havilor.alert.domain.StepStatus;
+import com.leul.havilor.alert.domain.enums.StepStatus;
 import com.leul.havilor.playbook.api.response.PlaybookStepResponse;
 import java.time.Instant;
 import java.util.List;

@@ -105,7 +105,7 @@ sequenceDiagram
 | File | What it does |
 |---|---|
 | `db/migration/V7__alert_steps.sql` (new) | `alert.playbook_id` (FK + index) and `playbook_version`; `step_progress` table with UNIQUE, CHECKs and FK index; backfill. |
-| `alert/domain/StepStatus.java`, `alert/domain/StepProgress.java` (new) | The association entity; `record(status, answer)` keeps `completedAt` in step with the status. |
+| `alert/domain/enums/StepStatus.java`, `alert/domain/StepProgress.java` (new) | The association entity; `record(status, answer)` keeps `completedAt` in step with the status. |
 | `alert/domain/Alert.java` | `playbookId`, `playbookVersion`, `stepProgress` list; `attachPlaybook`, `recordStep` (404 / 409 / NEW → INVESTIGATING), `pendingStepCount` (for Flow 9). |
 | `playbook/service/ActivePlaybook.java` (new), `playbook/service/PlaybookService.java` | `findActiveFor(caseType)`, `getSteps(playbookId)`. |
 | `alert/service/AlertService.java` | Takes `PlaybookService`; attaches the active playbook before saving. |

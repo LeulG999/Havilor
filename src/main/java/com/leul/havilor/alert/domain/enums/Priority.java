@@ -1,4 +1,4 @@
-package com.leul.havilor.alert.domain;
+package com.leul.havilor.alert.domain.enums;
 
 // How urgent an alert is.
 public enum Priority {

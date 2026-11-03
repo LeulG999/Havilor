@@ -15,8 +15,8 @@ alert/
                   ClickRequest, UpdateAlertRequest, UpdateStepRequest, CloseAlertRequest, DecidedVerdict
   api/response/   AlertDetailResponse, AlertSummaryResponse, EmailDetailsResponse, RecipientResponse, UrlResponse,
                   AttachmentResponse, ClickResponse, AlertStepResponse
-  domain/         Alert, EmailDetails, Recipient, Url, Attachment, ClickEvent, StepProgress,
-                  AlertStatus, Priority, Source, Verdict, AuthResult, DeliveryStatus, StepStatus
+  domain/         Alert, EmailDetails, Recipient, Url, Attachment, ClickEvent, StepProgress
+  domain/enums/   AlertStatus, Priority, Source, Verdict, AuthResult, DeliveryStatus, StepStatus
   repository/     AlertRepository
   service/        AlertService, AlertStepService, AlertFactory, CreateAlertResult
   dev/            DevAlertController, FakeAlertFactory   (was top-level dev/, see below)
@@ -103,6 +103,12 @@ Step decisions:
   `ClockConfiguration` explicitly.
 - **Response DTOs keep their static `from(...)` factories.** Step 3 was about request-side graph building;
   read-side mapping stays a one-line factory per DTO.
+
+## Later: `domain/enums/`
+
+Commit `refactor: group domain enums`: the seven alert enums moved from `alert/domain/` into `alert/domain/enums/`.
+Only imports changed. `playbook/domain/` has no enums (`CaseType` is in `common/`). The ArchUnit rules use
+`alert.domain..`, which already covers the new sub-package.
 
 ## New concepts introduced
 

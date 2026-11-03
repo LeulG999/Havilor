@@ -1,11 +1,11 @@
 package com.leul.havilor.alert.api.response;
 
 import com.leul.havilor.alert.domain.Alert;
-import com.leul.havilor.alert.domain.AlertStatus;
 import com.leul.havilor.alert.domain.ClickEvent;
-import com.leul.havilor.alert.domain.Priority;
-import com.leul.havilor.alert.domain.Source;
-import com.leul.havilor.alert.domain.Verdict;
+import com.leul.havilor.alert.domain.enums.AlertStatus;
+import com.leul.havilor.alert.domain.enums.Priority;
+import com.leul.havilor.alert.domain.enums.Source;
+import com.leul.havilor.alert.domain.enums.Verdict;
 import com.leul.havilor.common.CaseType;
 import java.time.Instant;
 import java.time.LocalDate;
