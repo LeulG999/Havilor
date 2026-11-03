@@ -57,6 +57,13 @@ public class GlobalExceptionHandler {
                 List.of(new ApiError.FieldViolation(e.getName(), "must be a " + expected)));
     }
 
+    // 400: fields that are each valid but don't fit together (checked in code, not by annotations).
+    @ExceptionHandler(BadRequestException.class)
+    ResponseEntity<ApiError> badRequest(BadRequestException e, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "Validation failed", request,
+                List.of(new ApiError.FieldViolation(e.getField(), e.getMessage())));
+    }
+
     @ExceptionHandler(NotFoundException.class)
     ResponseEntity<ApiError> notFound(NotFoundException e, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, e.getMessage(), request, List.of());

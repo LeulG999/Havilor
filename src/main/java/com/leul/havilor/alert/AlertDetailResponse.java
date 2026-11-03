@@ -30,12 +30,13 @@ public record AlertDetailResponse(
         List<RecipientResponse> recipients,
         List<UrlResponse> urls,
         List<AttachmentResponse> attachments,
+        List<ClickResponse> clicks,
         Instant createdAt,
         Instant updatedAt,
         long version
 ) {
 
-    static AlertDetailResponse from(Alert alert) {
+    static AlertDetailResponse from(Alert alert, List<ClickEvent> clicks) {
         return new AlertDetailResponse(
                 alert.getId(),
                 alert.getTicketNumber(),
@@ -59,6 +60,7 @@ public record AlertDetailResponse(
                 alert.getRecipients().stream().map(RecipientResponse::from).toList(),
                 alert.getUrls().stream().map(UrlResponse::from).toList(),
                 alert.getAttachments().stream().map(AttachmentResponse::from).toList(),
+                clicks.stream().map(ClickResponse::from).toList(),
                 alert.getCreatedAt(),
                 alert.getUpdatedAt(),
                 alert.getVersion());

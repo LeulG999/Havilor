@@ -58,7 +58,7 @@ public class AlertService {
 
         try {
             Alert saved = alertRepository.saveAndFlush(alert);
-            return CreateAlertResult.newlyCreated(AlertDetailResponse.from(saved));
+            return CreateAlertResult.newlyCreated(AlertDetailResponse.from(saved, saved.clicksOfNewAlert()));
         } catch (DataIntegrityViolationException e) {
             // Two requests with the same ticket both passed the check above; the other one
             // inserted first and the database constraint stopped us. Its row is the alert.
@@ -115,7 +115,7 @@ public class AlertService {
 
         // Flush now so the version check runs here and the response shows the new version and updatedAt.
         alertRepository.flush();
-        return AlertDetailResponse.from(alert);
+        return detailOf(alert);
     }
 
     /**
@@ -130,14 +130,19 @@ public class AlertService {
         alert.close(request.verdict());
         alertRepository.flush();
         // Same instance (persistence context): these just fill in the child lists for the response.
-        return AlertDetailResponse.from(loadWithChildren(id));
+        return detailOf(loadWithChildren(id));
     }
 
     private AlertDetailResponse readDetail(Long id) {
-        return readOnlyTx.execute(status -> AlertDetailResponse.from(loadWithChildren(id)));
+        return readOnlyTx.execute(status -> detailOf(loadWithChildren(id)));
     }
 
-    // Exactly 3 queries, however many children the alert has (see AlertRepository). The second and
+    // Must run in the same transaction as loadWithChildren: query 4 of the detail view, the clicks.
+    private AlertDetailResponse detailOf(Alert alert) {
+        return AlertDetailResponse.from(alert, alertRepository.findClicksByAlertId(alert.getId()));
+    }
+
+    // Exactly 3 queries, however many children the alert has (see AlertRepository); detailOf adds the 4th. The second and
     // third return the same Alert instance as the first, now with one more list filled in.
     // Must run inside a transaction, so all three share one persistence context.
     private Alert loadWithChildren(Long id) {

@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AlertRepository extends JpaRepository<Alert, Long> {
@@ -27,6 +28,13 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
 
     @Query("select a from Alert a left join fetch a.attachments where a.id = :id")
     Optional<Alert> findWithAttachmentsById(Long id);
+
+    // The 4th detail query: every click of the alert, with its recipient and URL (already in the
+    // persistence context from the queries above, so this adds no extra lookups).
+    @Query("""
+            select c from ClickEvent c join fetch c.recipient join fetch c.url u
+            where u.alert.id = :alertId order by c.clickedAt, c.id""")
+    List<ClickEvent> findClicksByAlertId(Long alertId);
 
     // For reading steps: the alert and its step progress, in one query.
     @Query("select a from Alert a left join fetch a.stepProgress where a.id = :id")
