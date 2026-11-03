@@ -125,7 +125,7 @@ public class AlertService {
      */
     @Transactional
     public AlertDetailResponse close(Long id, CloseAlertRequest request) {
-        Alert alert = alertRepository.findWithStepProgressForChangeById(id)
+        Alert alert = alertRepository.findForChangeWithStepProgressById(id)
                 .orElseThrow(() -> NotFoundException.of("Alert", id));
         alert.close(request.verdict());
         alertRepository.flush();

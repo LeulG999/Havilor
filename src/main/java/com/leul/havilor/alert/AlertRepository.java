@@ -36,8 +36,17 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     // even if no alert column changed. So "tick a step" and "close the alert" can't both succeed from the
     // same starting point: the second one to commit gets an optimistic-lock failure (409).
     // Without it, a step set back to PENDING while the alert is being closed could leave a closed alert
-    // with a pending step.
+    // with a pending step. The lock goes on this plain query, not on the fetch join: the lock would then
+    // apply to the StepProgress rows too, and they have no @Version.
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
-    @Query("select a from Alert a left join fetch a.stepProgress where a.id = :id")
-    Optional<Alert> findWithStepProgressForChangeById(Long id);
+    @Query("select a from Alert a where a.id = :id")
+    Optional<Alert> findForChangeById(Long id);
+
+    // Lock for change, then fill in the progress rows: 2 queries, one Alert instance.
+    // Call inside a transaction (the second query must hit the same persistence context).
+    default Optional<Alert> findForChangeWithStepProgressById(Long id) {
+        Optional<Alert> alert = findForChangeById(id);
+        alert.ifPresent(a -> findWithStepProgressById(id));
+        return alert;
+    }
 }
