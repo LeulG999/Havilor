@@ -16,7 +16,7 @@ but the analyst always makes the decision.
 - [x] 2. List alerts with paging (`GET /alerts`), newest first
 - [x] 3. Handle mistakes: validation (400), not found (404), conflict (409), one error format
 - [x] 4. Grow the alert: full fields, embedded email details, enums
-- [ ] 5. Alert children: recipients, URLs, attachments
+- [x] 5. Alert children: recipients, URLs, attachments
 - [ ] 6. Update an alert (`PATCH /alerts/{id}`) with business rules
 - [ ] 7. Playbook module: seeded phishing playbook (`GET /playbooks`)
 - [ ] 8. Playbook steps on an alert (`GET/PATCH /alerts/{id}/steps`)
@@ -46,8 +46,8 @@ Havilor is a **modular monolith**: one Spring Boot application split into featur
 | Method | Path | Result |
 |---|---|---|
 | `POST` | `/api/v1/alerts` | **201** + `Location` for a new `ticketNumber`; **200** + `Location` with the stored alert if that ticket already exists (nothing is changed) |
-| `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alerts, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
-| `GET` | `/api/v1/alerts/{id}` | **200** with the alert, **404** if there is none |
+| `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries* (no children), newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
+| `GET` | `/api/v1/alerts/{id}` | **200** with the full alert, its email details, recipients, URLs and attachments; **404** if there is none |
 
 Every error uses one body: `{status, error, message, path, timestamp, fieldErrors}`. Invalid input gives **400**
 (one entry per broken field), an unknown id **404**, a broken business rule **409**, and anything unexpected **500**
@@ -58,7 +58,9 @@ curl -i -X POST http://localhost:8080/api/v1/alerts \
   -H "Content-Type: application/json" \
   -d '{"ticketNumber":"INC-DEMO-0001","source":"TEST_GENERATOR","caseType":"DETECTED_PHISHING","priority":"HIGH",
        "receivedAt":"2026-10-28T14:00:00Z",
-       "email":{"subject":"Fake invoice overdue","fromAddress":"billing@invoices.example.net","spfResult":"FAIL"}}'
+       "email":{"subject":"Fake invoice overdue","fromAddress":"billing@invoices.example.net","spfResult":"FAIL"},
+       "recipients":[{"address":"alex@corp.example.com","delivery":"DELIVERED"}],
+       "urls":[{"address":"https://login.fake-bank.example.net/verify"}]}'
 ```
 
 ## Run locally
