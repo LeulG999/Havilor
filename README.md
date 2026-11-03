@@ -14,7 +14,7 @@ but the analyst always makes the decision.
 - [x] 0. Foundation: app starts, PostgreSQL in Docker, Flyway, module folders
 - [x] 1. Save one alert and read it back (`POST /alerts`, `GET /alerts/{id}`), idempotent on `ticketNumber`
 - [x] 2. List alerts with paging (`GET /alerts`), newest first
-- [ ] 3. Handle mistakes: validation (400), not found (404), one error format
+- [x] 3. Handle mistakes: validation (400), not found (404), conflict (409), one error format
 - [ ] 4. Grow the alert: full fields, embedded email details, enums
 - [ ] 5. Alert children: recipients, URLs, attachments
 - [ ] 6. Update an alert (`PATCH /alerts/{id}`) with business rules
@@ -48,6 +48,10 @@ Havilor is a **modular monolith**: one Spring Boot application split into featur
 | `POST` | `/api/v1/alerts` | **201** + `Location` for a new `ticketNumber`; **200** + `Location` with the stored alert if that ticket already exists (nothing is changed) |
 | `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alerts, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
 | `GET` | `/api/v1/alerts/{id}` | **200** with the alert, **404** if there is none |
+
+Every error uses one body: `{status, error, message, path, timestamp, fieldErrors}`. Invalid input gives **400**
+(one entry per broken field), an unknown id **404**, a broken business rule **409**, and anything unexpected **500**
+without internal details.
 
 ```bash
 curl -i -X POST http://localhost:8080/api/v1/alerts \
