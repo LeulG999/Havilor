@@ -1,5 +1,6 @@
 package com.leul.havilor.common;
 
+import com.leul.havilor.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // ThrowingController is imported only here, so its test endpoints exist in no other context.
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(ErrorHandlingIntegrationTest.ThrowingController.class)
+@Import({TestcontainersConfiguration.class, ErrorHandlingIntegrationTest.ThrowingController.class})
 class ErrorHandlingIntegrationTest {
 
     private static final String ALERTS = "/api/v1/alerts";

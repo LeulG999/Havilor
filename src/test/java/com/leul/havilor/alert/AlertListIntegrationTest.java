@@ -1,10 +1,12 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.TestcontainersConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -16,11 +18,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// Full app against the PostgreSQL from compose.yaml. The database may already hold other alerts,
+// Full app against PostgreSQL in Testcontainers. Other test classes share the container and may leave alerts,
 // so test alerts use receivedAt dates in the year 2999: they are always the newest and come first.
 // Test rows use the INC-IT- prefix and are deleted after each test.
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(TestcontainersConfiguration.class)
 class AlertListIntegrationTest {
 
     private static final String ALERTS = "/api/v1/alerts";

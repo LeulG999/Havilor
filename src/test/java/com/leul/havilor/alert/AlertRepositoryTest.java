@@ -1,10 +1,12 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.TestcontainersConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.context.annotation.Import;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -12,10 +14,11 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-// Runs against the real PostgreSQL from compose.yaml (schema from Flyway).
+// Runs against a real PostgreSQL (Testcontainers, schema from Flyway).
 // Each test runs in a transaction that is rolled back, so nothing is left behind.
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import(TestcontainersConfiguration.class)
 class AlertRepositoryTest {
 
     @Autowired

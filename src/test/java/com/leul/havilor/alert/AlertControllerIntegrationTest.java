@@ -1,10 +1,12 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.TestcontainersConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -27,11 +29,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// Full app (controller → service → repository → PostgreSQL from compose.yaml), called over MockMvc.
+// Full app (controller → service → repository → PostgreSQL in Testcontainers), called over MockMvc.
 // Not @Transactional: the race test needs real commits. Test rows use the INC-IT- prefix and are
 // deleted after each test.
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(TestcontainersConfiguration.class)
 class AlertControllerIntegrationTest {
 
     private static final String ALERTS = "/api/v1/alerts";
