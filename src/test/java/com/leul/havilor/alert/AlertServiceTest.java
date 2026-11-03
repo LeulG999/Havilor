@@ -1,8 +1,11 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.common.CaseType;
 import com.leul.havilor.common.ConflictException;
 import com.leul.havilor.common.NotFoundException;
 import com.leul.havilor.common.PageResponse;
+import com.leul.havilor.playbook.ActivePlaybook;
+import com.leul.havilor.playbook.PlaybookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +25,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -39,11 +43,14 @@ class AlertServiceTest {
     @Mock
     private AlertRepository alertRepository;
 
+    @Mock
+    private PlaybookService playbookService;
+
     private AlertService alertService;
 
     @BeforeEach
     void setUp() {
-        alertService = new AlertService(alertRepository, mock(PlatformTransactionManager.class));
+        alertService = new AlertService(alertRepository, playbookService, mock(PlatformTransactionManager.class));
     }
 
     @Test
@@ -60,6 +67,25 @@ class AlertServiceTest {
         assertThat(result.alert().email().subject()).isEqualTo("Fake invoice overdue");
         assertThat(result.alert().recipients()).extracting(RecipientResponse::address)
                 .containsExactly("victim@corp.example.com");
+    }
+
+    @Test
+    void newAlertFollowsTheActivePlaybookForItsCaseType() {
+        when(alertRepository.findIdByTicketNumber(TICKET)).thenReturn(Optional.empty());
+        when(playbookService.findActiveFor(CaseType.DETECTED_PHISHING))
+                .thenReturn(Optional.of(new ActivePlaybook(1L, 1, List.of(11L, 12L, 13L))));
+        ArgumentCaptor<Alert> saved = ArgumentCaptor.forClass(Alert.class);
+        when(alertRepository.saveAndFlush(saved.capture())).thenAnswer(call -> withId(call.getArgument(0), 2L));
+
+        CreateAlertResult result = alertService.create(request("Fake"));
+
+        assertThat(result.alert().playbookId()).isEqualTo(1L);
+        assertThat(result.alert().playbookVersion()).isEqualTo(1);
+        assertThat(saved.getValue().getStepProgress())
+                .extracting(StepProgress::getPlaybookStepId, StepProgress::getStatus)
+                .containsExactly(tuple(11L, StepStatus.PENDING),
+                        tuple(12L, StepStatus.PENDING),
+                        tuple(13L, StepStatus.PENDING));
     }
 
     @Test
