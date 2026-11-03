@@ -4,9 +4,10 @@ import com.leul.havilor.common.CaseType;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
-// What the API returns for an alert. The entity never leaves the service.
-public record AlertResponse(
+// GET /api/v1/alerts/{id} and POST: the whole alert with its children. The entity never leaves the service.
+public record AlertDetailResponse(
         Long id,
         String ticketNumber,
         Source source,
@@ -24,12 +25,15 @@ public record AlertResponse(
         Instant closedAt,
         String summary,
         EmailDetailsResponse email,
+        List<RecipientResponse> recipients,
+        List<UrlResponse> urls,
+        List<AttachmentResponse> attachments,
         Instant createdAt,
         Instant updatedAt
 ) {
 
-    static AlertResponse from(Alert alert) {
-        return new AlertResponse(
+    static AlertDetailResponse from(Alert alert) {
+        return new AlertDetailResponse(
                 alert.getId(),
                 alert.getTicketNumber(),
                 alert.getSource(),
@@ -47,6 +51,9 @@ public record AlertResponse(
                 alert.getClosedAt(),
                 alert.getSummary(),
                 EmailDetailsResponse.from(alert.getEmail()),
+                alert.getRecipients().stream().map(RecipientResponse::from).toList(),
+                alert.getUrls().stream().map(UrlResponse::from).toList(),
+                alert.getAttachments().stream().map(AttachmentResponse::from).toList(),
                 alert.getCreatedAt(),
                 alert.getUpdatedAt());
     }

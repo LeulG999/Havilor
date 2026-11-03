@@ -29,7 +29,7 @@ public class AlertController {
     // 201 Created for a new ticket, 200 OK with the stored alert for a ticket we already have.
     // Both point Location at the alert.
     @PostMapping
-    public ResponseEntity<AlertResponse> create(@Valid @RequestBody CreateAlertRequest request) {
+    public ResponseEntity<AlertDetailResponse> create(@Valid @RequestBody CreateAlertRequest request) {
         CreateAlertResult result = alertService.create(request);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
@@ -41,7 +41,7 @@ public class AlertController {
 
     // Newest first. Out-of-range page/size are corrected by the service (max size 100).
     @GetMapping
-    public PageResponse<AlertResponse> list(
+    public PageResponse<AlertSummaryResponse> list(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "" + Paging.DEFAULT_SIZE) int size) {
         return alertService.list(page, size);
@@ -49,7 +49,7 @@ public class AlertController {
 
     // An unknown id throws NotFoundException in the service; GlobalExceptionHandler makes it a 404.
     @GetMapping("/{id}")
-    public AlertResponse getById(@PathVariable Long id) {
+    public AlertDetailResponse getById(@PathVariable Long id) {
         return alertService.getById(id);
     }
 }
