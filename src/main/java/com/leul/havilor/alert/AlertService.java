@@ -1,5 +1,6 @@
 package com.leul.havilor.alert;
 
+import com.leul.havilor.common.ConflictException;
 import com.leul.havilor.common.NotFoundException;
 import com.leul.havilor.common.PageResponse;
 import com.leul.havilor.common.Paging;
@@ -71,15 +72,55 @@ public class AlertService {
         return PageResponse.from(alerts);
     }
 
+    /**
+     * Partial update. The rules live in Alert's methods (closed → 409, assigning a NEW alert → INVESTIGATING).
+     * Two layers stop lost updates:
+     * 1. the client's version (if sent) must match the stored one, or the change is refused straight away;
+     * 2. @Version: if another request commits between our read and our write, Hibernate's
+     *    "UPDATE ... WHERE version = ?" matches no row and throws (also 409, in GlobalExceptionHandler).
+     */
+    @Transactional
+    public AlertDetailResponse update(Long id, UpdateAlertRequest request) {
+        Alert alert = loadWithChildren(id);
+        if (request.version() != null && request.version() != alert.getVersion()) {
+            throw new ConflictException("Alert " + id + " was changed by someone else (version "
+                    + alert.getVersion() + ", you sent " + request.version() + "). Reload and try again.");
+        }
+        alert.ensureOpen();
+
+        if (request.priority() != null) {
+            alert.changePriority(request.priority());
+        }
+        if (request.assigneeId() != null) {
+            alert.assignTo(request.assigneeId());
+        }
+        if (request.waitingOn() != null) {
+            alert.changeWaitingOn(request.waitingOn());
+        }
+        if (request.externalCaseNumber() != null) {
+            alert.changeExternalCaseNumber(request.externalCaseNumber());
+        }
+        if (request.followUpOn() != null) {
+            alert.changeFollowUpOn(request.followUpOn());
+        }
+
+        // Flush now so the version check runs here and the response shows the new version and updatedAt.
+        alertRepository.flush();
+        return AlertDetailResponse.from(alert);
+    }
+
+    private AlertDetailResponse readDetail(Long id) {
+        return readOnlyTx.execute(status -> AlertDetailResponse.from(loadWithChildren(id)));
+    }
+
     // Exactly 3 queries, however many children the alert has (see AlertRepository). The second and
     // third return the same Alert instance as the first, now with one more list filled in.
-    private AlertDetailResponse readDetail(Long id) {
-        return readOnlyTx.execute(status -> {
-            Alert alert = alertRepository.findWithRecipientsById(id)
-                    .orElseThrow(() -> NotFoundException.of("Alert", id));
-            alertRepository.findWithUrlsById(id);
-            alertRepository.findWithAttachmentsById(id);
-            return AlertDetailResponse.from(alert);
-        });
+    // Must run inside a transaction, so all three share one persistence context.
+    private Alert loadWithChildren(Long id) {
+        Alert alert = alertRepository.findWithRecipientsById(id)
+                .orElseThrow(() -> NotFoundException.of("Alert", id));
+        alertRepository.findWithUrlsById(id);
+        alertRepository.findWithAttachmentsById(id);
+        return alert;
     }
 }

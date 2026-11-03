@@ -29,7 +29,8 @@ public record AlertDetailResponse(
         List<UrlResponse> urls,
         List<AttachmentResponse> attachments,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        long version
 ) {
 
     static AlertDetailResponse from(Alert alert) {
@@ -55,6 +56,7 @@ public record AlertDetailResponse(
                 alert.getUrls().stream().map(UrlResponse::from).toList(),
                 alert.getAttachments().stream().map(AttachmentResponse::from).toList(),
                 alert.getCreatedAt(),
-                alert.getUpdatedAt());
+                alert.getUpdatedAt(),
+                alert.getVersion());
     }
 }

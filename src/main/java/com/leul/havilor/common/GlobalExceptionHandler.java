@@ -3,6 +3,7 @@ package com.leul.havilor.common;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +65,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     ResponseEntity<ApiError> conflict(ConflictException e, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, e.getMessage(), request, List.of());
+    }
+
+    // 409: @Version found that another request changed the row between our read and our write.
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    ResponseEntity<ApiError> concurrentChange(OptimisticLockingFailureException e, HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "Changed by another request at the same time. Reload and try again.",
+                request, List.of());
     }
 
     // Everything else. Spring's own web exceptions (unknown URL 404, wrong method 405, wrong content

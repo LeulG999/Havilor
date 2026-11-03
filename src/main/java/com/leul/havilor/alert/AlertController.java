@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,5 +52,11 @@ public class AlertController {
     @GetMapping("/{id}")
     public AlertDetailResponse getById(@PathVariable Long id) {
         return alertService.getById(id);
+    }
+
+    // Partial update: only the fields that are sent change. Closed alert or stale version → 409.
+    @PatchMapping("/{id}")
+    public AlertDetailResponse update(@PathVariable Long id, @Valid @RequestBody UpdateAlertRequest request) {
+        return alertService.update(id, request);
     }
 }
