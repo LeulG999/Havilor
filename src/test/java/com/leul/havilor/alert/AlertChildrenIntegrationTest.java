@@ -99,6 +99,47 @@ class AlertChildrenIntegrationTest {
     }
 
     @Test
+    void clicksConnectARecipientToAUrlOfTheSameAlert() throws Exception {
+        long id = create("""
+                {"ticketNumber": "INC-IT-%s", "source": "PROOFPOINT_TAP", "caseType": "DETECTED_PHISHING",
+                 "priority": "HIGH", "receivedAt": "2026-10-28T14:00:00Z",
+                 "email": {"subject": "Invoice overdue", "fromAddress": "billing@invoices.example.net"},
+                 "recipients": [{"address": "alex@corp.example.com", "delivery": "DELIVERED"},
+                                {"address": "sam@corp.example.com", "delivery": "DELIVERED"}],
+                 "urls": [{"address": "https://login.fake-bank.example.net/verify"}],
+                 "clicks": [
+                   {"recipientAddress": "SAM@corp.example.com", "urlAddress": "https://login.fake-bank.example.net/verify",
+                    "clickedAt": "2026-10-28T14:07:00Z", "permitted": false},
+                   {"recipientAddress": "alex@corp.example.com", "urlAddress": "https://login.fake-bank.example.net/verify",
+                    "clickedAt": "2026-10-28T14:03:00Z", "permitted": true}]}
+                """.formatted(UUID.randomUUID()));
+
+        mockMvc.perform(get(ALERTS + "/{id}", id))
+                .andExpect(jsonPath("$.clicks", hasSize(2)))
+                .andExpect(jsonPath("$.clicks[0].recipientAddress").value("alex@corp.example.com")) // earliest first
+                .andExpect(jsonPath("$.clicks[0].permitted").value(true))
+                .andExpect(jsonPath("$.clicks[1].recipientAddress").value("sam@corp.example.com"))
+                .andExpect(jsonPath("$.clicks[1].permitted").value(false))
+                .andExpect(jsonPath("$.clicks[1].urlAddress").value("https://login.fake-bank.example.net/verify"));
+    }
+
+    @Test
+    void aClickMustNameARecipientAndUrlFromTheSameRequest() throws Exception {
+        mockMvc.perform(post(ALERTS).contentType(MediaType.APPLICATION_JSON).content("""
+                        {"ticketNumber": "INC-IT-%s", "source": "TEST_GENERATOR", "caseType": "DETECTED_PHISHING",
+                         "priority": "LOW", "receivedAt": "2026-10-28T14:00:00Z",
+                         "email": {"subject": "Fake", "fromAddress": "a@example.com"},
+                         "recipients": [{"address": "alex@corp.example.com", "delivery": "DELIVERED"}],
+                         "urls": [{"address": "https://x.example.net"}],
+                         "clicks": [{"recipientAddress": "nobody@corp.example.com", "urlAddress": "https://x.example.net",
+                                     "clickedAt": "2026-10-28T14:03:00Z", "permitted": true}]}
+                        """.formatted(UUID.randomUUID())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("clicks[0].recipientAddress"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("is not one of the recipients"));
+    }
+
+    @Test
     void listReturnsSummariesWithoutChildren() throws Exception {
         create(TestAlerts.json("INC-IT-" + UUID.randomUUID(), "Fake summary", "2999-03-01T00:00:00Z"));
 
@@ -111,17 +152,19 @@ class AlertChildrenIntegrationTest {
     }
 
     @Test
-    void detailLoadRunsThreeQueriesHoweverManyChildren() throws Exception {
+    void detailLoadRunsFourQueriesHoweverManyChildren() throws Exception {
         long small = create(alertWithChildren(1));
         long big = create(alertWithChildren(25));
 
+        // recipients, urls, attachments (one fetch join each), then all clicks (Flow 10).
         assertThat(statementsFor(() -> mockMvc.perform(get(ALERTS + "/{id}", small)).andExpect(status().isOk())))
-                .isEqualTo(3);
+                .isEqualTo(4);
         assertThat(statementsFor(() -> mockMvc.perform(get(ALERTS + "/{id}", big))
                 .andExpect(jsonPath("$.recipients", hasSize(25)))
                 .andExpect(jsonPath("$.urls", hasSize(25)))
-                .andExpect(jsonPath("$.attachments", hasSize(25)))))
-                .isEqualTo(3);
+                .andExpect(jsonPath("$.attachments", hasSize(25)))
+                .andExpect(jsonPath("$.clicks", hasSize(25)))))
+                .isEqualTo(4);
     }
 
     @Test
@@ -175,6 +218,11 @@ class AlertChildrenIntegrationTest {
         String urls = IntStream.range(0, n)
                 .mapToObj(i -> "{\"address\": \"https://site%d.example.net/login\"}".formatted(i))
                 .collect(Collectors.joining(","));
+        String clicks = IntStream.range(0, n)
+                .mapToObj(i -> ("{\"recipientAddress\": \"user%d@corp.example.com\", "
+                        + "\"urlAddress\": \"https://site%d.example.net/login\", "
+                        + "\"clickedAt\": \"2026-10-28T14:05:00Z\", \"permitted\": true}").formatted(i, i))
+                .collect(Collectors.joining(","));
         String attachments = IntStream.range(0, n)
                 .mapToObj(i -> "{\"fileName\": \"file%d.pdf\"}".formatted(i))
                 .collect(Collectors.joining(","));
@@ -182,8 +230,8 @@ class AlertChildrenIntegrationTest {
                 {"ticketNumber": "INC-IT-%s", "source": "TEST_GENERATOR", "caseType": "DETECTED_PHISHING",
                  "priority": "LOW", "receivedAt": "2026-10-28T14:00:00Z",
                  "email": {"subject": "Fake", "fromAddress": "a@example.com"},
-                 "recipients": [%s], "urls": [%s], "attachments": [%s]}
-                """.formatted(UUID.randomUUID(), recipients, urls, attachments);
+                 "recipients": [%s], "urls": [%s], "attachments": [%s], "clicks": [%s]}
+                """.formatted(UUID.randomUUID(), recipients, urls, attachments, clicks);
     }
 
     private int rows(String table, long alertId) {

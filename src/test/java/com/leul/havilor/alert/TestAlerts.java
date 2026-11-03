@@ -27,7 +27,7 @@ final class TestAlerts {
     static CreateAlertRequest request(String ticketNumber, String subject, Instant receivedAt) {
         return new CreateAlertRequest(ticketNumber, Source.TEST_GENERATOR, CaseType.DETECTED_PHISHING,
                 Priority.MEDIUM, receivedAt, emailRequest(subject),
-                List.of(new RecipientRequest("victim@corp.example.com", DeliveryStatus.DELIVERED)), null, null);
+                List.of(new RecipientRequest("victim@corp.example.com", DeliveryStatus.DELIVERED)), null, null, null);
     }
 
     static EmailDetailsRequest emailRequest(String subject) {
