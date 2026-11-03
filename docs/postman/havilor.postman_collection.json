@@ -1,0 +1,273 @@
+{
+  "info": {
+    "name": "Havilor - Slice 1",
+    "description": "The full Slice 1 loop against a local Havilor (fake data only). Run the 'Full loop' folder with the Collection Runner: it creates an alert, assigns it, works every playbook step, and closes it. Every request checks its own result. Start the app first: docker compose up -d, then ./mvnw spring-boot:run (add -Dspring-boot.run.profiles=dev for the 'Dev' folder).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "ticket", "value": "" },
+    { "key": "alertId", "value": "" },
+    { "key": "stepIds", "value": "[]" },
+    { "key": "stepIndex", "value": "0" },
+    { "key": "stepId", "value": "" },
+    { "key": "playbookId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Full loop",
+      "item": [
+        {
+          "name": "1. Create alert (201)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": { "exec": [
+                "pm.collectionVariables.set('ticket', 'INC-PM-' + Date.now());"
+              ] }
+            },
+            {
+              "listen": "test",
+              "script": { "exec": [
+                "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                "const alert = pm.response.json();",
+                "pm.test('starts NEW and UNDECIDED, with a playbook', () => {",
+                "  pm.expect(alert.status).to.eql('NEW');",
+                "  pm.expect(alert.verdict).to.eql('UNDECIDED');",
+                "  pm.expect(alert.playbookId).to.be.a('number');",
+                "});",
+                "pm.test('children and clicks came back', () => {",
+                "  pm.expect(alert.recipients).to.have.lengthOf(2);",
+                "  pm.expect(alert.urls[0].domain).to.eql('login.fake-bank.example.net');",
+                "  pm.expect(alert.clicks).to.have.lengthOf(1);",
+                "});",
+                "pm.collectionVariables.set('alertId', alert.id);"
+              ] }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/alerts",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticketNumber\": \"{{ticket}}\",\n  \"source\": \"PROOFPOINT_TAP\",\n  \"caseType\": \"DETECTED_PHISHING\",\n  \"priority\": \"HIGH\",\n  \"receivedAt\": \"2026-10-28T14:00:00Z\",\n  \"email\": {\n    \"subject\": \"Your mailbox is full\",\n    \"fromAddress\": \"it-support@helpdesk.example.com\",\n    \"envelopeSender\": \"bounce@mailer.example.net\",\n    \"replyTo\": \"collect@harvest.example.net\",\n    \"spfResult\": \"FAIL\",\n    \"dkimResult\": \"NONE\",\n    \"dmarcResult\": \"FAIL\",\n    \"phishScore\": 92\n  },\n  \"recipients\": [\n    { \"address\": \"alex@corp.example.com\", \"delivery\": \"DELIVERED\" },\n    { \"address\": \"sam@corp.example.com\", \"delivery\": \"QUARANTINED\" }\n  ],\n  \"urls\": [ { \"address\": \"https://login.fake-bank.example.net/verify\", \"onBadList\": true } ],\n  \"attachments\": [ { \"fileName\": \"invoice.pdf.exe\", \"fileType\": \"application/x-msdownload\", \"verdict\": \"MALICIOUS\" } ],\n  \"clicks\": [\n    { \"recipientAddress\": \"alex@corp.example.com\", \"urlAddress\": \"https://login.fake-bank.example.net/verify\", \"clickedAt\": \"2026-10-28T14:03:00Z\", \"permitted\": true }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Send the same ticket again (200, idempotent)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('200 with the stored alert', () => {",
+            "  pm.response.to.have.status(200);",
+            "  pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('alertId')));",
+            "});"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/alerts",
+            "body": { "mode": "raw", "raw": "{\n  \"ticketNumber\": \"{{ticket}}\",\n  \"source\": \"PROOFPOINT_TAP\",\n  \"caseType\": \"DETECTED_PHISHING\",\n  \"priority\": \"LOW\",\n  \"receivedAt\": \"2026-10-28T14:00:00Z\",\n  \"email\": { \"subject\": \"Resent\", \"fromAddress\": \"it-support@helpdesk.example.com\" },\n  \"recipients\": [ { \"address\": \"alex@corp.example.com\", \"delivery\": \"DELIVERED\" } ]\n}" }
+          }
+        },
+        {
+          "name": "3. List alerts (page of summaries)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('200 with a page', () => {",
+            "  pm.response.to.have.status(200);",
+            "  const page = pm.response.json();",
+            "  pm.expect(page).to.have.keys('content', 'page', 'size', 'totalElements', 'totalPages');",
+            "  pm.expect(page.size).to.eql(5);",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/alerts?page=0&size=5" }
+        },
+        {
+          "name": "4. Get the alert (full detail)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('200 with email details', () => {",
+            "  pm.response.to.have.status(200);",
+            "  pm.expect(pm.response.json().email.envelopeSender).to.eql('bounce@mailer.example.net');",
+            "});"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/alerts/{{alertId}}" }
+        },
+        {
+          "name": "5. Assign it (PATCH → INVESTIGATING)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('assigned and investigating', () => {",
+            "  pm.response.to.have.status(200);",
+            "  pm.expect(pm.response.json().status).to.eql('INVESTIGATING');",
+            "  pm.expect(pm.response.json().assigneeId).to.eql(7);",
+            "});"
+          ] } }],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/alerts/{{alertId}}",
+            "body": { "mode": "raw", "raw": "{ \"assigneeId\": 7, \"waitingOn\": \"Vendor security team\" }" }
+          }
+        },
+        {
+          "name": "6. Get the playbook steps",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "const steps = pm.response.json();",
+            "pm.test('8 pending steps, each teaching why it matters', () => {",
+            "  pm.expect(steps).to.have.lengthOf(8);",
+            "  steps.forEach(s => { pm.expect(s.status).to.eql('PENDING'); pm.expect(s.whyItMatters).to.not.be.empty; });",
+            "});",
+            "pm.collectionVariables.set('stepIds', JSON.stringify(steps.map(s => s.stepId)));",
+            "pm.collectionVariables.set('stepIndex', '0');"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/alerts/{{alertId}}/steps" }
+        },
+        {
+          "name": "7. Close too early (409, pending steps)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('409 names the pending steps', () => {",
+            "  pm.response.to.have.status(409);",
+            "  pm.expect(pm.response.json().message).to.include('8 pending steps');",
+            "});"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/alerts/{{alertId}}/close",
+            "body": { "mode": "raw", "raw": "{ \"verdict\": \"MALICIOUS\" }" }
+          }
+        },
+        {
+          "name": "8. Work the next step (repeats for all 8)",
+          "event": [
+            { "listen": "prerequest", "script": { "exec": [
+              "const ids = JSON.parse(pm.collectionVariables.get('stepIds'));",
+              "const i = Number(pm.collectionVariables.get('stepIndex'));",
+              "pm.collectionVariables.set('stepId', ids[i]);"
+            ] } },
+            { "listen": "test", "script": { "exec": [
+              "pm.test('step recorded', () => {",
+              "  pm.response.to.have.status(200);",
+              "  pm.expect(pm.response.json().completedAt).to.not.be.null;",
+              "});",
+              "const ids = JSON.parse(pm.collectionVariables.get('stepIds'));",
+              "const next = Number(pm.collectionVariables.get('stepIndex')) + 1;",
+              "pm.collectionVariables.set('stepIndex', String(next));",
+              "if (next < ids.length) { pm.execution.setNextRequest('8. Work the next step (repeats for all 8)'); }"
+            ] } }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/alerts/{{alertId}}/steps/{{stepId}}",
+            "body": { "mode": "raw", "raw": "{ \"status\": \"DONE\", \"answer\": \"Checked in the Postman run\" }" }
+          }
+        },
+        {
+          "name": "9. Close with a verdict (200)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('closed, verdict set, waitingOn cleared', () => {",
+            "  pm.response.to.have.status(200);",
+            "  const a = pm.response.json();",
+            "  pm.expect(a.status).to.eql('CLOSED');",
+            "  pm.expect(a.verdict).to.eql('MALICIOUS');",
+            "  pm.expect(a.closedAt).to.not.be.null;",
+            "  pm.expect(a.waitingOn).to.be.null;",
+            "});"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/alerts/{{alertId}}/close",
+            "body": { "mode": "raw", "raw": "{ \"verdict\": \"MALICIOUS\" }" }
+          }
+        },
+        {
+          "name": "10. Change a closed alert (409)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('409 closed', () => pm.response.to.have.status(409));"
+          ] } }],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/alerts/{{alertId}}",
+            "body": { "mode": "raw", "raw": "{ \"priority\": \"LOW\" }" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Playbooks",
+      "item": [
+        {
+          "name": "List playbooks",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('200', () => pm.response.to.have.status(200));",
+            "pm.collectionVariables.set('playbookId', pm.response.json()[0].id);"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/playbooks" }
+        },
+        {
+          "name": "Get a playbook with its steps",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('8 ordered steps', () => pm.expect(pm.response.json().steps).to.have.lengthOf(8));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/playbooks/{{playbookId}}" }
+        }
+      ]
+    },
+    {
+      "name": "Errors (one format)",
+      "item": [
+        {
+          "name": "Invalid body (400 with fieldErrors)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('400 in the ApiError shape', () => {",
+            "  pm.response.to.have.status(400);",
+            "  pm.expect(pm.response.json()).to.have.keys('status', 'error', 'message', 'path', 'timestamp', 'fieldErrors');",
+            "});"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/alerts",
+            "body": { "mode": "raw", "raw": "{ \"ticketNumber\": \"\" }" }
+          }
+        },
+        {
+          "name": "Unknown alert (404)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('404', () => pm.response.to.have.status(404));"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/alerts/999999999" }
+        },
+        {
+          "name": "Close with UNDECIDED (400)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('400', () => pm.response.to.have.status(400));"
+          ] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/alerts/{{alertId}}/close",
+            "body": { "mode": "raw", "raw": "{ \"verdict\": \"UNDECIDED\" }" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dev (needs the dev profile)",
+      "item": [
+        {
+          "name": "Generate 10 fake alerts",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('201 with 10 alerts', () => {",
+            "  pm.response.to.have.status(201);",
+            "  pm.expect(pm.response.json()).to.have.lengthOf(10);",
+            "});"
+          ] } }],
+          "request": { "method": "POST", "url": "{{baseUrl}}/api/v1/dev/generate-alerts?count=10" }
+        }
+      ]
+    }
+  ]
+}
