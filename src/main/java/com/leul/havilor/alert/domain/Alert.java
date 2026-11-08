@@ -110,7 +110,7 @@ public class Alert {
 
     // Alert owns its children: they are saved, updated and deleted with it (cascade ALL), and a child
     // removed from the list is deleted from the table (orphanRemoval). mappedBy = the child's "alert"
-    // field holds the foreign key. Collections are LAZY by default; AlertService loads them on purpose.
+    // field holds the foreign key. Collections are LAZY: they load when first read, inside a transaction.
     @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id")
     private List<Recipient> recipients = new ArrayList<>();

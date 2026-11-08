@@ -160,7 +160,7 @@ class AlertServiceTest {
 
     @Test
     void getByIdThrowsNotFoundWhenMissing() {
-        when(alertRepository.findWithRecipientsById(404L)).thenReturn(Optional.empty());
+        when(alertRepository.findById(404L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> alertService.getById(404L))
                 .isInstanceOf(NotFoundException.class)
@@ -227,9 +227,7 @@ class AlertServiceTest {
     }
 
     private void stubDetailLoad(Alert alert) {
-        when(alertRepository.findWithRecipientsById(alert.getId())).thenReturn(Optional.of(alert));
-        when(alertRepository.findWithUrlsById(alert.getId())).thenReturn(Optional.of(alert));
-        when(alertRepository.findWithAttachmentsById(alert.getId())).thenReturn(Optional.of(alert));
+        when(alertRepository.findById(alert.getId())).thenReturn(Optional.of(alert));
     }
 
     private static CreateAlertRequest request(String subject) {

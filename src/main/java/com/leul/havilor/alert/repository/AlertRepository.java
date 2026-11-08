@@ -16,21 +16,7 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     @Query("select a.id from Alert a where a.ticketNumber = :ticketNumber")
     Optional<Long> findIdByTicketNumber(String ticketNumber);
 
-    // The detail view needs the alert plus three child lists. Fetch-joining all three in ONE query is not
-    // possible with Lists (Hibernate's MultipleBagFetchException), and would return
-    // recipients × urls × attachments rows anyway. So: three small queries, each fetching one list.
-    // Run them in one transaction; they fill the same Alert instance in the persistence context.
-    @Query("select a from Alert a left join fetch a.recipients where a.id = :id")
-    Optional<Alert> findWithRecipientsById(Long id);
-
-    @Query("select a from Alert a left join fetch a.urls where a.id = :id")
-    Optional<Alert> findWithUrlsById(Long id);
-
-    @Query("select a from Alert a left join fetch a.attachments where a.id = :id")
-    Optional<Alert> findWithAttachmentsById(Long id);
-
-    // The 4th detail query: every click of the alert, with its recipient and URL (already in the
-    // persistence context from the queries above, so this adds no extra lookups).
+    // Every click of the alert, with its recipient and URL, for the detail view.
     @Query("""
             select c from ClickEvent c join fetch c.recipient join fetch c.url u
             where u.alert.id = :alertId order by c.clickedAt, c.id""")

@@ -153,19 +153,19 @@ class AlertChildrenIntegrationTest {
     }
 
     @Test
-    void detailLoadRunsFourQueriesHoweverManyChildren() throws Exception {
+    void detailLoadDoesNotGrowWithTheNumberOfChildren() throws Exception {
         long small = create(alertWithChildren(1));
         long big = create(alertWithChildren(25));
 
-        // recipients, urls, attachments (one fetch join each), then all clicks (Flow 10).
+        // The alert, its three lazy child lists (one query each), then all clicks.
         assertThat(statementsFor(() -> mockMvc.perform(get(ALERTS + "/{id}", small)).andExpect(status().isOk())))
-                .isEqualTo(4);
+                .isEqualTo(5);
         assertThat(statementsFor(() -> mockMvc.perform(get(ALERTS + "/{id}", big))
                 .andExpect(jsonPath("$.recipients", hasSize(25)))
                 .andExpect(jsonPath("$.urls", hasSize(25)))
                 .andExpect(jsonPath("$.attachments", hasSize(25)))
                 .andExpect(jsonPath("$.clicks", hasSize(25)))))
-                .isEqualTo(4);
+                .isEqualTo(5);
     }
 
     @Test

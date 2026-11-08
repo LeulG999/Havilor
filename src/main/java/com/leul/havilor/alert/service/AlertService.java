@@ -149,19 +149,12 @@ public class AlertService {
         return readOnlyTx.execute(status -> detailOf(loadWithChildren(id)));
     }
 
-    // Must run in the same transaction as loadWithChildren: query 4 of the detail view, the clicks.
+    // Must run inside a transaction: the child lists load lazily while the DTO is built.
     private AlertDetailResponse detailOf(Alert alert) {
         return AlertDetailResponse.from(alert, alertRepository.findClicksByAlertId(alert.getId()));
     }
 
-    // Exactly 3 queries, however many children the alert has (see AlertRepository); detailOf adds the 4th. The second and
-    // third return the same Alert instance as the first, now with one more list filled in.
-    // Must run inside a transaction, so all three share one persistence context.
     private Alert loadWithChildren(Long id) {
-        Alert alert = alertRepository.findWithRecipientsById(id)
-                .orElseThrow(() -> NotFoundException.of("Alert", id));
-        alertRepository.findWithUrlsById(id);
-        alertRepository.findWithAttachmentsById(id);
-        return alert;
+        return alertRepository.findById(id).orElseThrow(() -> NotFoundException.of("Alert", id));
     }
 }
