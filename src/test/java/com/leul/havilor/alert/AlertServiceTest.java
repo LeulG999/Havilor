@@ -74,7 +74,9 @@ class AlertServiceTest {
     @Test
     void createsAlertWithItsChildrenWhenTicketIsNew() {
         when(alertRepository.findIdByTicketNumber(TICKET)).thenReturn(Optional.empty());
-        when(alertRepository.saveAndFlush(any(Alert.class))).thenAnswer(call -> withId(call.getArgument(0), 1L));
+        ArgumentCaptor<Alert> saved = ArgumentCaptor.forClass(Alert.class);
+        when(alertRepository.saveAndFlush(saved.capture())).thenAnswer(call -> withId(call.getArgument(0), 1L));
+        when(alertRepository.findById(1L)).thenAnswer(call -> Optional.of(saved.getValue()));
 
         CreateAlertResult result = alertService.create(request("Fake invoice overdue"));
 
@@ -94,6 +96,7 @@ class AlertServiceTest {
                 .thenReturn(Optional.of(new ActivePlaybook(1L, 1, List.of(11L, 12L, 13L))));
         ArgumentCaptor<Alert> saved = ArgumentCaptor.forClass(Alert.class);
         when(alertRepository.saveAndFlush(saved.capture())).thenAnswer(call -> withId(call.getArgument(0), 2L));
+        when(alertRepository.findById(2L)).thenAnswer(call -> Optional.of(saved.getValue()));
 
         CreateAlertResult result = alertService.create(request("Fake"));
 

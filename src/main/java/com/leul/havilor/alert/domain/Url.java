@@ -18,7 +18,6 @@ import lombok.NoArgsConstructor;
 import java.net.URI;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -54,19 +53,13 @@ public class Url {
         this.onBadList = onBadList;
     }
 
-    // Url owns its clicks. Never loaded through this list (lazy); the detail view reads clicks with one query.
+    // Url owns its clicks: they are saved with it. The detail view reads them with AlertRepository.findClicksByAlertId.
     @OneToMany(mappedBy = "url", cascade = CascadeType.ALL, orphanRemoval = true)
     @Getter(AccessLevel.NONE)
     private List<ClickEvent> clicks = new ArrayList<>();
 
     void belongTo(Alert alert) {
         this.alert = alert;
-    }
-
-    // Only safe on a URL that was just built in memory (create): on a loaded URL this lazy list
-    // would run one query per URL. Loaded alerts read their clicks with AlertRepository.findClicksByAlertId.
-    List<ClickEvent> clicksOfNewUrl() {
-        return Collections.unmodifiableList(clicks);
     }
 
     // The recipient must be on the same alert: a click joins two children of one email.

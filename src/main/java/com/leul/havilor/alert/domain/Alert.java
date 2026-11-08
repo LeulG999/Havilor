@@ -293,11 +293,6 @@ public class Alert {
         return Collections.unmodifiableList(urls);
     }
 
-    // See Url.clicksOfNewUrl: only for an alert built in this request, never for a loaded one.
-    public List<ClickEvent> clicksOfNewAlert() {
-        return urls.stream().flatMap(u -> u.clicksOfNewUrl().stream()).toList();
-    }
-
     public List<Attachment> getAttachments() {
         return Collections.unmodifiableList(attachments);
     }

@@ -64,7 +64,7 @@ public class AlertService {
 
         try {
             Alert saved = alertRepository.saveAndFlush(alert);
-            return CreateAlertResult.newlyCreated(AlertDetailResponse.from(saved, saved.clicksOfNewAlert()));
+            return CreateAlertResult.newlyCreated(alertQueryService.getById(saved.getId()));
         } catch (DataIntegrityViolationException e) {
             // Two requests with the same ticket both passed the check above; the other one
             // inserted first and the database constraint stopped us. Its row is the alert.
