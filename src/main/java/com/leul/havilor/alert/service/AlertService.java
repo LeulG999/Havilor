@@ -16,9 +16,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Clock;
 import java.util.Optional;
@@ -32,20 +30,16 @@ public class AlertService {
     private final AlertRepository alertRepository;
     private final PlaybookService playbookService;
     private final AlertFactory alertFactory;
+    private final AlertQueryService alertQueryService;
     private final Clock clock;
-    // Read-only transaction for loading an alert with its children. A TransactionTemplate (instead of
-    // @Transactional) because create() needs it too, and create() calling an annotated method on
-    // "this" would skip Spring's proxy, so no transaction would start.
-    private final TransactionTemplate readOnlyTx;
 
     public AlertService(AlertRepository alertRepository, PlaybookService playbookService,
-                        AlertFactory alertFactory, Clock clock, PlatformTransactionManager transactionManager) {
+                        AlertFactory alertFactory, AlertQueryService alertQueryService, Clock clock) {
         this.alertRepository = alertRepository;
         this.playbookService = playbookService;
         this.alertFactory = alertFactory;
+        this.alertQueryService = alertQueryService;
         this.clock = clock;
-        this.readOnlyTx = new TransactionTemplate(transactionManager);
-        this.readOnlyTx.setReadOnly(true);
     }
 
     /**
@@ -60,7 +54,7 @@ public class AlertService {
     public CreateAlertResult create(CreateAlertRequest request) {
         Optional<Long> existingId = alertRepository.findIdByTicketNumber(request.ticketNumber());
         if (existingId.isPresent()) {
-            return CreateAlertResult.alreadyExisted(readDetail(existingId.get()));
+            return CreateAlertResult.alreadyExisted(alertQueryService.getById(existingId.get()));
         }
 
         Alert alert = alertFactory.create(request);
@@ -76,12 +70,8 @@ public class AlertService {
             // inserted first and the database constraint stopped us. Its row is the alert.
             // If no row exists, the insert failed for another reason: rethrow.
             Long winnerId = alertRepository.findIdByTicketNumber(request.ticketNumber()).orElseThrow(() -> e);
-            return CreateAlertResult.alreadyExisted(readDetail(winnerId));
+            return CreateAlertResult.alreadyExisted(alertQueryService.getById(winnerId));
         }
-    }
-
-    public AlertDetailResponse getById(Long id) {
-        return readDetail(id);
     }
 
     // Summaries only: the list never touches the child tables.
@@ -102,7 +92,7 @@ public class AlertService {
      */
     @Transactional
     public AlertDetailResponse update(Long id, UpdateAlertRequest request) {
-        Alert alert = loadWithChildren(id);
+        Alert alert = load(id);
         if (request.version() != null && request.version() != alert.getVersion()) {
             throw new ConflictException("Alert " + id + " was changed by someone else (version "
                     + alert.getVersion() + ", you sent " + request.version() + "). Reload and try again.");
@@ -127,7 +117,7 @@ public class AlertService {
 
         // Flush now so the version check runs here and the response shows the new version and updatedAt.
         alertRepository.flush();
-        return detailOf(alert);
+        return alertQueryService.getById(id);
     }
 
     /**
@@ -141,20 +131,10 @@ public class AlertService {
                 .orElseThrow(() -> NotFoundException.of("Alert", id));
         alert.close(request.verdict(), clock);
         alertRepository.flush();
-        // Same instance (persistence context): these just fill in the child lists for the response.
-        return detailOf(loadWithChildren(id));
+        return alertQueryService.getById(id);
     }
 
-    private AlertDetailResponse readDetail(Long id) {
-        return readOnlyTx.execute(status -> detailOf(loadWithChildren(id)));
-    }
-
-    // Must run inside a transaction: the child lists load lazily while the DTO is built.
-    private AlertDetailResponse detailOf(Alert alert) {
-        return AlertDetailResponse.from(alert, alertRepository.findClicksByAlertId(alert.getId()));
-    }
-
-    private Alert loadWithChildren(Long id) {
+    private Alert load(Long id) {
         return alertRepository.findById(id).orElseThrow(() -> NotFoundException.of("Alert", id));
     }
 }

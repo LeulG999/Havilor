@@ -5,6 +5,7 @@ import com.leul.havilor.alert.api.request.CreateAlertRequest;
 import com.leul.havilor.alert.api.request.UpdateAlertRequest;
 import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
+import com.leul.havilor.alert.service.AlertQueryService;
 import com.leul.havilor.alert.service.AlertService;
 import com.leul.havilor.alert.service.CreateAlertResult;
 import com.leul.havilor.common.paging.PageResponse;
@@ -29,9 +30,11 @@ import java.net.URI;
 public class AlertController {
 
     private final AlertService alertService;
+    private final AlertQueryService alertQueryService;
 
-    public AlertController(AlertService alertService) {
+    public AlertController(AlertService alertService, AlertQueryService alertQueryService) {
         this.alertService = alertService;
+        this.alertQueryService = alertQueryService;
     }
 
     // 201 Created for a new ticket, 200 OK with the stored alert for a ticket we already have.
@@ -58,7 +61,7 @@ public class AlertController {
     // An unknown id throws NotFoundException in the service; GlobalExceptionHandler makes it a 404.
     @GetMapping("/{id}")
     public AlertDetailResponse getById(@PathVariable Long id) {
-        return alertService.getById(id);
+        return alertQueryService.getById(id);
     }
 
     // The analyst's final decision. 400: no verdict / UNDECIDED; 409: already closed or steps still pending.

@@ -14,6 +14,7 @@ import com.leul.havilor.alert.domain.enums.StepStatus;
 import com.leul.havilor.alert.domain.enums.Verdict;
 import com.leul.havilor.alert.repository.AlertRepository;
 import com.leul.havilor.alert.service.AlertFactory;
+import com.leul.havilor.alert.service.AlertQueryService;
 import com.leul.havilor.alert.service.AlertService;
 import com.leul.havilor.alert.service.CreateAlertResult;
 import com.leul.havilor.common.CaseType;
@@ -33,7 +34,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import java.time.Instant;
 import java.util.List;
@@ -43,13 +43,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-// Pure unit test: no Spring, no database. The repository is a Mockito mock, and so is the
-// transaction manager (the TransactionTemplate just runs the callback).
+// Pure unit test: no Spring, no database. The repository is a Mockito mock; AlertQueryService is the real
+// class on top of it (without Spring its @Transactional does nothing, which is fine here).
 @ExtendWith(MockitoExtension.class)
 class AlertServiceTest {
 
@@ -62,12 +61,14 @@ class AlertServiceTest {
     @Mock
     private PlaybookService playbookService;
 
+    private AlertQueryService alertQueryService;
     private AlertService alertService;
 
     @BeforeEach
     void setUp() {
+        alertQueryService = new AlertQueryService(alertRepository);
         alertService = new AlertService(alertRepository, playbookService, new AlertFactory(),
-                FixedClockConfiguration.CLOCK, mock(PlatformTransactionManager.class));
+                alertQueryService, FixedClockConfiguration.CLOCK);
     }
 
     @Test
@@ -155,14 +156,14 @@ class AlertServiceTest {
     void getByIdReturnsAlertWhenPresent() {
         stubDetailLoad(withId(TestAlerts.alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 3L));
 
-        assertThat(alertService.getById(3L).ticketNumber()).isEqualTo(TICKET);
+        assertThat(alertQueryService.getById(3L).ticketNumber()).isEqualTo(TICKET);
     }
 
     @Test
     void getByIdThrowsNotFoundWhenMissing() {
         when(alertRepository.findById(404L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> alertService.getById(404L))
+        assertThatThrownBy(() -> alertQueryService.getById(404L))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessage("Alert 404 not found");
     }
