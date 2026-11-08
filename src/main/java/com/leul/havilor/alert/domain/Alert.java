@@ -217,6 +217,8 @@ public class Alert {
     }
 
     // Rule: working on a step of a NEW alert means the investigation has started.
+    // A step change is a change of the alert: updatedAt moves, so @Version goes up too. That way a step
+    // change and a close that started from the same version can't both succeed (the second gets 409).
     public StepProgress recordStep(Long stepId, StepStatus status, String answer, Clock clock) {
         ensureOpen();
         StepProgress progress = stepProgress.stream()
@@ -224,6 +226,7 @@ public class Alert {
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Step " + stepId + " is not part of alert " + id));
         progress.record(status, blankToNull(answer), clock);
+        this.updatedAt = clock.instant();
         if (status != StepStatus.PENDING && this.status == AlertStatus.NEW) {
             this.status = AlertStatus.INVESTIGATING;
         }

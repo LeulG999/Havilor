@@ -10,8 +10,10 @@ import com.leul.havilor.common.error.ConflictException;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 
 import static com.leul.havilor.FixedClockConfiguration.CLOCK;
@@ -79,6 +81,17 @@ class AlertTest {
         alert.recordStep(13L, StepStatus.DONE, "Clean", CLOCK);
         alert.close(Verdict.MALICIOUS, CLOCK);
         assertThat(alert.getStatus()).isEqualTo(AlertStatus.CLOSED);
+    }
+
+    @Test
+    void aStepChangeTouchesTheAlert() {
+        alert.attachPlaybook(1L, 1, List.of(11L));
+        Instant later = NOW.plusSeconds(60);
+
+        alert.recordStep(11L, StepStatus.DONE, null, Clock.fixed(later, ZoneOffset.UTC));
+
+        // A changed alert column is what makes Hibernate raise @Version.
+        assertThat(alert.getUpdatedAt()).isEqualTo(later);
     }
 
     @Test

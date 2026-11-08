@@ -109,8 +109,8 @@ class AlertCloseIntegrationTest {
 
     @Test
     void aStepChangeBumpsTheAlertVersion() throws Exception {
-        // OPTIMISTIC_FORCE_INCREMENT: working a step counts as changing the alert, so a close that started
-        // from the old version can't commit over it.
+        // Working a step changes the alert (updatedAt), so a close that started from the old version
+        // can't commit over it.
         long id = createAlert("DETECTED_PHISHING");
         long before = version(id);
 
