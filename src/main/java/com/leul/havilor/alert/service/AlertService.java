@@ -104,8 +104,8 @@ public class AlertService {
 
     /**
      * Close with the analyst's verdict. Several rules, one transaction: either every check passes and the
-     * alert is closed, or nothing changes. Alert.close checks "already closed" and "pending steps";
-     * the controller already refused a missing or UNDECIDED verdict (400).
+     * alert is closed, or nothing changes. Alert.close checks the verdict (UNDECIDED → 400),
+     * "already closed" and "pending steps" (409).
      */
     @Transactional
     public AlertDetailResponse close(Long id, CloseAlertRequest request) {

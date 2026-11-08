@@ -234,9 +234,7 @@ public class Alert {
     }
 
     // Closing is final. The rules, in the order they are checked:
-    // no real verdict → 400; already closed → 409; any step still PENDING → 409. The API boundary checks the
-    // verdict too (@DecidedVerdict), but the entity refuses UNDECIDED itself so no other code path can close
-    // without a decision, and if one tries, the caller still gets a clean 400 instead of a 500.
+    // no real verdict → 400; already closed → 409; any step still PENDING → 409.
     public void close(Verdict finalVerdict, Clock clock) {
         if (finalVerdict == null || finalVerdict == Verdict.UNDECIDED) {
             throw new BadRequestException("verdict",
