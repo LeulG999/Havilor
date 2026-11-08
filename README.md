@@ -50,13 +50,14 @@ waiting for their slices.
 - Every error goes through one `@RestControllerAdvice` and has one shape.
 - "Now" comes from one injected `java.time.Clock` (tests use a fixed one), never `Instant.now()`.
 - Request DTOs are plain data; `AlertFactory` turns a request into an alert with its children.
+- Simplest correct solution first: plain `@Transactional` services, lazy loading, `@Version` for conflicts.
 
 ```
 alert/
   api/            controllers           api/request/   request DTOs     api/response/  response DTOs
   domain/         Alert (+ embedded EmailDetails), Recipient, Url, Attachment, ClickEvent, StepProgress
   domain/enums/   AlertStatus, Priority, Source, Verdict, AuthResult, DeliveryStatus, StepStatus
-  repository/     AlertRepository       service/       AlertService, AlertStepService, AlertFactory
+  repository/     AlertRepository       service/       AlertService, AlertQueryService, AlertStepService, AlertFactory
   dev/            fake alert generator (only with the "dev" profile)
 playbook/
   api/  api/response/  domain/ (Playbook, PlaybookStep: seeded, immutable, versioned)  repository/  service/
@@ -69,10 +70,10 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 
 | Method | Path | Result |
 |---|---|---|
-| `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent). Phishing alerts get the active playbook's steps |
+| `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps |
 | `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries*, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
-| `GET` | `/api/v1/alerts/{id}` | **200** with the full alert: email details, recipients, URLs, attachments, clicks, playbook and `version` (4 queries, however many children); **404** if unknown |
-| `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or the sent `version` is stale |
+| `GET` | `/api/v1/alerts/{id}` | **200** with the full alert: email details, recipients, URLs, attachments, clicks, playbook and `version`; **404** if unknown |
+| `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or another request changed it at the same time (`@Version`) |
 | `GET` | `/api/v1/alerts/{id}/steps` | **200** with the alert's playbook steps in order: what to check, *why it matters*, how, and the alert's progress (`PENDING`/`DONE`/`SKIPPED`) |
 | `PATCH` | `/api/v1/alerts/{id}/steps/{stepId}` | Record a step `{status, answer}`. Working a step on a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed |
 | `POST` | `/api/v1/alerts/{id}/close` | Close with `{verdict}` (required, not `UNDECIDED`, else **400**). **409** if already closed or any step is still `PENDING` |

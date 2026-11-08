@@ -8,6 +8,8 @@ rule allows it.
 
 > **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** `Alert.close(verdict, clock)` takes the app `Clock` for `closedAt`, and a missing/UNDECIDED verdict now throws `BadRequestException` (400) instead of `IllegalArgumentException` (which would have been a 500 if any code path ever reached it).
 
+> **Later change (simplification, see [refactor-simplify.md](refactor-simplify.md)):** `@DecidedVerdict` and `OPTIMISTIC_FORCE_INCREMENT` are gone. `Alert.close()` refuses UNDECIDED (400, same body as before); close loads with `findWithStepProgressById`, and a step change still bumps `@Version` because `recordStep()` touches `updatedAt`.
+
 ## The API
 
 ```json

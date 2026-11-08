@@ -12,13 +12,13 @@ the 86 from Flow 10, minus the old import-scanning `ModuleBorderTest`, plus 4 Ar
 alert/
   api/            AlertController, AlertStepController
   api/request/    CreateAlertRequest, EmailDetailsRequest, RecipientRequest, UrlRequest, AttachmentRequest,
-                  ClickRequest, UpdateAlertRequest, UpdateStepRequest, CloseAlertRequest, DecidedVerdict
+                  ClickRequest, UpdateAlertRequest, UpdateStepRequest, CloseAlertRequest
   api/response/   AlertDetailResponse, AlertSummaryResponse, EmailDetailsResponse, RecipientResponse, UrlResponse,
                   AttachmentResponse, ClickResponse, AlertStepResponse
   domain/         Alert, EmailDetails, Recipient, Url, Attachment, ClickEvent, StepProgress
   domain/enums/   AlertStatus, Priority, Source, Verdict, AuthResult, DeliveryStatus, StepStatus
   repository/     AlertRepository
-  service/        AlertService, AlertStepService, AlertFactory, CreateAlertResult
+  service/        AlertService, AlertQueryService, AlertStepService, AlertFactory, CreateAlertResult
   dev/            DevAlertController, FakeAlertFactory   (was top-level dev/, see below)
 playbook/
   api/            PlaybookController
@@ -109,6 +109,11 @@ Step decisions:
 Commit `refactor: group domain enums`: the seven alert enums moved from `alert/domain/` into `alert/domain/enums/`.
 Only imports changed. `playbook/domain/` has no enums (`CaseType` is in `common/`). The ArchUnit rules use
 `alert.domain..`, which already covers the new sub-package.
+
+## Later: simplification
+
+See [refactor-simplify.md](refactor-simplify.md). `DecidedVerdict`, `Alert.clicksOfNewAlert()` and the
+special repository queries are gone; `AlertQueryService` was added to `service/`.
 
 ## New concepts introduced
 

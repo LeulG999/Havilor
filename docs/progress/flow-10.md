@@ -13,6 +13,8 @@ contract-style API tests in Postman.
 
 > **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** click matching (`BadRequestException` for an unknown recipient/URL) moved from `CreateAlertRequest.toAlert()` into `alert/service/AlertFactory.java`; the fake generator and the error `timestamp` use the app `Clock`.
 
+> **Later change (simplification, see [refactor-simplify.md](refactor-simplify.md)):** `Alert.clicksOfNewAlert()` and `Url.clicksOfNewUrl()` are gone: after saving, `create` returns `AlertQueryService.getById(id)`, so clicks always come from `findClicksByAlertId`.
+
 ## 1. Click events
 
 ```json

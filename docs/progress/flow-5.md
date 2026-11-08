@@ -8,6 +8,8 @@ child rows of the alert. The list returns a light summary; the detail view retur
 
 > **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** the request mappers (`toAlert()`, `toRecipient()`, `toUrl()`, `toAttachment()`) moved into `alert/service/AlertFactory.java`; the request DTOs are data-only now.
 
+> **Later change (simplification, see [refactor-simplify.md](refactor-simplify.md)):** the 3-query trick (`findWithRecipientsById`, `…Urls…`, `…Attachments…`) and the `TransactionTemplate` are gone. `AlertQueryService.getById` (`@Transactional(readOnly = true)`) loads the alert with `findById` and the child lists load lazily while the DTO is built: 5 statements (alert, 3 lists, clicks), still the same for 1 or 25 children.
+
 ## The API now
 
 ```json

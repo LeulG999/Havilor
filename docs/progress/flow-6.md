@@ -6,6 +6,8 @@ the business rules, and never silently overwrites someone else's change.
 
 **Built on:** `main` · **Status:** done, 54 tests passing, pushed
 
+> **Later change (simplification, see [refactor-simplify.md](refactor-simplify.md)):** the optional client `version` field and its check are gone. `@Version` alone turns a concurrent change into 409; a sent `version` is ignored.
+
 ## The API
 
 ```json

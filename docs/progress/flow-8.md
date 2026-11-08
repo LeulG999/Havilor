@@ -10,6 +10,8 @@ progress row per step. The analyst reads the steps (with *why it matters*) and w
 
 > **Later change (layer refactor, after Flow 10):** classes moved into `api/`, `api/request/`, `api/response/`, `domain/`, `repository/` and `service/` sub-packages (paths below are the new ones). `PlaybookRepository` had to become public for `playbook/service/` to use it, so the border is now enforced by an ArchUnit test (`ModuleBorderTest`) instead of Java visibility. See [refactor-layers.md](refactor-layers.md).
 
+> **Later change (simplification, see [refactor-simplify.md](refactor-simplify.md)):** steps load with `findWithStepProgressById` (no special lock). `Alert.recordStep()` sets `updatedAt`, so a step change raises the alert's `@Version` the normal way.
+
 ## The API
 
 | Method | Path | Result |
