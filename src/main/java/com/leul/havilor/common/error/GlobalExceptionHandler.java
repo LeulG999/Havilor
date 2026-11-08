@@ -3,6 +3,7 @@ package com.leul.havilor.common.error;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -97,6 +98,13 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiError> concurrentChange(OptimisticLockingFailureException e, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, "Changed by another request at the same time. Reload and try again.",
                 request, List.of());
+    }
+
+    // 409: a database constraint refused the write. The only one a client can hit today is the unique
+    // ticket number, when two requests create the same new ticket at the same moment.
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<ApiError> constraintViolation(DataIntegrityViolationException e, HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT, "Alert with this ticket number already exists", request, List.of());
     }
 
     // Everything else. Spring's own web exceptions (unknown URL 404, wrong method 405, wrong content

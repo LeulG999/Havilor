@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -116,6 +117,14 @@ class ErrorHandlingIntegrationTest {
     }
 
     @Test
+    void databaseConstraintGives409() throws Exception {
+        mockMvc.perform(get("/test-errors/duplicate"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Alert with this ticket number already exists"))
+                .andExpect(content().string(not(containsString("uk_alert_ticket_number"))));
+    }
+
+    @Test
     void unexpectedErrorGives500WithoutLeakingDetails() throws Exception {
         mockMvc.perform(get("/test-errors/boom"))
                 .andExpect(status().isInternalServerError())
@@ -131,6 +140,11 @@ class ErrorHandlingIntegrationTest {
         @GetMapping("/test-errors/conflict")
         void conflict() {
             throw new ConflictException("Alert is closed");
+        }
+
+        @GetMapping("/test-errors/duplicate")
+        void duplicate() {
+            throw new DataIntegrityViolationException("duplicate key violates uk_alert_ticket_number");
         }
 
         @GetMapping("/test-errors/boom")

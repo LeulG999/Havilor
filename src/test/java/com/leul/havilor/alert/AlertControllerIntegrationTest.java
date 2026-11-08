@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Full app (controller → service → repository → PostgreSQL in Testcontainers), called over MockMvc.
-// Not @Transactional: the race test needs real commits. Test rows use the INC-IT- prefix and are
+// Not @Transactional: the concurrency test needs real commits. Test rows use the INC-IT- prefix and are
 // deleted after each test.
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -125,15 +125,23 @@ class AlertControllerIntegrationTest {
             }
             startTogether.countDown();
 
+            // The first insert wins (201). A request that sees its row answers 200 with it; one whose insert
+            // collides with it at the same moment gets 409 from the unique constraint. Never a second row.
             List<Integer> statuses = new ArrayList<>();
             List<Long> ids = new ArrayList<>();
             for (Future<MvcResult> future : futures) {
                 MvcResult result = future.get();
-                statuses.add(result.getResponse().getStatus());
-                ids.add(idOf(result));
+                int status = result.getResponse().getStatus();
+                statuses.add(status);
+                if (status == 409) {
+                    assertThat(result.getResponse().getContentAsString())
+                            .contains("Alert with this ticket number already exists");
+                } else {
+                    ids.add(idOf(result));
+                }
             }
 
-            assertThat(statuses).containsOnly(201, 200);
+            assertThat(statuses).isSubsetOf(201, 200, 409);
             assertThat(statuses).filteredOn(s -> s == 201).hasSize(1);
             assertThat(ids).containsOnly(ids.getFirst());
             assertThat(rowsFor(ticket)).isEqualTo(1);

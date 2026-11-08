@@ -12,7 +12,6 @@ import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.common.paging.PageResponse;
 import com.leul.havilor.common.paging.Paging;
 import com.leul.havilor.playbook.service.PlaybookService;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -43,14 +42,12 @@ public class AlertService {
     }
 
     /**
-     * Idempotent create: one source ticket becomes exactly one alert.
-     * Sending the same ticketNumber again returns the stored alert unchanged.
-     *
-     * Deliberately NOT @Transactional. If the insert hits the unique constraint inside an
-     * outer transaction, that transaction is marked rollback-only and the re-read below
-     * would fail. Here saveAndFlush commits (or fails) in its own transaction, and the
-     * re-read runs in a fresh one. The children are inserted with the alert (cascade).
+     * One source ticket becomes exactly one alert. Sending the same ticketNumber again returns the
+     * stored alert unchanged. The children are inserted with the alert (cascade).
+     * If two requests with the same new ticket arrive at once, the database's unique constraint stops
+     * the second insert, and GlobalExceptionHandler answers it with 409.
      */
+    @Transactional
     public CreateAlertResult create(CreateAlertRequest request) {
         Optional<Long> existingId = alertRepository.findIdByTicketNumber(request.ticketNumber());
         if (existingId.isPresent()) {
@@ -62,16 +59,8 @@ public class AlertService {
         playbookService.findActiveFor(alert.getCaseType())
                 .ifPresent(p -> alert.attachPlaybook(p.id(), p.version(), p.stepIds()));
 
-        try {
-            Alert saved = alertRepository.saveAndFlush(alert);
-            return CreateAlertResult.newlyCreated(alertQueryService.getById(saved.getId()));
-        } catch (DataIntegrityViolationException e) {
-            // Two requests with the same ticket both passed the check above; the other one
-            // inserted first and the database constraint stopped us. Its row is the alert.
-            // If no row exists, the insert failed for another reason: rethrow.
-            Long winnerId = alertRepository.findIdByTicketNumber(request.ticketNumber()).orElseThrow(() -> e);
-            return CreateAlertResult.alreadyExisted(alertQueryService.getById(winnerId));
-        }
+        Alert saved = alertRepository.save(alert);
+        return CreateAlertResult.newlyCreated(alertQueryService.getById(saved.getId()));
     }
 
     // Summaries only: the list never touches the child tables.

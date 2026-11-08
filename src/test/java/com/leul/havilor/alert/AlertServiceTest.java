@@ -75,7 +75,7 @@ class AlertServiceTest {
     void createsAlertWithItsChildrenWhenTicketIsNew() {
         when(alertRepository.findIdByTicketNumber(TICKET)).thenReturn(Optional.empty());
         ArgumentCaptor<Alert> saved = ArgumentCaptor.forClass(Alert.class);
-        when(alertRepository.saveAndFlush(saved.capture())).thenAnswer(call -> withId(call.getArgument(0), 1L));
+        when(alertRepository.save(saved.capture())).thenAnswer(call -> withId(call.getArgument(0), 1L));
         when(alertRepository.findById(1L)).thenAnswer(call -> Optional.of(saved.getValue()));
 
         CreateAlertResult result = alertService.create(request("Fake invoice overdue"));
@@ -95,7 +95,7 @@ class AlertServiceTest {
         when(playbookService.findActiveFor(CaseType.DETECTED_PHISHING))
                 .thenReturn(Optional.of(new ActivePlaybook(1L, 1, List.of(11L, 12L, 13L))));
         ArgumentCaptor<Alert> saved = ArgumentCaptor.forClass(Alert.class);
-        when(alertRepository.saveAndFlush(saved.capture())).thenAnswer(call -> withId(call.getArgument(0), 2L));
+        when(alertRepository.save(saved.capture())).thenAnswer(call -> withId(call.getArgument(0), 2L));
         when(alertRepository.findById(2L)).thenAnswer(call -> Optional.of(saved.getValue()));
 
         CreateAlertResult result = alertService.create(request("Fake"));
@@ -127,29 +127,15 @@ class AlertServiceTest {
         assertThat(result.wasCreated()).isFalse();
         assertThat(result.alert().id()).isEqualTo(7L);
         assertThat(result.alert().email().subject()).isEqualTo("Original subject"); // stored alert is not changed
-        verify(alertRepository, never()).saveAndFlush(any());
+        verify(alertRepository, never()).save(any());
     }
 
     @Test
-    void returnsExistingAlertWhenAConcurrentRequestWinsTheRace() {
-        Alert winner = withId(TestAlerts.alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 9L);
-        // First check: not there yet. After our insert fails: the other request's row is there.
-        when(alertRepository.findIdByTicketNumber(TICKET)).thenReturn(Optional.empty(), Optional.of(9L));
-        when(alertRepository.saveAndFlush(any(Alert.class)))
-                .thenThrow(new DataIntegrityViolationException("uk_alert_ticket_number"));
-        stubDetailLoad(winner);
-
-        CreateAlertResult result = alertService.create(request("Fake invoice overdue"));
-
-        assertThat(result.wasCreated()).isFalse();
-        assertThat(result.alert().id()).isEqualTo(9L);
-    }
-
-    @Test
-    void rethrowsWhenInsertFailsForAnotherReason() {
+    void aFailedInsertIsNotCaught() {
+        // e.g. another request inserted the same ticket first; GlobalExceptionHandler makes it a 409.
         when(alertRepository.findIdByTicketNumber(TICKET)).thenReturn(Optional.empty());
-        when(alertRepository.saveAndFlush(any(Alert.class)))
-                .thenThrow(new DataIntegrityViolationException("not-null violation"));
+        when(alertRepository.save(any(Alert.class)))
+                .thenThrow(new DataIntegrityViolationException("uk_alert_ticket_number"));
 
         assertThatThrownBy(() -> alertService.create(request("Fake invoice overdue")))
                 .isInstanceOf(DataIntegrityViolationException.class);
