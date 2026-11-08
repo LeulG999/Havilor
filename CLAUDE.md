@@ -23,6 +23,7 @@ We build in **batches**. Leul names the flows in a batch; during a batch, build 
 - Diagrams: detailed components and flow, not plain boxes.
 - No code during pure design/concept discussions unless he asks.
 - YAGNI: keep it simple; just-in-time design before each slice.
+- Always choose the simplest correct solution. No performance optimizations, special locking, or clever tricks unless Leul asks for them. If something more complex seems needed, ask first.
 
 ## Safety rule
 Use **fake/synthetic data only**. Never real employer data, real email addresses, tenants or credentials.
