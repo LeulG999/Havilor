@@ -70,7 +70,7 @@ public class AlertController {
         return alertService.close(id, request);
     }
 
-    // Partial update: only the fields that are sent change. Closed alert or stale version → 409.
+    // Partial update: only the fields that are sent change. Closed alert or a concurrent change → 409.
     @PatchMapping("/{id}")
     public AlertDetailResponse update(@PathVariable Long id, @Valid @RequestBody UpdateAlertRequest request) {
         return alertService.update(id, request);

@@ -90,22 +90,9 @@ class AlertUpdateIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Alert " + id + " is closed and can't be changed"));
     }
 
-    @Test
-    void aStaleVersionGives409() throws Exception {
-        long id = createAlert();
-        patchWithVersion(id, "HIGH", 0).andExpect(status().isOk());
-
-        // The client still thinks the alert is at version 0.
-        patchWithVersion(id, "LOW", 0)
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value(
-                        "Alert " + id + " was changed by someone else (version 1, you sent 0). Reload and try again."));
-
-        mockMvc.perform(get(ALERTS + "/{id}", id)).andExpect(jsonPath("$.priority").value("HIGH"));
-    }
 
     @Test
-    void twoConcurrentUpdatesFromTheSameVersionLetExactlyOneWin() throws Exception {
+    void concurrentUpdatesNeverSilentlyOverwriteEachOther() throws Exception {
         long id = createAlert();
         int requests = 2;
         CountDownLatch startTogether = new CountDownLatch(1);
@@ -115,7 +102,7 @@ class AlertUpdateIntegrationTest {
             for (String priority : List.of("HIGH", "LOW")) {
                 Callable<MvcResult> call = () -> {
                     startTogether.await();
-                    return patchWithVersion(id, priority, 0).andReturn();
+                    return patchPriority(id, priority).andReturn();
                 };
                 futures.add(pool.submit(call));
             }
@@ -126,11 +113,11 @@ class AlertUpdateIntegrationTest {
                 statuses.add(future.get().getResponse().getStatus());
             }
 
-            // Whoever is second loses: either at the version check (it read version 1) or at the
-            // UPDATE ... WHERE version = 0 (it read version 0 before the winner committed).
-            assertThat(statuses).containsExactlyInAnyOrder(200, 409);
+            // If both read version 0, the second "UPDATE ... WHERE version = 0" matches no row: 409.
+            // If one ran after the other committed, both succeed. Either way, every 200 is one version step.
+            assertThat(statuses).isSubsetOf(200, 409).contains(200);
             Long version = jdbcTemplate.queryForObject("SELECT version FROM alert WHERE id = ?", Long.class, id);
-            assertThat(version).isEqualTo(1L);
+            assertThat(version).isEqualTo(statuses.stream().filter(s -> s == 200).count());
         } finally {
             pool.shutdownNow();
         }
@@ -149,10 +136,10 @@ class AlertUpdateIntegrationTest {
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("assigneeId"));
     }
 
-    private org.springframework.test.web.servlet.ResultActions patchWithVersion(long id, String priority, long version)
+    private org.springframework.test.web.servlet.ResultActions patchPriority(long id, String priority)
             throws Exception {
         return mockMvc.perform(patch(ALERTS + "/{id}", id).contentType(MediaType.APPLICATION_JSON)
-                .content("{\"priority\": \"%s\", \"version\": %d}".formatted(priority, version)));
+                .content("{\"priority\": \"%s\"}".formatted(priority)));
     }
 
     private long createAlert() throws Exception {

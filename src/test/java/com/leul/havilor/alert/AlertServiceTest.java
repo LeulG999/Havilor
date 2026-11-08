@@ -18,7 +18,6 @@ import com.leul.havilor.alert.service.AlertQueryService;
 import com.leul.havilor.alert.service.AlertService;
 import com.leul.havilor.alert.service.CreateAlertResult;
 import com.leul.havilor.common.CaseType;
-import com.leul.havilor.common.error.ConflictException;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.common.paging.PageResponse;
 import com.leul.havilor.playbook.service.ActivePlaybook;
@@ -195,7 +194,7 @@ class AlertServiceTest {
         stubDetailLoad(alert);
 
         AlertDetailResponse updated = alertService.update(11L,
-                new UpdateAlertRequest(null, 7L, null, null, null, null));
+                new UpdateAlertRequest(null, 7L, null, null, null));
 
         assertThat(updated.assigneeId()).isEqualTo(7L);
         assertThat(updated.status()).isEqualTo(AlertStatus.INVESTIGATING);
@@ -203,18 +202,6 @@ class AlertServiceTest {
         verify(alertRepository).flush();
     }
 
-    @Test
-    void updateRefusesAStaleVersion() {
-        Alert alert = withId(TestAlerts.alert(TICKET, "Fake", RECEIVED_AT), 12L);
-        ReflectionTestUtils.setField(alert, "version", 3L);
-        stubDetailLoad(alert);
-
-        assertThatThrownBy(() -> alertService.update(12L,
-                new UpdateAlertRequest(Priority.LOW, null, null, null, null, 2L)))
-                .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("version 3, you sent 2");
-        assertThat(alert.getPriority()).isEqualTo(Priority.MEDIUM);
-    }
 
     private void stubDetailLoad(Alert alert) {
         when(alertRepository.findById(alert.getId())).thenReturn(Optional.of(alert));

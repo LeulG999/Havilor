@@ -7,7 +7,6 @@ import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.repository.AlertRepository;
-import com.leul.havilor.common.error.ConflictException;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.common.paging.PageResponse;
 import com.leul.havilor.common.paging.Paging;
@@ -74,18 +73,12 @@ public class AlertService {
 
     /**
      * Partial update. The rules live in Alert's methods (closed → 409, assigning a NEW alert → INVESTIGATING).
-     * Two layers stop lost updates:
-     * 1. the client's version (if sent) must match the stored one, or the change is refused straight away;
-     * 2. @Version: if another request commits between our read and our write, Hibernate's
-     *    "UPDATE ... WHERE version = ?" matches no row and throws (also 409, in GlobalExceptionHandler).
+     * @Version: if another request commits between our read and our write, Hibernate's
+     * "UPDATE ... WHERE version = ?" matches no row and throws (409, in GlobalExceptionHandler).
      */
     @Transactional
     public AlertDetailResponse update(Long id, UpdateAlertRequest request) {
         Alert alert = load(id);
-        if (request.version() != null && request.version() != alert.getVersion()) {
-            throw new ConflictException("Alert " + id + " was changed by someone else (version "
-                    + alert.getVersion() + ", you sent " + request.version() + "). Reload and try again.");
-        }
         alert.ensureOpen();
 
         if (request.priority() != null) {
@@ -104,7 +97,7 @@ public class AlertService {
             alert.changeFollowUpOn(request.followUpOn());
         }
 
-        // Flush now so the version check runs here and the response shows the new version and updatedAt.
+        // Flush now so the response shows the new version and updatedAt.
         alertRepository.flush();
         return alertQueryService.getById(id);
     }
