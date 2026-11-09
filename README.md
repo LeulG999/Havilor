@@ -32,7 +32,7 @@ but the analyst always makes the decision.
 - [x] 15. Escalation
 - [x] 16. Audit log
 - [x] 17. Standup notes
-- [ ] 18. AI assistant (Claude): assessment + email drafts
+- [x] 18. AI assistant (Claude): assessment + email drafts
 - [ ] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
 Build notes for every flow are in [`docs/progress/`](docs/progress).
@@ -42,10 +42,11 @@ Build notes for every flow are in [`docs/progress/`](docs/progress).
 - Java 21, Spring Boot 4.1, Maven
 - Spring Web, Spring Data JPA (Hibernate 7), Bean Validation, Lombok
 - Spring Security as an OAuth2 resource server: our own HMAC-signed JWTs, BCrypt passwords
+- The Claude API (Anthropic) through the official Java SDK, behind one `AiClient` interface (structured outputs)
 - PostgreSQL 18 (in Docker), Flyway migrations
 - Tests: JUnit 5, Mockito, MockMvc, **Testcontainers** (a throwaway PostgreSQL per test run), **ArchUnit** (module borders)
 
-Planned: JaCoCo, OpenAPI/Swagger, Redis, the Claude API (Anthropic) as the LLM client,
+Planned: JaCoCo, OpenAPI/Swagger, Redis,
 pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
 
 ## Architecture
@@ -93,6 +94,7 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
   error/          ApiError, GlobalExceptionHandler, NotFound/Conflict/BadRequest exceptions
   paging/         PageResponse, Paging
   security/       SecurityConfiguration (filter chain, JWT encoder/decoder, BCrypt)
+  ai/             AiClient (+ AnthropicAiClient), AiInput, AiException: the only door to the LLM
 ```
 
 ## API
@@ -115,6 +117,8 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `PATCH` | `/api/v1/escalations/{id}` | `{externalStatus, outcome}` (both optional). An `outcome` sends the alert back to `INVESTIGATING` |
 | `GET` | `/api/v1/alerts/{id}/findings` | **200** with the alert's findings (automatic and manual), each with *why it matters* |
 | `POST` | `/api/v1/alerts/{id}/findings` | Add a manual finding `{type, severity, title, teachingText}` → **201** |
+| `POST` | `/api/v1/alerts/{id}/ai/assessment` | Claude reads the alert + findings → **200** `{summary, suggestedVerdict, suggestionReason}`; the suggestion is saved on the alert (the analyst still decides). **502** if the assistant can't answer |
+| `POST` | `/api/v1/alerts/{id}/ai/draft-email` | `{type: USER_NOTICE \| ESCALATION}` → **200** `{type, draft}` (not saved, not sent) |
 | `GET` | `/api/v1/alerts/{id}/audit` | **200** with the alert's history (updates, close, steps, actions, findings, escalations), oldest first |
 | `GET` | `/api/v1/audit?page=0&size=20` | **MANAGER only** (**403** otherwise): the whole audit log, newest first |
 | `POST` | `/api/v1/standup/notes` | Write a standup note `{noteDate, text, alertIds}` → **201** `DRAFT` |
@@ -158,6 +162,7 @@ You need **JDK 21+** and **Docker Desktop** (running).
 # Secrets come only from the environment (never from git):
 export HAVILOR_JWT_SECRET="<at least 32 random characters>"   # signs access tokens; the app won't start without it
 export HAVILOR_DEV_PASSWORD="<any password>"                  # dev profile only: password of the two fake dev users
+export ANTHROPIC_API_KEY="<your key>"                         # optional: without it the AI endpoints answer 502
 
 # The app: start the dev database (container "havilor-db", host port 5433), then the app on :8080
 docker compose up -d
@@ -187,7 +192,7 @@ Every request has its own tests. From the command line:
 
 - **Slice 1 (done):** core loop: receive, list, view, update and close alerts; playbook steps
 - **Slice 2:** automatic checks, priority rules, findings, teaching text (first version in Flow 13)
-- **Slice 3:** AI explanations, case summary + suggested verdict, email drafts, then RAG
+- **Slice 3:** AI explanations, case summary + suggested verdict, email drafts (first version in Flow 18), then RAG
 - **Slice 4:** login and roles (JWT), escalation, actions, audit log, standup notes
 - **Later:** ServiceNow integration via MuleSoft, identity investigation (Entra ID sign-ins),
   React front end, Docker / CI / AWS deployment
