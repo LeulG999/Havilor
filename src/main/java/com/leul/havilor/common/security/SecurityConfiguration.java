@@ -49,6 +49,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/audit").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/standup/team").hasRole("MANAGER")
                         .requestMatchers("/api/v1/**").authenticated()
                         // Nothing else is served; unknown paths still get their normal 404.
                         .anyRequest().permitAll())

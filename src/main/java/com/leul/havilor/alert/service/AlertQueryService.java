@@ -18,7 +18,13 @@ public class AlertQueryService {
         this.alertRepository = alertRepository;
     }
 
-    // For other modules that only need "does this alert exist?" (404 if not).
+    // For other modules that only need "does this alert exist?".
+    @Transactional(readOnly = true)
+    public boolean exists(Long id) {
+        return alertRepository.existsById(id);
+    }
+
+    // The same, as a 404 when it doesn't.
     @Transactional(readOnly = true)
     public void ensureExists(Long id) {
         if (!alertRepository.existsById(id)) {
