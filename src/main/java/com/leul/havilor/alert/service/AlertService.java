@@ -7,6 +7,7 @@ import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.domain.enums.Priority;
+import com.leul.havilor.alert.domain.enums.Source;
 import com.leul.havilor.alert.domain.enums.Verdict;
 import com.leul.havilor.alert.repository.AlertRepository;
 import com.leul.havilor.audit.service.AuditService;
@@ -24,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
@@ -63,12 +66,13 @@ public class AlertService {
      */
     @Transactional
     public CreateAlertResult create(CreateAlertRequest request) {
-        Optional<Long> existingId = alertRepository.findIdByTicketNumber(request.ticketNumber());
+        String ticketNumber = ticketNumberFor(request);
+        Optional<Long> existingId = alertRepository.findIdByTicketNumber(ticketNumber);
         if (existingId.isPresent()) {
             return CreateAlertResult.alreadyExisted(alertQueryService.getById(existingId.get()));
         }
 
-        Alert alert = alertFactory.create(request);
+        Alert alert = alertFactory.create(request, ticketNumber);
         // Crossing the module border: ask the playbook module, get ids back, never touch its entities.
         playbookService.findActiveFor(alert.getCaseType())
                 .ifPresent(p -> alert.attachPlaybook(p.id(), p.version(), p.stepIds()));
@@ -167,6 +171,20 @@ public class AlertService {
     @Transactional
     public void endEscalation(Long id) {
         load(id).endEscalation();
+    }
+
+    // Every source system has its own ticket number. A MANUAL alert may come without one: then it gets
+    // MAN-<today, yyyyMMdd>-<n>. Two manual alerts numbered at the same moment would collide on the unique
+    // ticket number: the second gets 409 and can simply be sent again.
+    private String ticketNumberFor(CreateAlertRequest request) {
+        if (request.ticketNumber() != null && !request.ticketNumber().isBlank()) {
+            return request.ticketNumber();
+        }
+        if (request.source() != Source.MANUAL) {
+            throw new BadRequestException("ticketNumber", "must not be blank");
+        }
+        String prefix = "MAN-" + LocalDate.now(clock).format(DateTimeFormatter.BASIC_ISO_DATE) + "-";
+        return prefix + (alertRepository.countByTicketNumberStartingWith(prefix) + 1);
     }
 
     // The fields PATCH can change, as one line for the audit log.

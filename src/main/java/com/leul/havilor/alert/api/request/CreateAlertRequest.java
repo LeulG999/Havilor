@@ -4,7 +4,6 @@ import com.leul.havilor.alert.domain.enums.Priority;
 import com.leul.havilor.alert.domain.enums.Source;
 import com.leul.havilor.common.CaseType;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -17,8 +16,10 @@ import java.util.List;
 // The limits match the database columns, so anything that passes validation also fits the table.
 // The list caps stop one request from inserting an unbounded number of rows.
 // Data only: AlertFactory (service/) turns it into an Alert.
+// ticketNumber is required, except for source MANUAL: then Havilor generates MAN-<yyyyMMdd>-<n> if none is sent
+// (checked in AlertService, because it depends on another field).
 public record CreateAlertRequest(
-        @NotBlank @Size(max = 50) String ticketNumber,
+        @Size(max = 50) String ticketNumber,
         @NotNull Source source,
         @NotNull CaseType caseType,
         @NotNull Priority priority,

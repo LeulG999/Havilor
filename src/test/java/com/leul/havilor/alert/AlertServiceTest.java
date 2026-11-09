@@ -123,7 +123,7 @@ class AlertServiceTest {
 
     @Test
     void childrenPointBackToTheirAlert() {
-        Alert alert = new AlertFactory().create(TestAlerts.request(TICKET, "Fake", RECEIVED_AT));
+        Alert alert = new AlertFactory().create(TestAlerts.request(TICKET, "Fake", RECEIVED_AT), TICKET);
 
         assertThat(alert.getRecipients()).allSatisfy(r -> assertThat(r.getAlert()).isSameAs(alert));
     }

@@ -4,5 +4,6 @@ package com.leul.havilor.alert.domain.enums;
 public enum Source {
     SERVICENOW,
     PROOFPOINT_TAP,
-    TEST_GENERATOR
+    TEST_GENERATOR,
+    MANUAL          // entered by an analyst (Flow 19: manual intake)
 }

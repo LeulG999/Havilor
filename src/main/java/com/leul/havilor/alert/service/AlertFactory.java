@@ -31,8 +31,9 @@ public class AlertFactory {
 
     // A click must name a recipient and a URL from the same request; anything else is a 400
     // (BadRequestException): the fields are valid one by one, but they don't fit together.
-    public Alert create(CreateAlertRequest request) {
-        Alert alert = new Alert(request.ticketNumber(), request.source(), request.caseType(), request.priority(),
+    // ticketNumber: the request's own, or the one AlertService generated for a manual alert.
+    public Alert create(CreateAlertRequest request, String ticketNumber) {
+        Alert alert = new Alert(ticketNumber, request.source(), request.caseType(), request.priority(),
                 request.receivedAt(), emailDetails(request.email()));
         request.recipients().forEach(r -> alert.addRecipient(recipient(r)));
         request.urls().forEach(u -> alert.addUrl(url(u)));

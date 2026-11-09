@@ -14,6 +14,9 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
     @Query("select a.id from Alert a where a.ticketNumber = :ticketNumber")
     Optional<Long> findIdByTicketNumber(String ticketNumber);
 
+    // For numbering manual tickets: how many MAN-<date>- tickets exist already.
+    long countByTicketNumberStartingWith(String prefix);
+
     // Every click of the alert, with its recipient and URL, for the detail view.
     @Query("""
             select c from ClickEvent c join fetch c.recipient join fetch c.url u
