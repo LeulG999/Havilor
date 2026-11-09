@@ -6,7 +6,7 @@ The MVP handles **phishing / email cases**. Havilor helps a SOC analyst work a c
 concepts along the way: every investigation step explains *why it matters*. Havilor can *suggest* a verdict,
 but the analyst always makes the decision.
 
-> **Status:** Slice 1 (the core loop) is complete. Nothing here is production-ready yet (no login until Slice 4).
+> **Status:** Slice 1 (the core loop) is complete; Batch 2 is in progress. Nothing here is production-ready yet.
 > All data in this project is fake/synthetic. No real emails, tenants, or credentials.
 
 ## Current status: Slice 1 (core loop) ✅
@@ -26,7 +26,7 @@ but the analyst always makes the decision.
 ## Batch 2 (Slices 2–4 core) — in progress
 
 - [x] 11. Generic 409 message for database conflicts
-- [ ] 12. Users + login (JWT), `GET /users/me`, real assignees
+- [x] 12. Users + login (JWT), `GET /users/me`, real assignees
 - [ ] 13. Automatic checks → findings, critical rule, manual findings
 - [ ] 14. Actions on an alert
 - [ ] 15. Escalation
@@ -41,24 +41,27 @@ Build notes for every flow are in [`docs/progress/`](docs/progress).
 
 - Java 21, Spring Boot 4.1, Maven
 - Spring Web, Spring Data JPA (Hibernate 7), Bean Validation, Lombok
+- Spring Security as an OAuth2 resource server: our own HMAC-signed JWTs, BCrypt passwords
 - PostgreSQL 18 (in Docker), Flyway migrations
 - Tests: JUnit 5, Mockito, MockMvc, **Testcontainers** (a throwaway PostgreSQL per test run), **ArchUnit** (module borders)
 
-Planned: JaCoCo, OpenAPI/Swagger, Spring Security + JWT, Redis, the Claude API (Anthropic) as the LLM client,
+Planned: JaCoCo, OpenAPI/Swagger, Redis, the Claude API (Anthropic) as the LLM client,
 pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
 
 ## Architecture
 
 Havilor is a **modular monolith**: one Spring Boot application split into feature modules.
-Today `alert`, `playbook` and `common` hold code; `user`, `finding`, `escalation`, `audit` and `standup` are
-waiting for their slices.
+Today `alert`, `playbook`, `user` and `common` hold code; `finding`, `escalation`, `audit` and `standup` are
+waiting for their flows.
 
 - Each module is layered: **Controller → Service → Repository → PostgreSQL**, with one sub-package per layer.
 - Modules have strict borders: another module may use only a module's `service` and `api.response` packages,
-  never its `domain` or `repository`. An **ArchUnit** test (`ModuleBorderTest`) fails the build otherwise.
+  never its `domain` or `repository`, and modules never depend on each other in a circle. An **ArchUnit** test
+  (`ModuleBorderTest`) fails the build otherwise.
   For example, `alert` gets playbooks only through `PlaybookService`.
 - Business rules live on the entities (`Alert.assignTo`, `Alert.close`...), not in setters spread over services.
-- The REST API lives under `/api/v1` and only returns DTOs, never database entities.
+- The REST API lives under `/api/v1` and only returns DTOs, never database entities. Every call except login
+  needs a valid access token (`Authorization: Bearer ...`).
 - Every error goes through one `@RestControllerAdvice` and has one shape.
 - "Now" comes from one injected `java.time.Clock` (tests use a fixed one), never `Instant.now()`.
 - Request DTOs are plain data; `AlertFactory` turns a request into an alert with its children.
@@ -73,19 +76,25 @@ alert/
   dev/            fake alert generator (only with the "dev" profile)
 playbook/
   api/  api/response/  domain/ (Playbook, PlaybookStep: seeded, immutable, versioned)  repository/  service/
+user/
+  api/ (login, me)  api/request/  api/response/  domain/ (User, Role)  repository/  service/ (AuthService, UserService)
+  dev/            the fake dev analyst and manager (only with the "dev" profile)
 common/           CaseType, ClockConfiguration (the one Clock for "now")
   error/          ApiError, GlobalExceptionHandler, NotFound/Conflict/BadRequest exceptions
   paging/         PageResponse, Paging
+  security/       SecurityConfiguration (filter chain, JWT encoder/decoder, BCrypt)
 ```
 
 ## API
 
 | Method | Path | Result |
 |---|---|---|
+| `POST` | `/api/v1/auth/login` | `{email, password}` → **200** `{accessToken, tokenType: "Bearer", expiresIn}` (8 hours); **401** `Invalid email or password`. The only call without a token |
+| `GET` | `/api/v1/users/me` | **200** with the logged-in user (id, name, email, role, active) |
 | `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps |
 | `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries*, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
 | `GET` | `/api/v1/alerts/{id}` | **200** with the full alert: email details, recipients, URLs, attachments, clicks, playbook and `version`; **404** if unknown |
-| `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or another request changed it at the same time (`@Version`) |
+| `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). The assignee must be an existing user (else **400**). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or another request changed it at the same time (`@Version`) |
 | `GET` | `/api/v1/alerts/{id}/steps` | **200** with the alert's playbook steps in order: what to check, *why it matters*, how, and the alert's progress (`PENDING`/`DONE`/`SKIPPED`) |
 | `PATCH` | `/api/v1/alerts/{id}/steps/{stepId}` | Record a step `{status, answer}`. Working a step on a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed |
 | `POST` | `/api/v1/alerts/{id}/close` | Close with `{verdict}` (required, not `UNDECIDED`, else **400**). **409** if already closed or any step is still `PENDING` |
@@ -93,14 +102,18 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `GET` | `/api/v1/playbooks/{id}` | **200** with the playbook and its steps in order; **404** if unknown |
 | `POST` | `/api/v1/dev/generate-alerts?count=10` | **dev profile only**: creates 1–100 realistic fake alerts (example.com/.net/.org only). **404** without the profile |
 
-Every error uses one body: `{status, error, message, path, timestamp, fieldErrors}`. Invalid input gives **400**
+Every error uses one body: `{status, error, message, path, timestamp, fieldErrors}`. No or a bad token gives **401**,
+a role that may not do this **403**. Invalid input gives **400**
 (one entry per broken field), an unknown id **404**, a broken business rule, a concurrent change or a database
 conflict **409** (`The request conflicts with existing data`), and
 anything unexpected **500** without internal details.
 
 ```bash
+TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login -H "Content-Type: application/json" \
+  -d "{\"email\":\"analyst@havilor.example.com\",\"password\":\"$HAVILOR_DEV_PASSWORD\"}" | jq -r .accessToken)
+
 curl -i -X POST http://localhost:8080/api/v1/alerts \
-  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
   -d '{"ticketNumber":"INC-DEMO-0001","source":"TEST_GENERATOR","caseType":"DETECTED_PHISHING","priority":"HIGH",
        "receivedAt":"2026-10-28T14:00:00Z",
        "email":{"subject":"Fake invoice overdue","fromAddress":"billing@invoices.example.net","spfResult":"FAIL"},
@@ -118,13 +131,16 @@ You need **JDK 21+** and **Docker Desktop** (running).
 # Tests: start their own PostgreSQL with Testcontainers (Docker must be running; no compose needed)
 ./mvnw test
 
+# Secrets come only from the environment (never from git):
+export HAVILOR_JWT_SECRET="<at least 32 random characters>"   # signs access tokens; the app won't start without it
+export HAVILOR_DEV_PASSWORD="<any password>"                  # dev profile only: password of the two fake dev users
+
 # The app: start the dev database (container "havilor-db", host port 5433), then the app on :8080
 docker compose up -d
-./mvnw spring-boot:run
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # dev: creates analyst@ / manager@havilor.example.com
 
-# ...or with the fake alert generator enabled
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
-curl -X POST "http://localhost:8080/api/v1/dev/generate-alerts?count=20"
+# The fake alert generator (dev profile; needs a token like every other call)
+curl -X POST "http://localhost:8080/api/v1/dev/generate-alerts?count=20" -H "Authorization: Bearer $TOKEN"
 
 # Stop the database when you are done (data is kept in a Docker volume)
 docker compose down
@@ -136,9 +152,12 @@ PostgreSQL. The credentials in `compose.yaml` and `application.yml` are for loca
 ### The full loop in Postman
 
 Import [`docs/postman/havilor.postman_collection.json`](docs/postman/havilor.postman_collection.json) and run
-the **Full loop** folder with the Collection Runner. It creates an alert, sends it again (idempotent), assigns it,
+the **Full loop** folder with the Collection Runner (app running with the `dev` profile; set the collection
+variable `devPassword` to your `HAVILOR_DEV_PASSWORD`). It logs in as the dev analyst, creates an alert, sends it
+again (idempotent), assigns it to "me",
 tries to close too early (409), works all 8 playbook steps, closes it, and checks that a closed alert can't change.
-Every request has its own tests. From the command line: `npx newman run docs/postman/havilor.postman_collection.json`.
+Every request has its own tests. From the command line:
+`npx newman run docs/postman/havilor.postman_collection.json --folder "Full loop" --env-var devPassword=...`.
 
 ## Roadmap
 

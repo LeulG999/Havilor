@@ -1,11 +1,16 @@
 {
   "info": {
-    "name": "Havilor - Slice 1",
-    "description": "The full Slice 1 loop against a local Havilor (fake data only). Run the 'Full loop' folder with the Collection Runner: it creates an alert, assigns it, works every playbook step, and closes it. Every request checks its own result. Start the app first: docker compose up -d, then ./mvnw spring-boot:run (add -Dspring-boot.run.profiles=dev for the 'Dev' folder).",
+    "name": "Havilor",
+    "description": "The full loop against a local Havilor (fake data only). Run the 'Full loop' folder with the Collection Runner: it logs in as the dev analyst, creates an alert, assigns it, works every playbook step, and closes it. Every request checks its own result. Start the app with the dev profile (it creates the dev users): docker compose up -d, set HAVILOR_JWT_SECRET and HAVILOR_DEV_PASSWORD, then ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev. Put the same dev password in the collection variable devPassword (newman: --env-var devPassword=...).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "devEmail", "value": "analyst@havilor.example.com" },
+    { "key": "devPassword", "value": "" },
+    { "key": "token", "value": "" },
+    { "key": "userId", "value": "" },
     { "key": "ticket", "value": "" },
     { "key": "alertId", "value": "" },
     { "key": "stepIds", "value": "[]" },
@@ -17,6 +22,34 @@
     {
       "name": "Full loop",
       "item": [
+        {
+          "name": "0. Log in as the dev analyst (token)",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('a bearer token', () => {",
+            "  pm.response.to.have.status(200);",
+            "  pm.expect(pm.response.json().tokenType).to.eql('Bearer');",
+            "});",
+            "pm.collectionVariables.set('token', pm.response.json().accessToken);"
+          ] } }],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/v1/auth/login",
+            "body": { "mode": "raw", "raw": "{ \"email\": \"{{devEmail}}\", \"password\": \"{{devPassword}}\" }" }
+          }
+        },
+        {
+          "name": "0b. Who am I",
+          "event": [{ "listen": "test", "script": { "exec": [
+            "pm.test('the dev analyst', () => {",
+            "  pm.response.to.have.status(200);",
+            "  pm.expect(pm.response.json().role).to.eql('ANALYST');",
+            "});",
+            "pm.collectionVariables.set('userId', pm.response.json().id);"
+          ] } }],
+          "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/users/me" }
+        },
         {
           "name": "1. Create alert (201)",
           "event": [
@@ -98,14 +131,14 @@
             "pm.test('assigned and investigating', () => {",
             "  pm.response.to.have.status(200);",
             "  pm.expect(pm.response.json().status).to.eql('INVESTIGATING');",
-            "  pm.expect(pm.response.json().assigneeId).to.eql(7);",
+            "  pm.expect(pm.response.json().assigneeId).to.eql(Number(pm.collectionVariables.get('userId')));",
             "});"
           ] } }],
           "request": {
             "method": "PATCH",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": "{{baseUrl}}/api/v1/alerts/{{alertId}}",
-            "body": { "mode": "raw", "raw": "{ \"assigneeId\": 7, \"waitingOn\": \"Vendor security team\" }" }
+            "body": { "mode": "raw", "raw": "{ \"assigneeId\": {{userId}}, \"waitingOn\": \"Vendor security team\" }" }
           }
         },
         {
