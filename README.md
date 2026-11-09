@@ -29,7 +29,7 @@ but the analyst always makes the decision.
 - [x] 12. Users + login (JWT), `GET /users/me`, real assignees
 - [x] 13. Automatic checks → findings, critical rule, manual findings
 - [x] 14. Actions on an alert
-- [ ] 15. Escalation
+- [x] 15. Escalation
 - [ ] 16. Audit log
 - [ ] 17. Standup notes
 - [ ] 18. AI assistant (Claude): assessment + email drafts
@@ -51,8 +51,8 @@ pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
 ## Architecture
 
 Havilor is a **modular monolith**: one Spring Boot application split into feature modules.
-Today `alert`, `playbook`, `user`, `finding` and `common` hold code; `escalation`, `audit` and `standup` are
-waiting for their flows. Dependencies go one way: `alert → playbook, user, finding`.
+Today `alert`, `playbook`, `user`, `finding`, `escalation` and `common` hold code; `audit` and `standup` are
+waiting for their flows. Dependencies go one way: `alert → playbook, user, finding`; `escalation → alert`.
 
 - Each module is layered: **Controller → Service → Repository → PostgreSQL**, with one sub-package per layer.
 - Modules have strict borders: another module may use only a module's `service` and `api.response` packages,
@@ -81,6 +81,8 @@ user/
   dev/            the fake dev analyst and manager (only with the "dev" profile)
 finding/
   api/  api/request/  api/response/  domain/ (Finding + enums)  repository/  service/ (FindingService, AutomaticChecks)
+escalation/
+  api/  api/request/  api/response/  domain/ (Escalation + enums)  repository/  service/ (EscalationService)
 common/           CaseType, ClockConfiguration (the one Clock for "now")
   error/          ApiError, GlobalExceptionHandler, NotFound/Conflict/BadRequest exceptions
   paging/         PageResponse, Paging
@@ -102,6 +104,9 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `POST` | `/api/v1/alerts/{id}/close` | Close with `{verdict}` (required, not `UNDECIDED`, else **400**). **409** if already closed or any step is still `PENDING` |
 | `POST` | `/api/v1/alerts/{id}/actions` | Record what you did `{type, result, note}` (`performedBy` = you, `performedAt` = now) → **201**; **409** if the alert is closed |
 | `GET` | `/api/v1/alerts/{id}/actions` | **200** with the alert's actions, oldest first |
+| `POST` | `/api/v1/alerts/{id}/escalations` | Hand the alert to another team `{team, reason}` → **201**, alert becomes `ESCALATED`; **409** if closed |
+| `GET` | `/api/v1/alerts/{id}/escalations` | **200** with the alert's escalations |
+| `PATCH` | `/api/v1/escalations/{id}` | `{externalStatus, outcome}` (both optional). An `outcome` sends the alert back to `INVESTIGATING` |
 | `GET` | `/api/v1/alerts/{id}/findings` | **200** with the alert's findings (automatic and manual), each with *why it matters* |
 | `POST` | `/api/v1/alerts/{id}/findings` | Add a manual finding `{type, severity, title, teachingText}` → **201** |
 | `GET` | `/api/v1/playbooks` | **200** with every playbook (name, case type, version, active) |
