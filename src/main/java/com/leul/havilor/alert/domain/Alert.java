@@ -202,6 +202,13 @@ public class Alert {
         this.followUpOn = followUpOn;
     }
 
+    // The AI assistant's suggestion (Flow 18). Only a suggestion: `verdict` is still set by close().
+    public void recordSuggestion(Verdict suggested, String reason) {
+        ensureOpen();
+        this.suggestedVerdict = suggested;
+        this.suggestionReason = reason;
+    }
+
     // Handed to another team (escalation module). An escalated alert can be escalated again.
     public void escalate() {
         ensureOpen();

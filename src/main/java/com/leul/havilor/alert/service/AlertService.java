@@ -7,6 +7,7 @@ import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.domain.enums.Priority;
+import com.leul.havilor.alert.domain.enums.Verdict;
 import com.leul.havilor.alert.repository.AlertRepository;
 import com.leul.havilor.audit.service.AuditService;
 import com.leul.havilor.common.error.BadRequestException;
@@ -144,6 +145,16 @@ public class AlertService {
         auditService.record(actorId, "ALERT_CLOSED", AuditService.ALERT, id, before,
                 "status=" + alert.getStatus() + ", verdict=" + alert.getVerdict());
         return alertQueryService.getById(id);
+    }
+
+    // Saves the AI assistant's suggested verdict (AlertAiService). 404 / 409 like every change.
+    @Transactional
+    public void recordSuggestion(Long id, Verdict suggested, String reason, Long actorId) {
+        Alert alert = load(id);
+        String before = "suggestedVerdict=" + alert.getSuggestedVerdict();
+        alert.recordSuggestion(suggested, reason);
+        auditService.record(actorId, "AI_SUGGESTION", AuditService.ALERT, id, before,
+                "suggestedVerdict=" + suggested + ", reason=" + reason);
     }
 
     // For the escalation module: escalating needs an open alert (404 / 409 otherwise).
