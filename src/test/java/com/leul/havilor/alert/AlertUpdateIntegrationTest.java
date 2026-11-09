@@ -1,6 +1,7 @@
 package com.leul.havilor.alert;
 
 import com.leul.havilor.FixedClockConfiguration;
+import com.leul.havilor.TestAuthConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Flow 6: PATCH /api/v1/alerts/{id} against PostgreSQL, including two updates racing each other.
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class, TestAuthConfiguration.class})
 class AlertUpdateIntegrationTest {
 
     private static final String ALERTS = "/api/v1/alerts";
@@ -43,6 +44,9 @@ class AlertUpdateIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private TestAuthConfiguration.TestUsers testUsers;
+
     @AfterEach
     void deleteTestAlerts() {
         jdbcTemplate.update("DELETE FROM alert WHERE ticket_number LIKE 'INC-IT-%'");
@@ -51,12 +55,13 @@ class AlertUpdateIntegrationTest {
     @Test
     void onlySentFieldsChangeAndAssigningStartsTheInvestigation() throws Exception {
         long id = createAlert();
+        long analyst = testUsers.analystId();
 
         mockMvc.perform(patch(ALERTS + "/{id}", id).contentType(MediaType.APPLICATION_JSON).content("""
-                        {"assigneeId": 7, "priority": "CRITICAL", "followUpOn": "2026-11-10"}
-                        """))
+                        {"assigneeId": %d, "priority": "CRITICAL", "followUpOn": "2026-11-10"}
+                        """.formatted(analyst)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.assigneeId").value(7))
+                .andExpect(jsonPath("$.assigneeId").value(analyst))
                 .andExpect(jsonPath("$.status").value("INVESTIGATING"))
                 .andExpect(jsonPath("$.priority").value("CRITICAL"))
                 .andExpect(jsonPath("$.followUpOn").value("2026-11-10"))
@@ -74,7 +79,7 @@ class AlertUpdateIntegrationTest {
 
         mockMvc.perform(get(ALERTS + "/{id}", id))
                 .andExpect(jsonPath("$.externalCaseNumber").value("EXT-2026-0042"))
-                .andExpect(jsonPath("$.assigneeId").value(7));
+                .andExpect(jsonPath("$.assigneeId").value(analyst));
     }
 
     @Test

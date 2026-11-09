@@ -1,6 +1,7 @@
 package com.leul.havilor.common;
 
 import com.leul.havilor.FixedClockConfiguration;
+import com.leul.havilor.TestAuthConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
 import com.leul.havilor.common.error.ConflictException;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // ThrowingController is imported only here, so its test endpoints exist in no other context.
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class, ErrorHandlingIntegrationTest.ThrowingController.class})
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class, TestAuthConfiguration.class, ErrorHandlingIntegrationTest.ThrowingController.class})
 class ErrorHandlingIntegrationTest {
 
     private static final String ALERTS = "/api/v1/alerts";

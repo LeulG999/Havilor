@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 
 @SpringBootTest
-@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class, TestAuthConfiguration.class})
 class HavilorApplicationTests {
 
     @Test

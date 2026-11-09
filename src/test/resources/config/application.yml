@@ -1,0 +1,7 @@
+# Test-only values. Spring Boot loads classpath:/config/application.yml on top of classpath:/application.yml,
+# so these override the environment placeholders there. They are fake and protect nothing.
+havilor:
+  jwt:
+    secret: test-only-jwt-secret-not-used-anywhere-else-0123456789
+  dev:
+    password: test-only-dev-password

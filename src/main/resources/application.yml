@@ -14,3 +14,11 @@ spring:
       ddl-auto: validate
     # Close the DB session when the service call ends, not after the HTTP response
     open-in-view: false
+
+havilor:
+  jwt:
+    # HMAC-SHA256 key that signs access tokens: at least 32 characters. Only from the environment, never in git.
+    secret: ${HAVILOR_JWT_SECRET}
+  dev:
+    # Password for the two fake dev users (dev profile only). Only from the environment.
+    password: ${HAVILOR_DEV_PASSWORD:}

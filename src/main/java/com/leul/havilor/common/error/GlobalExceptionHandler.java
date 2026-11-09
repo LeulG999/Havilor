@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -81,6 +83,24 @@ public class GlobalExceptionHandler {
     ResponseEntity<ApiError> badRequest(BadRequestException e, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, "Validation failed", request,
                 List.of(new ApiError.FieldViolation(e.getField(), e.getMessage())));
+    }
+
+    // 401: the login failed. The same message whatever the reason, so nobody can probe which emails exist.
+    @ExceptionHandler(UnauthorizedException.class)
+    ResponseEntity<ApiError> loginFailed(UnauthorizedException e, HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, e.getMessage(), request, List.of());
+    }
+
+    // 401: no token, or a token that is expired, tampered with or malformed (sent here by SecurityConfiguration).
+    @ExceptionHandler(AuthenticationException.class)
+    ResponseEntity<ApiError> unauthenticated(AuthenticationException e, HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, "A valid access token is required", request, List.of());
+    }
+
+    // 403: a valid token, but the role may not do this (e.g. an analyst on a manager-only URL).
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ApiError> forbidden(AccessDeniedException e, HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, "Your role is not allowed to do this", request, List.of());
     }
 
     @ExceptionHandler(NotFoundException.class)

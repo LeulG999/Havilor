@@ -1,6 +1,7 @@
 package com.leul.havilor.alert;
 
 import com.leul.havilor.FixedClockConfiguration;
+import com.leul.havilor.TestAuthConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Flow 9: POST /api/v1/alerts/{id}/close and its rules, against PostgreSQL.
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class})
+@Import({TestcontainersConfiguration.class, FixedClockConfiguration.class, TestAuthConfiguration.class})
 class AlertCloseIntegrationTest {
 
     private static final String ALERTS = "/api/v1/alerts";
