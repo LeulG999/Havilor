@@ -3,6 +3,7 @@ package com.leul.havilor.common.ai;
 import com.anthropic.models.messages.ContentBlockParam;
 import com.anthropic.models.messages.StructuredMessageCreateParams;
 import com.leul.havilor.alert.api.response.AiAssessmentResponse;
+import com.leul.havilor.alert.service.ExtractedEmail;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -22,6 +23,13 @@ class AnthropicAiClientTest {
 
         assertThat(params.rawParams().model().asString()).isEqualTo("claude-sonnet-5-5");
         assertThat(params.rawParams().outputConfig()).isPresent();
+    }
+
+    @Test
+    void theManualIntakeTypeHasAValidSchemaToo() {
+        // Building derives (and locally checks) the JSON schema: Optional fields become "type or null".
+        assertThat(client.structuredParams("Extract.", AiInput.text("{}"), ExtractedEmail.class)
+                .rawParams().outputConfig().orElseThrow().toString()).contains("[string, null]");
     }
 
     @Test
