@@ -6,7 +6,8 @@ The MVP handles **phishing / email cases**. Havilor helps a SOC analyst work a c
 concepts along the way: every investigation step explains *why it matters*. Havilor can *suggest* a verdict,
 but the analyst always makes the decision.
 
-> **Status:** Slice 1 (the core loop) is complete; Batch 2 is in progress. Nothing here is production-ready yet.
+> **Status:** Slice 1 (the core loop) and Batch 2 (login, findings, actions, escalation, audit, standup notes,
+> AI assistant, manual intake) are complete. Nothing here is production-ready yet.
 > All data in this project is fake/synthetic. No real emails, tenants, or credentials.
 
 ## Current status: Slice 1 (core loop) ✅
@@ -23,7 +24,7 @@ but the analyst always makes the decision.
 - [x] 9. Close an alert (`POST /alerts/{id}/close`): verdict required, no pending steps
 - [x] 10. Finish the slice: click events, fake alert generator, Testcontainers tests, Postman collection
 
-## Batch 2 (Slices 2–4 core) — in progress
+## Batch 2 (Slices 2–4 core) ✅
 
 - [x] 11. Generic 409 message for database conflicts
 - [x] 12. Users + login (JWT), `GET /users/me`, real assignees
@@ -33,7 +34,7 @@ but the analyst always makes the decision.
 - [x] 16. Audit log
 - [x] 17. Standup notes
 - [x] 18. AI assistant (Claude): assessment + email drafts
-- [ ] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
+- [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
 Build notes for every flow are in [`docs/progress/`](docs/progress).
 
@@ -104,6 +105,7 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `POST` | `/api/v1/auth/login` | `{email, password}` → **200** `{accessToken, tokenType: "Bearer", expiresIn}` (8 hours); **401** `Invalid email or password`. The only call without a token |
 | `GET` | `/api/v1/users/me` | **200** with the logged-in user (id, name, email, role, active) |
 | `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps. New alerts get their automatic findings; a click on a bad-list URL makes the priority **CRITICAL** |
+| `POST` | `/api/v1/alerts/manual/extract` | `multipart/form-data` with ONE part: `text` (pasted email / raw headers) or `file` (.eml, image, PDF, max 10 MB) → **200** a draft `CreateAlertRequest` (source `MANUAL`, nothing saved). POST it to `/api/v1/alerts`: a manual alert without a ticket gets `MAN-<yyyyMMdd>-<n>` |
 | `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries*, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
 | `GET` | `/api/v1/alerts/{id}` | **200** with the full alert: email details, recipients, URLs, attachments, clicks, playbook and `version`; **404** if unknown |
 | `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). The assignee must be an existing user (else **400**). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or another request changed it at the same time (`@Version`) |
