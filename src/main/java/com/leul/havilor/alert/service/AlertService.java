@@ -7,10 +7,12 @@ import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.repository.AlertRepository;
+import com.leul.havilor.common.error.BadRequestException;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.common.paging.PageResponse;
 import com.leul.havilor.common.paging.Paging;
 import com.leul.havilor.playbook.service.PlaybookService;
+import com.leul.havilor.user.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -29,14 +31,17 @@ public class AlertService {
     private final PlaybookService playbookService;
     private final AlertFactory alertFactory;
     private final AlertQueryService alertQueryService;
+    private final UserService userService;
     private final Clock clock;
 
     public AlertService(AlertRepository alertRepository, PlaybookService playbookService,
-                        AlertFactory alertFactory, AlertQueryService alertQueryService, Clock clock) {
+                        AlertFactory alertFactory, AlertQueryService alertQueryService, UserService userService,
+                        Clock clock) {
         this.alertRepository = alertRepository;
         this.playbookService = playbookService;
         this.alertFactory = alertFactory;
         this.alertQueryService = alertQueryService;
+        this.userService = userService;
         this.clock = clock;
     }
 
@@ -85,6 +90,10 @@ public class AlertService {
             alert.changePriority(request.priority());
         }
         if (request.assigneeId() != null) {
+            // The assignee is a real user: asked through the user module's service, never its repository.
+            if (!userService.exists(request.assigneeId())) {
+                throw new BadRequestException("assigneeId", "no user with id " + request.assigneeId());
+            }
             alert.assignTo(request.assigneeId());
         }
         if (request.waitingOn() != null) {

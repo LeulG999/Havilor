@@ -18,10 +18,12 @@ import com.leul.havilor.alert.service.AlertQueryService;
 import com.leul.havilor.alert.service.AlertService;
 import com.leul.havilor.alert.service.CreateAlertResult;
 import com.leul.havilor.common.CaseType;
+import com.leul.havilor.common.error.BadRequestException;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.common.paging.PageResponse;
 import com.leul.havilor.playbook.service.ActivePlaybook;
 import com.leul.havilor.playbook.service.PlaybookService;
+import com.leul.havilor.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,6 +62,9 @@ class AlertServiceTest {
     @Mock
     private PlaybookService playbookService;
 
+    @Mock
+    private UserService userService;
+
     private AlertQueryService alertQueryService;
     private AlertService alertService;
 
@@ -67,7 +72,7 @@ class AlertServiceTest {
     void setUp() {
         alertQueryService = new AlertQueryService(alertRepository);
         alertService = new AlertService(alertRepository, playbookService, new AlertFactory(),
-                alertQueryService, FixedClockConfiguration.CLOCK);
+                alertQueryService, userService, FixedClockConfiguration.CLOCK);
     }
 
     @Test
@@ -192,6 +197,7 @@ class AlertServiceTest {
     void updateChangesOnlyTheFieldsThatWereSent() {
         Alert alert = withId(TestAlerts.alert(TICKET, "Fake", RECEIVED_AT), 11L);
         stubDetailLoad(alert);
+        when(userService.exists(7L)).thenReturn(true);
 
         AlertDetailResponse updated = alertService.update(11L,
                 new UpdateAlertRequest(null, 7L, null, null, null));
@@ -202,6 +208,17 @@ class AlertServiceTest {
         verify(alertRepository).flush();
     }
 
+    @Test
+    void updateRefusesAnAssigneeWhoIsNotAUser() {
+        Alert alert = withId(TestAlerts.alert(TICKET, "Fake", RECEIVED_AT), 12L);
+        when(alertRepository.findById(12L)).thenReturn(Optional.of(alert));
+        when(userService.exists(99L)).thenReturn(false);
+
+        assertThatThrownBy(() -> alertService.update(12L, new UpdateAlertRequest(null, 99L, null, null, null)))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("no user with id 99");
+        assertThat(alert.getAssigneeId()).isNull();
+    }
 
     private void stubDetailLoad(Alert alert) {
         when(alertRepository.findById(alert.getId())).thenReturn(Optional.of(alert));

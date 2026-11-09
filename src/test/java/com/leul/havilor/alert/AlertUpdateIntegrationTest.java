@@ -139,6 +139,12 @@ class AlertUpdateIntegrationTest {
                         .content("{\"assigneeId\": -1}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("assigneeId"));
+        // A positive id, but nobody has it: checked through UserService.
+        mockMvc.perform(patch(ALERTS + "/{id}", id).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"assigneeId\": %d}".formatted(Long.MAX_VALUE)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("assigneeId"))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("no user with id " + Long.MAX_VALUE));
     }
 
     private org.springframework.test.web.servlet.ResultActions patchPriority(long id, String priority)
