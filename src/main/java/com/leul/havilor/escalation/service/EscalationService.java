@@ -2,6 +2,7 @@ package com.leul.havilor.escalation.service;
 
 import com.leul.havilor.alert.service.AlertQueryService;
 import com.leul.havilor.alert.service.AlertService;
+import com.leul.havilor.audit.service.AuditService;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.escalation.api.request.CreateEscalationRequest;
 import com.leul.havilor.escalation.api.request.UpdateEscalationRequest;
@@ -21,21 +22,26 @@ public class EscalationService {
     private final EscalationRepository escalationRepository;
     private final AlertService alertService;
     private final AlertQueryService alertQueryService;
+    private final AuditService auditService;
 
     public EscalationService(EscalationRepository escalationRepository, AlertService alertService,
-                             AlertQueryService alertQueryService) {
+                             AlertQueryService alertQueryService, AuditService auditService) {
         this.escalationRepository = escalationRepository;
         this.alertService = alertService;
         this.alertQueryService = alertQueryService;
+        this.auditService = auditService;
     }
 
     // One transaction: the alert becomes ESCALATED and the escalation is saved, or neither happens.
     // Unknown alert → 404; closed alert → 409.
     @Transactional
-    public EscalationResponse create(Long alertId, CreateEscalationRequest request) {
+    public EscalationResponse create(Long alertId, CreateEscalationRequest request, Long actorId) {
         alertService.escalate(alertId);
-        Escalation escalation = new Escalation(alertId, request.team().trim(), request.reason().trim());
-        return EscalationResponse.from(escalationRepository.save(escalation));
+        Escalation saved = escalationRepository.save(
+                new Escalation(alertId, request.team().trim(), request.reason().trim()));
+        auditService.record(actorId, "ESCALATED", AuditService.ALERT, alertId, null,
+                "escalation " + saved.getId() + ": team=" + saved.getTeam() + ", reason=" + saved.getReason());
+        return EscalationResponse.from(saved);
     }
 
     @Transactional(readOnly = true)
@@ -46,9 +52,10 @@ public class EscalationService {
 
     // When the other team's outcome arrives, the alert goes back to INVESTIGATING (if it is still ESCALATED).
     @Transactional
-    public EscalationResponse update(Long id, UpdateEscalationRequest request) {
+    public EscalationResponse update(Long id, UpdateEscalationRequest request, Long actorId) {
         Escalation escalation = escalationRepository.findById(id)
                 .orElseThrow(() -> NotFoundException.of("Escalation", id));
+        String before = describe(escalation);
         if (request.externalStatus() != null) {
             escalation.changeExternalStatus(request.externalStatus());
         }
@@ -56,6 +63,13 @@ public class EscalationService {
             escalation.recordOutcome(request.outcome());
             alertService.endEscalation(escalation.getAlertId());
         }
+        auditService.record(actorId, "ESCALATION_UPDATED", AuditService.ALERT, escalation.getAlertId(), before,
+                describe(escalation));
         return EscalationResponse.from(escalation);
+    }
+
+    private static String describe(Escalation escalation) {
+        return "escalation " + escalation.getId() + ": externalStatus=" + escalation.getExternalStatus()
+                + ", outcome=" + escalation.getOutcome();
     }
 }

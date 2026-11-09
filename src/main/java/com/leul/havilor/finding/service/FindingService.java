@@ -1,5 +1,6 @@
 package com.leul.havilor.finding.service;
 
+import com.leul.havilor.audit.service.AuditService;
 import com.leul.havilor.finding.api.request.AddFindingRequest;
 import com.leul.havilor.finding.api.response.FindingResponse;
 import com.leul.havilor.finding.domain.Finding;
@@ -15,10 +16,12 @@ import java.util.List;
 public class FindingService {
 
     private final FindingRepository findingRepository;
+    private final AuditService auditService;
     private final Clock clock;
 
-    public FindingService(FindingRepository findingRepository, Clock clock) {
+    public FindingService(FindingRepository findingRepository, AuditService auditService, Clock clock) {
         this.findingRepository = findingRepository;
+        this.auditService = auditService;
         this.clock = clock;
     }
 
@@ -39,9 +42,12 @@ public class FindingService {
 
     // An unknown alert id breaks the foreign key: GlobalExceptionHandler answers 409.
     @Transactional
-    public FindingResponse addManual(Long alertId, AddFindingRequest request) {
-        Finding finding = new Finding(alertId, request.type(), request.severity(), request.title().trim(),
-                request.teachingText(), FindingSource.MANUAL, clock.instant());
-        return FindingResponse.from(findingRepository.saveAndFlush(finding));
+    public FindingResponse addManual(Long alertId, AddFindingRequest request, Long actorId) {
+        Finding finding = findingRepository.saveAndFlush(new Finding(alertId, request.type(), request.severity(),
+                request.title().trim(), request.teachingText(), FindingSource.MANUAL, clock.instant()));
+        auditService.record(actorId, "FINDING_ADDED", AuditService.ALERT, alertId, null,
+                "finding " + finding.getId() + ": " + finding.getType() + " " + finding.getSeverity()
+                        + ", title=" + finding.getTitle());
+        return FindingResponse.from(finding);
     }
 }

@@ -5,6 +5,8 @@ import com.leul.havilor.finding.api.response.FindingResponse;
 import com.leul.havilor.finding.service.FindingService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -35,7 +37,8 @@ public class FindingController {
     // The analyst adds what she found herself (source MANUAL).
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public FindingResponse add(@PathVariable Long alertId, @Valid @RequestBody AddFindingRequest request) {
-        return findingService.addManual(alertId, request);
+    public FindingResponse add(@PathVariable Long alertId, @Valid @RequestBody AddFindingRequest request,
+                               @AuthenticationPrincipal Jwt token) {
+        return findingService.addManual(alertId, request, Long.valueOf(token.getSubject()));
     }
 }

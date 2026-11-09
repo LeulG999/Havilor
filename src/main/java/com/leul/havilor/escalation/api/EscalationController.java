@@ -6,6 +6,8 @@ import com.leul.havilor.escalation.api.response.EscalationResponse;
 import com.leul.havilor.escalation.service.EscalationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,8 +32,9 @@ public class EscalationController {
     // The alert becomes ESCALATED. 404 unknown alert, 409 closed alert.
     @PostMapping("/alerts/{alertId}/escalations")
     @ResponseStatus(HttpStatus.CREATED)
-    public EscalationResponse create(@PathVariable Long alertId, @Valid @RequestBody CreateEscalationRequest request) {
-        return escalationService.create(alertId, request);
+    public EscalationResponse create(@PathVariable Long alertId, @Valid @RequestBody CreateEscalationRequest request,
+                                     @AuthenticationPrincipal Jwt token) {
+        return escalationService.create(alertId, request, Long.valueOf(token.getSubject()));
     }
 
     @GetMapping("/alerts/{alertId}/escalations")
@@ -41,7 +44,8 @@ public class EscalationController {
 
     // The other team's progress or answer. An outcome sends the alert back to INVESTIGATING.
     @PatchMapping("/escalations/{id}")
-    public EscalationResponse update(@PathVariable Long id, @Valid @RequestBody UpdateEscalationRequest request) {
-        return escalationService.update(id, request);
+    public EscalationResponse update(@PathVariable Long id, @Valid @RequestBody UpdateEscalationRequest request,
+                                     @AuthenticationPrincipal Jwt token) {
+        return escalationService.update(id, request, Long.valueOf(token.getSubject()));
     }
 }
