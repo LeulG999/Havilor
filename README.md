@@ -31,7 +31,7 @@ but the analyst always makes the decision.
 - [x] 14. Actions on an alert
 - [x] 15. Escalation
 - [x] 16. Audit log
-- [ ] 17. Standup notes
+- [x] 17. Standup notes
 - [ ] 18. AI assistant (Claude): assessment + email drafts
 - [ ] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
@@ -51,9 +51,9 @@ pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
 ## Architecture
 
 Havilor is a **modular monolith**: one Spring Boot application split into feature modules.
-Today `alert`, `playbook`, `user`, `finding`, `escalation`, `audit` and `common` hold code; `standup` is
-waiting for its flow. Dependencies go one way: `alert → playbook, user, finding, audit`;
-`escalation → alert, audit`; `finding → audit`.
+Modules: `alert`, `playbook`, `user`, `finding`, `escalation`, `audit`, `standup`, plus shared `common`.
+Dependencies go one way: `alert → playbook, user, finding, audit`; `escalation → alert, audit`;
+`finding → audit`; `standup → alert`.
 
 - Each module is layered: **Controller → Service → Repository → PostgreSQL**, with one sub-package per layer.
 - Modules have strict borders: another module may use only a module's `service` and `api.response` packages,
@@ -87,6 +87,8 @@ escalation/
   api/  api/request/  api/response/  domain/ (Escalation + enums)  repository/  service/ (EscalationService)
 audit/
   api/  api/response/  domain/ (AuditEntry, append-only)  repository/  service/ (AuditService.record)
+standup/
+  api/  api/request/  api/response/  domain/ (StandupNote + NoteStatus)  repository/  service/ (StandupService)
 common/           CaseType, ClockConfiguration (the one Clock for "now")
   error/          ApiError, GlobalExceptionHandler, NotFound/Conflict/BadRequest exceptions
   paging/         PageResponse, Paging
@@ -115,6 +117,11 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `POST` | `/api/v1/alerts/{id}/findings` | Add a manual finding `{type, severity, title, teachingText}` → **201** |
 | `GET` | `/api/v1/alerts/{id}/audit` | **200** with the alert's history (updates, close, steps, actions, findings, escalations), oldest first |
 | `GET` | `/api/v1/audit?page=0&size=20` | **MANAGER only** (**403** otherwise): the whole audit log, newest first |
+| `POST` | `/api/v1/standup/notes` | Write a standup note `{noteDate, text, alertIds}` → **201** `DRAFT` |
+| `PATCH` | `/api/v1/standup/notes/{id}` | Change your own draft (**404** someone else's, **409** once shared) |
+| `POST` | `/api/v1/standup/notes/{id}/share` | Share your note with the managers → `SHARED` |
+| `GET` | `/api/v1/standup/notes` | Your own notes, newest day first (paged) |
+| `GET` | `/api/v1/standup/team` | **MANAGER only**: everybody's shared notes (paged) |
 | `GET` | `/api/v1/playbooks` | **200** with every playbook (name, case type, version, active) |
 | `GET` | `/api/v1/playbooks/{id}` | **200** with the playbook and its steps in order; **404** if unknown |
 | `POST` | `/api/v1/dev/generate-alerts?count=10` | **dev profile only**: creates 1–100 realistic fake alerts (example.com/.net/.org only). **404** without the profile |
