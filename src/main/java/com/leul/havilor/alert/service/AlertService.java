@@ -6,11 +6,14 @@ import com.leul.havilor.alert.api.request.UpdateAlertRequest;
 import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
 import com.leul.havilor.alert.domain.Alert;
+import com.leul.havilor.alert.domain.enums.Priority;
 import com.leul.havilor.alert.repository.AlertRepository;
 import com.leul.havilor.common.error.BadRequestException;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.common.paging.PageResponse;
 import com.leul.havilor.common.paging.Paging;
+import com.leul.havilor.finding.service.CheckFacts;
+import com.leul.havilor.finding.service.FindingService;
 import com.leul.havilor.playbook.service.PlaybookService;
 import com.leul.havilor.user.service.UserService;
 import org.springframework.data.domain.Page;
@@ -32,16 +35,18 @@ public class AlertService {
     private final AlertFactory alertFactory;
     private final AlertQueryService alertQueryService;
     private final UserService userService;
+    private final FindingService findingService;
     private final Clock clock;
 
     public AlertService(AlertRepository alertRepository, PlaybookService playbookService,
                         AlertFactory alertFactory, AlertQueryService alertQueryService, UserService userService,
-                        Clock clock) {
+                        FindingService findingService, Clock clock) {
         this.alertRepository = alertRepository;
         this.playbookService = playbookService;
         this.alertFactory = alertFactory;
         this.alertQueryService = alertQueryService;
         this.userService = userService;
+        this.findingService = findingService;
         this.clock = clock;
     }
 
@@ -50,6 +55,7 @@ public class AlertService {
      * stored alert unchanged. The children are inserted with the alert (cascade).
      * If two requests with the same new ticket arrive at once, the database's unique constraint stops
      * the second insert, and GlobalExceptionHandler answers it with 409.
+     * A new alert also gets its automatic findings (finding module), in the same transaction.
      */
     @Transactional
     public CreateAlertResult create(CreateAlertRequest request) {
@@ -63,7 +69,14 @@ public class AlertService {
         playbookService.findActiveFor(alert.getCaseType())
                 .ifPresent(p -> alert.attachPlaybook(p.id(), p.version(), p.stepIds()));
 
+        CheckFacts facts = alertFactory.checkFacts(request);
+        // The critical rule: someone clicked a link that is on a bad list.
+        if (facts.clickedBadListUrl()) {
+            alert.changePriority(Priority.CRITICAL);
+        }
+
         Alert saved = alertRepository.save(alert);
+        findingService.runAutomaticChecks(saved.getId(), facts);
         return CreateAlertResult.newlyCreated(alertQueryService.getById(saved.getId()));
     }
 

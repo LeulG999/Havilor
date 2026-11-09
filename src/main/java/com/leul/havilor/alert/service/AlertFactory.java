@@ -11,12 +11,16 @@ import com.leul.havilor.alert.domain.Attachment;
 import com.leul.havilor.alert.domain.EmailDetails;
 import com.leul.havilor.alert.domain.Recipient;
 import com.leul.havilor.alert.domain.Url;
+import com.leul.havilor.alert.domain.enums.AuthResult;
+import com.leul.havilor.alert.domain.enums.Verdict;
 import com.leul.havilor.common.error.BadRequestException;
+import com.leul.havilor.finding.service.CheckFacts;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +39,24 @@ public class AlertFactory {
         request.attachments().forEach(a -> alert.addAttachment(attachment(a)));
         addClicks(alert, request.clicks());
         return alert;
+    }
+
+    // The facts the finding module's automatic checks need, as plain values (it never sees our classes).
+    // Call after create(request): the clicks are known to point at real recipients and URLs by then.
+    public CheckFacts checkFacts(CreateAlertRequest request) {
+        EmailDetailsRequest email = request.email();
+        List<String> badListUrls = request.urls().stream()
+                .filter(u -> Boolean.TRUE.equals(u.onBadList())).map(UrlRequest::address).toList();
+        Set<String> badList = Set.copyOf(badListUrls);
+        return new CheckFacts(
+                email.spfResult() == AuthResult.FAIL,
+                email.dkimResult() == AuthResult.FAIL,
+                email.dmarcResult() == AuthResult.FAIL,
+                badListUrls,
+                request.attachments().stream()
+                        .filter(a -> a.verdict() == Verdict.MALICIOUS).map(AttachmentRequest::fileName).toList(),
+                request.clicks().stream().map(ClickRequest::recipientAddress).distinct().toList(),
+                request.clicks().stream().anyMatch(c -> badList.contains(c.urlAddress())));
     }
 
     private static void addClicks(Alert alert, List<ClickRequest> clicks) {
