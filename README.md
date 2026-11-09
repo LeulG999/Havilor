@@ -27,7 +27,7 @@ but the analyst always makes the decision.
 
 - [x] 11. Generic 409 message for database conflicts
 - [x] 12. Users + login (JWT), `GET /users/me`, real assignees
-- [ ] 13. Automatic checks → findings, critical rule, manual findings
+- [x] 13. Automatic checks → findings, critical rule, manual findings
 - [ ] 14. Actions on an alert
 - [ ] 15. Escalation
 - [ ] 16. Audit log
@@ -51,8 +51,8 @@ pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
 ## Architecture
 
 Havilor is a **modular monolith**: one Spring Boot application split into feature modules.
-Today `alert`, `playbook`, `user` and `common` hold code; `finding`, `escalation`, `audit` and `standup` are
-waiting for their flows.
+Today `alert`, `playbook`, `user`, `finding` and `common` hold code; `escalation`, `audit` and `standup` are
+waiting for their flows. Dependencies go one way: `alert → playbook, user, finding`.
 
 - Each module is layered: **Controller → Service → Repository → PostgreSQL**, with one sub-package per layer.
 - Modules have strict borders: another module may use only a module's `service` and `api.response` packages,
@@ -79,6 +79,8 @@ playbook/
 user/
   api/ (login, me)  api/request/  api/response/  domain/ (User, Role)  repository/  service/ (AuthService, UserService)
   dev/            the fake dev analyst and manager (only with the "dev" profile)
+finding/
+  api/  api/request/  api/response/  domain/ (Finding + enums)  repository/  service/ (FindingService, AutomaticChecks)
 common/           CaseType, ClockConfiguration (the one Clock for "now")
   error/          ApiError, GlobalExceptionHandler, NotFound/Conflict/BadRequest exceptions
   paging/         PageResponse, Paging
@@ -91,13 +93,15 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 |---|---|---|
 | `POST` | `/api/v1/auth/login` | `{email, password}` → **200** `{accessToken, tokenType: "Bearer", expiresIn}` (8 hours); **401** `Invalid email or password`. The only call without a token |
 | `GET` | `/api/v1/users/me` | **200** with the logged-in user (id, name, email, role, active) |
-| `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps |
+| `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps. New alerts get their automatic findings; a click on a bad-list URL makes the priority **CRITICAL** |
 | `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries*, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
 | `GET` | `/api/v1/alerts/{id}` | **200** with the full alert: email details, recipients, URLs, attachments, clicks, playbook and `version`; **404** if unknown |
 | `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). The assignee must be an existing user (else **400**). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or another request changed it at the same time (`@Version`) |
 | `GET` | `/api/v1/alerts/{id}/steps` | **200** with the alert's playbook steps in order: what to check, *why it matters*, how, and the alert's progress (`PENDING`/`DONE`/`SKIPPED`) |
 | `PATCH` | `/api/v1/alerts/{id}/steps/{stepId}` | Record a step `{status, answer}`. Working a step on a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed |
 | `POST` | `/api/v1/alerts/{id}/close` | Close with `{verdict}` (required, not `UNDECIDED`, else **400**). **409** if already closed or any step is still `PENDING` |
+| `GET` | `/api/v1/alerts/{id}/findings` | **200** with the alert's findings (automatic and manual), each with *why it matters* |
+| `POST` | `/api/v1/alerts/{id}/findings` | Add a manual finding `{type, severity, title, teachingText}` → **201** |
 | `GET` | `/api/v1/playbooks` | **200** with every playbook (name, case type, version, active) |
 | `GET` | `/api/v1/playbooks/{id}` | **200** with the playbook and its steps in order; **404** if unknown |
 | `POST` | `/api/v1/dev/generate-alerts?count=10` | **dev profile only**: creates 1–100 realistic fake alerts (example.com/.net/.org only). **404** without the profile |
@@ -162,7 +166,7 @@ Every request has its own tests. From the command line:
 ## Roadmap
 
 - **Slice 1 (done):** core loop: receive, list, view, update and close alerts; playbook steps
-- **Slice 2:** automatic checks, priority rules, findings, teaching text
+- **Slice 2:** automatic checks, priority rules, findings, teaching text (first version in Flow 13)
 - **Slice 3:** AI explanations, case summary + suggested verdict, email drafts, then RAG
 - **Slice 4:** login and roles (JWT), escalation, actions, audit log, standup notes
 - **Later:** ServiceNow integration via MuleSoft, identity investigation (Entra ID sign-ins),
