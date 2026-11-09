@@ -100,11 +100,11 @@ public class GlobalExceptionHandler {
                 request, List.of());
     }
 
-    // 409: a database constraint refused the write. The only one a client can hit today is the unique
-    // ticket number, when two requests create the same new ticket at the same moment.
+    // 409: a database constraint refused the write, e.g. two requests creating the same new ticket at the
+    // same moment (unique ticket number). The message is generic: it never names a table or constraint.
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ApiError> constraintViolation(DataIntegrityViolationException e, HttpServletRequest request) {
-        return build(HttpStatus.CONFLICT, "Alert with this ticket number already exists", request, List.of());
+        return build(HttpStatus.CONFLICT, "The request conflicts with existing data", request, List.of());
     }
 
     // Everything else. Spring's own web exceptions (unknown URL 404, wrong method 405, wrong content

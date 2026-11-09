@@ -135,7 +135,7 @@ class AlertControllerIntegrationTest {
                 statuses.add(status);
                 if (status == 409) {
                     assertThat(result.getResponse().getContentAsString())
-                            .contains("Alert with this ticket number already exists");
+                            .contains("The request conflicts with existing data");
                 } else {
                     ids.add(idOf(result));
                 }

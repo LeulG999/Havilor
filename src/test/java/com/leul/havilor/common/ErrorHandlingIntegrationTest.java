@@ -120,7 +120,7 @@ class ErrorHandlingIntegrationTest {
     void databaseConstraintGives409() throws Exception {
         mockMvc.perform(get("/test-errors/duplicate"))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.message").value("Alert with this ticket number already exists"))
+                .andExpect(jsonPath("$.message").value("The request conflicts with existing data"))
                 .andExpect(content().string(not(containsString("uk_alert_ticket_number"))));
     }
 
