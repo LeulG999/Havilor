@@ -4,6 +4,8 @@ import com.leul.havilor.alert.api.request.UpdateStepRequest;
 import com.leul.havilor.alert.api.response.AlertStepResponse;
 import com.leul.havilor.alert.service.AlertStepService;
 import jakarta.validation.Valid;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,7 +33,8 @@ public class AlertStepController {
 
     @PatchMapping("/{stepId}")
     public AlertStepResponse updateStep(@PathVariable Long alertId, @PathVariable Long stepId,
-                                        @Valid @RequestBody UpdateStepRequest request) {
-        return alertStepService.updateStep(alertId, stepId, request);
+                                        @Valid @RequestBody UpdateStepRequest request,
+                                        @AuthenticationPrincipal Jwt token) {
+        return alertStepService.updateStep(alertId, stepId, request, Long.valueOf(token.getSubject()));
     }
 }

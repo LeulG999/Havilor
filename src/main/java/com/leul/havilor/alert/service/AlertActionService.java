@@ -6,6 +6,7 @@ import com.leul.havilor.alert.domain.Action;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.repository.ActionRepository;
 import com.leul.havilor.alert.repository.AlertRepository;
+import com.leul.havilor.audit.service.AuditService;
 import com.leul.havilor.common.error.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,11 +20,14 @@ public class AlertActionService {
 
     private final AlertRepository alertRepository;
     private final ActionRepository actionRepository;
+    private final AuditService auditService;
     private final Clock clock;
 
-    public AlertActionService(AlertRepository alertRepository, ActionRepository actionRepository, Clock clock) {
+    public AlertActionService(AlertRepository alertRepository, ActionRepository actionRepository,
+                              AuditService auditService, Clock clock) {
         this.alertRepository = alertRepository;
         this.actionRepository = actionRepository;
+        this.auditService = auditService;
         this.clock = clock;
     }
 
@@ -34,7 +38,11 @@ public class AlertActionService {
         alert.ensureOpen();
         Action action = new Action(alertId, request.type(), request.result(), blankToNull(request.note()),
                 performedBy, clock.instant());
-        return ActionResponse.from(actionRepository.save(action));
+        Action saved = actionRepository.save(action);
+        auditService.record(performedBy, "ACTION_RECORDED", AuditService.ALERT, alertId, null,
+                "action " + saved.getId() + ": " + saved.getType() + " " + saved.getResult()
+                        + (saved.getNote() == null ? "" : ", note=" + saved.getNote()));
+        return ActionResponse.from(saved);
     }
 
     // Oldest first. Reading is allowed on a closed alert too.

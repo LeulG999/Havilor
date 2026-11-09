@@ -13,6 +13,8 @@ import com.leul.havilor.common.paging.Paging;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -66,13 +68,15 @@ public class AlertController {
 
     // The analyst's final decision. 400: no verdict / UNDECIDED; 409: already closed or steps still pending.
     @PostMapping("/{id}/close")
-    public AlertDetailResponse close(@PathVariable Long id, @Valid @RequestBody CloseAlertRequest request) {
-        return alertService.close(id, request);
+    public AlertDetailResponse close(@PathVariable Long id, @Valid @RequestBody CloseAlertRequest request,
+                                     @AuthenticationPrincipal Jwt token) {
+        return alertService.close(id, request, Long.valueOf(token.getSubject()));
     }
 
     // Partial update: only the fields that are sent change. Closed alert or a concurrent change → 409.
     @PatchMapping("/{id}")
-    public AlertDetailResponse update(@PathVariable Long id, @Valid @RequestBody UpdateAlertRequest request) {
-        return alertService.update(id, request);
+    public AlertDetailResponse update(@PathVariable Long id, @Valid @RequestBody UpdateAlertRequest request,
+                                      @AuthenticationPrincipal Jwt token) {
+        return alertService.update(id, request, Long.valueOf(token.getSubject()));
     }
 }

@@ -17,6 +17,7 @@ import com.leul.havilor.alert.service.AlertFactory;
 import com.leul.havilor.alert.service.AlertQueryService;
 import com.leul.havilor.alert.service.AlertService;
 import com.leul.havilor.alert.service.CreateAlertResult;
+import com.leul.havilor.audit.service.AuditService;
 import com.leul.havilor.common.CaseType;
 import com.leul.havilor.common.error.BadRequestException;
 import com.leul.havilor.common.error.NotFoundException;
@@ -69,6 +70,9 @@ class AlertServiceTest {
     @Mock
     private FindingService findingService;
 
+    @Mock
+    private AuditService auditService;
+
     private AlertQueryService alertQueryService;
     private AlertService alertService;
 
@@ -76,7 +80,7 @@ class AlertServiceTest {
     void setUp() {
         alertQueryService = new AlertQueryService(alertRepository);
         alertService = new AlertService(alertRepository, playbookService, new AlertFactory(),
-                alertQueryService, userService, findingService, FixedClockConfiguration.CLOCK);
+                alertQueryService, userService, findingService, auditService, FixedClockConfiguration.CLOCK);
     }
 
     @Test
@@ -204,12 +208,16 @@ class AlertServiceTest {
         when(userService.exists(7L)).thenReturn(true);
 
         AlertDetailResponse updated = alertService.update(11L,
-                new UpdateAlertRequest(null, 7L, null, null, null));
+                new UpdateAlertRequest(null, 7L, null, null, null), 1L);
 
         assertThat(updated.assigneeId()).isEqualTo(7L);
         assertThat(updated.status()).isEqualTo(AlertStatus.INVESTIGATING);
         assertThat(updated.priority()).isEqualTo(Priority.MEDIUM);
         verify(alertRepository).flush();
+        verify(auditService).record(1L, "ALERT_UPDATED", AuditService.ALERT, 11L,
+                "status=NEW, priority=MEDIUM, assigneeId=null, waitingOn=null, externalCaseNumber=null, followUpOn=null",
+                "status=INVESTIGATING, priority=MEDIUM, assigneeId=7, waitingOn=null, externalCaseNumber=null, "
+                        + "followUpOn=null");
     }
 
     @Test
@@ -218,7 +226,7 @@ class AlertServiceTest {
         when(alertRepository.findById(12L)).thenReturn(Optional.of(alert));
         when(userService.exists(99L)).thenReturn(false);
 
-        assertThatThrownBy(() -> alertService.update(12L, new UpdateAlertRequest(null, 99L, null, null, null)))
+        assertThatThrownBy(() -> alertService.update(12L, new UpdateAlertRequest(null, 99L, null, null, null), 1L))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("no user with id 99");
         assertThat(alert.getAssigneeId()).isNull();

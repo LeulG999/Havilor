@@ -8,6 +8,7 @@ import com.leul.havilor.alert.api.response.AlertSummaryResponse;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.domain.enums.Priority;
 import com.leul.havilor.alert.repository.AlertRepository;
+import com.leul.havilor.audit.service.AuditService;
 import com.leul.havilor.common.error.BadRequestException;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.common.paging.PageResponse;
@@ -36,17 +37,19 @@ public class AlertService {
     private final AlertQueryService alertQueryService;
     private final UserService userService;
     private final FindingService findingService;
+    private final AuditService auditService;
     private final Clock clock;
 
     public AlertService(AlertRepository alertRepository, PlaybookService playbookService,
                         AlertFactory alertFactory, AlertQueryService alertQueryService, UserService userService,
-                        FindingService findingService, Clock clock) {
+                        FindingService findingService, AuditService auditService, Clock clock) {
         this.alertRepository = alertRepository;
         this.playbookService = playbookService;
         this.alertFactory = alertFactory;
         this.alertQueryService = alertQueryService;
         this.userService = userService;
         this.findingService = findingService;
+        this.auditService = auditService;
         this.clock = clock;
     }
 
@@ -95,9 +98,10 @@ public class AlertService {
      * "UPDATE ... WHERE version = ?" matches no row and throws (409, in GlobalExceptionHandler).
      */
     @Transactional
-    public AlertDetailResponse update(Long id, UpdateAlertRequest request) {
+    public AlertDetailResponse update(Long id, UpdateAlertRequest request, Long actorId) {
         Alert alert = load(id);
         alert.ensureOpen();
+        String before = snapshot(alert);
 
         if (request.priority() != null) {
             alert.changePriority(request.priority());
@@ -121,6 +125,7 @@ public class AlertService {
 
         // Flush now so the response shows the new version and updatedAt.
         alertRepository.flush();
+        auditService.record(actorId, "ALERT_UPDATED", AuditService.ALERT, id, before, snapshot(alert));
         return alertQueryService.getById(id);
     }
 
@@ -130,11 +135,14 @@ public class AlertService {
      * "already closed" and "pending steps" (409).
      */
     @Transactional
-    public AlertDetailResponse close(Long id, CloseAlertRequest request) {
+    public AlertDetailResponse close(Long id, CloseAlertRequest request, Long actorId) {
         Alert alert = alertRepository.findWithStepProgressById(id)
                 .orElseThrow(() -> NotFoundException.of("Alert", id));
+        String before = "status=" + alert.getStatus() + ", verdict=" + alert.getVerdict();
         alert.close(request.verdict(), clock);
         alertRepository.flush();
+        auditService.record(actorId, "ALERT_CLOSED", AuditService.ALERT, id, before,
+                "status=" + alert.getStatus() + ", verdict=" + alert.getVerdict());
         return alertQueryService.getById(id);
     }
 
@@ -148,6 +156,13 @@ public class AlertService {
     @Transactional
     public void endEscalation(Long id) {
         load(id).endEscalation();
+    }
+
+    // The fields PATCH can change, as one line for the audit log.
+    private static String snapshot(Alert alert) {
+        return "status=" + alert.getStatus() + ", priority=" + alert.getPriority()
+                + ", assigneeId=" + alert.getAssigneeId() + ", waitingOn=" + alert.getWaitingOn()
+                + ", externalCaseNumber=" + alert.getExternalCaseNumber() + ", followUpOn=" + alert.getFollowUpOn();
     }
 
     private Alert load(Long id) {

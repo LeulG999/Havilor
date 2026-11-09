@@ -5,6 +5,7 @@ import com.leul.havilor.alert.api.response.AlertStepResponse;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.domain.StepProgress;
 import com.leul.havilor.alert.repository.AlertRepository;
+import com.leul.havilor.audit.service.AuditService;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.playbook.api.response.PlaybookStepResponse;
 import com.leul.havilor.playbook.service.PlaybookService;
@@ -24,11 +25,14 @@ public class AlertStepService {
 
     private final AlertRepository alertRepository;
     private final PlaybookService playbookService;
+    private final AuditService auditService;
     private final Clock clock;
 
-    public AlertStepService(AlertRepository alertRepository, PlaybookService playbookService, Clock clock) {
+    public AlertStepService(AlertRepository alertRepository, PlaybookService playbookService,
+                            AuditService auditService, Clock clock) {
         this.alertRepository = alertRepository;
         this.playbookService = playbookService;
+        this.auditService = auditService;
         this.clock = clock;
     }
 
@@ -50,16 +54,25 @@ public class AlertStepService {
 
     // Closed alert → 409 (Alert.ensureOpen); step not on this alert → 404.
     @Transactional
-    public AlertStepResponse updateStep(Long alertId, Long stepId, UpdateStepRequest request) {
+    public AlertStepResponse updateStep(Long alertId, Long stepId, UpdateStepRequest request, Long actorId) {
         Alert alert = alertRepository.findWithStepProgressById(alertId)
                 .orElseThrow(() -> NotFoundException.of("Alert", alertId));
+        String before = alert.getStepProgress().stream()
+                .filter(p -> p.getPlaybookStepId().equals(stepId))
+                .findFirst().map(AlertStepService::describe).orElse(null);
         StepProgress progress = alert.recordStep(stepId, request.status(), request.answer(), clock);
         PlaybookStepResponse step = playbookService.getSteps(alert.getPlaybookId()).stream()
                 .filter(s -> s.id().equals(stepId))
                 .findFirst()
                 .orElseThrow(() -> NotFoundException.of("Playbook step", stepId));
         alertRepository.flush();
+        auditService.record(actorId, "STEP_UPDATED", AuditService.ALERT, alertId, before, describe(progress));
         return AlertStepResponse.of(step, progress);
+    }
+
+    private static String describe(StepProgress progress) {
+        return "step " + progress.getPlaybookStepId() + ": " + progress.getStatus()
+                + (progress.getAnswer() == null ? "" : ", answer=" + progress.getAnswer());
     }
 
     private Alert loadWithProgress(Long alertId) {
