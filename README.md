@@ -30,7 +30,7 @@ but the analyst always makes the decision.
 - [x] 13. Automatic checks → findings, critical rule, manual findings
 - [x] 14. Actions on an alert
 - [x] 15. Escalation
-- [ ] 16. Audit log
+- [x] 16. Audit log
 - [ ] 17. Standup notes
 - [ ] 18. AI assistant (Claude): assessment + email drafts
 - [ ] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
@@ -51,8 +51,9 @@ pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
 ## Architecture
 
 Havilor is a **modular monolith**: one Spring Boot application split into feature modules.
-Today `alert`, `playbook`, `user`, `finding`, `escalation` and `common` hold code; `audit` and `standup` are
-waiting for their flows. Dependencies go one way: `alert → playbook, user, finding`; `escalation → alert`.
+Today `alert`, `playbook`, `user`, `finding`, `escalation`, `audit` and `common` hold code; `standup` is
+waiting for its flow. Dependencies go one way: `alert → playbook, user, finding, audit`;
+`escalation → alert, audit`; `finding → audit`.
 
 - Each module is layered: **Controller → Service → Repository → PostgreSQL**, with one sub-package per layer.
 - Modules have strict borders: another module may use only a module's `service` and `api.response` packages,
@@ -63,6 +64,7 @@ waiting for their flows. Dependencies go one way: `alert → playbook, user, fin
 - The REST API lives under `/api/v1` and only returns DTOs, never database entities. Every call except login
   needs a valid access token (`Authorization: Bearer ...`).
 - Every error goes through one `@RestControllerAdvice` and has one shape.
+- Every change on an alert writes an audit line (who, what, before, after) in the same transaction.
 - "Now" comes from one injected `java.time.Clock` (tests use a fixed one), never `Instant.now()`.
 - Request DTOs are plain data; `AlertFactory` turns a request into an alert with its children.
 - Simplest correct solution first: plain `@Transactional` services, lazy loading, `@Version` for conflicts.
@@ -83,6 +85,8 @@ finding/
   api/  api/request/  api/response/  domain/ (Finding + enums)  repository/  service/ (FindingService, AutomaticChecks)
 escalation/
   api/  api/request/  api/response/  domain/ (Escalation + enums)  repository/  service/ (EscalationService)
+audit/
+  api/  api/response/  domain/ (AuditEntry, append-only)  repository/  service/ (AuditService.record)
 common/           CaseType, ClockConfiguration (the one Clock for "now")
   error/          ApiError, GlobalExceptionHandler, NotFound/Conflict/BadRequest exceptions
   paging/         PageResponse, Paging
@@ -109,6 +113,8 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `PATCH` | `/api/v1/escalations/{id}` | `{externalStatus, outcome}` (both optional). An `outcome` sends the alert back to `INVESTIGATING` |
 | `GET` | `/api/v1/alerts/{id}/findings` | **200** with the alert's findings (automatic and manual), each with *why it matters* |
 | `POST` | `/api/v1/alerts/{id}/findings` | Add a manual finding `{type, severity, title, teachingText}` → **201** |
+| `GET` | `/api/v1/alerts/{id}/audit` | **200** with the alert's history (updates, close, steps, actions, findings, escalations), oldest first |
+| `GET` | `/api/v1/audit?page=0&size=20` | **MANAGER only** (**403** otherwise): the whole audit log, newest first |
 | `GET` | `/api/v1/playbooks` | **200** with every playbook (name, case type, version, active) |
 | `GET` | `/api/v1/playbooks/{id}` | **200** with the playbook and its steps in order; **404** if unknown |
 | `POST` | `/api/v1/dev/generate-alerts?count=10` | **dev profile only**: creates 1–100 realistic fake alerts (example.com/.net/.org only). **404** without the profile |
