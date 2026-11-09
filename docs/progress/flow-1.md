@@ -10,7 +10,7 @@ creates a duplicate.
 
 > **Later change (refactor after Flow 10, see [refactor-layers.md](refactor-layers.md)):** `AlertRepository.findByTicketNumber` was removed; the duplicate check uses `findIdByTicketNumber` (Flow 5), and the repository test now does too.
 
-> **Later change (simplification, see [refactor-simplify.md](refactor-simplify.md)):** `AlertService.create()` is now a plain `@Transactional` method. The race recovery (catch the unique violation, re-read the winner) is gone: a request that loses the race gets **409** `Alert with this ticket number already exists` from `GlobalExceptionHandler`. A normal resend still gets 200. The concurrent test now expects one 201 and 200s or 409s, still exactly one row.
+> **Later change (simplification, see [refactor-simplify.md](refactor-simplify.md)):** `AlertService.create()` is now a plain `@Transactional` method. The race recovery (catch the unique violation, re-read the winner) is gone: a request that loses the race gets **409** from `GlobalExceptionHandler` (message `The request conflicts with existing data` since Flow 11). A normal resend still gets 200. The concurrent test now expects one 201 and 200s or 409s, still exactly one row.
 
 ## Decision: what the API returns for a duplicate
 

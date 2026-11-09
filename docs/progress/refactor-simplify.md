@@ -60,7 +60,7 @@ sequenceDiagram
   `version` and `updatedAt`.
 - **`list` stays in `AlertService`.** Only the detail read moved; nothing else needed it.
 - **The 409 message names the ticket number** because that unique constraint is the only one a client can hit today.
-  If another constraint becomes reachable, the handler will need a more general message.
+  If another constraint becomes reachable, the handler will need a more general message. (Done in Flow 11: `The request conflicts with existing data`.)
 
 ## Tests that changed
 

@@ -23,6 +23,18 @@ but the analyst always makes the decision.
 - [x] 9. Close an alert (`POST /alerts/{id}/close`): verdict required, no pending steps
 - [x] 10. Finish the slice: click events, fake alert generator, Testcontainers tests, Postman collection
 
+## Batch 2 (Slices 2–4 core) — in progress
+
+- [x] 11. Generic 409 message for database conflicts
+- [ ] 12. Users + login (JWT), `GET /users/me`, real assignees
+- [ ] 13. Automatic checks → findings, critical rule, manual findings
+- [ ] 14. Actions on an alert
+- [ ] 15. Escalation
+- [ ] 16. Audit log
+- [ ] 17. Standup notes
+- [ ] 18. AI assistant (Claude): assessment + email drafts
+- [ ] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
+
 Build notes for every flow are in [`docs/progress/`](docs/progress).
 
 ## Tech stack
@@ -82,7 +94,8 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `POST` | `/api/v1/dev/generate-alerts?count=10` | **dev profile only**: creates 1–100 realistic fake alerts (example.com/.net/.org only). **404** without the profile |
 
 Every error uses one body: `{status, error, message, path, timestamp, fieldErrors}`. Invalid input gives **400**
-(one entry per broken field), an unknown id **404**, a broken business rule or a concurrent change **409**, and
+(one entry per broken field), an unknown id **404**, a broken business rule, a concurrent change or a database
+conflict **409** (`The request conflicts with existing data`), and
 anything unexpected **500** without internal details.
 
 ```bash
