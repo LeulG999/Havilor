@@ -28,7 +28,7 @@ but the analyst always makes the decision.
 - [x] 11. Generic 409 message for database conflicts
 - [x] 12. Users + login (JWT), `GET /users/me`, real assignees
 - [x] 13. Automatic checks → findings, critical rule, manual findings
-- [ ] 14. Actions on an alert
+- [x] 14. Actions on an alert
 - [ ] 15. Escalation
 - [ ] 16. Audit log
 - [ ] 17. Standup notes
@@ -70,7 +70,7 @@ waiting for their flows. Dependencies go one way: `alert → playbook, user, fin
 ```
 alert/
   api/            controllers           api/request/   request DTOs     api/response/  response DTOs
-  domain/         Alert (+ embedded EmailDetails), Recipient, Url, Attachment, ClickEvent, StepProgress
+  domain/         Alert (+ embedded EmailDetails), Recipient, Url, Attachment, ClickEvent, StepProgress, Action
   domain/enums/   AlertStatus, Priority, Source, Verdict, AuthResult, DeliveryStatus, StepStatus
   repository/     AlertRepository       service/       AlertService, AlertQueryService, AlertStepService, AlertFactory
   dev/            fake alert generator (only with the "dev" profile)
@@ -100,6 +100,8 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `GET` | `/api/v1/alerts/{id}/steps` | **200** with the alert's playbook steps in order: what to check, *why it matters*, how, and the alert's progress (`PENDING`/`DONE`/`SKIPPED`) |
 | `PATCH` | `/api/v1/alerts/{id}/steps/{stepId}` | Record a step `{status, answer}`. Working a step on a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed |
 | `POST` | `/api/v1/alerts/{id}/close` | Close with `{verdict}` (required, not `UNDECIDED`, else **400**). **409** if already closed or any step is still `PENDING` |
+| `POST` | `/api/v1/alerts/{id}/actions` | Record what you did `{type, result, note}` (`performedBy` = you, `performedAt` = now) → **201**; **409** if the alert is closed |
+| `GET` | `/api/v1/alerts/{id}/actions` | **200** with the alert's actions, oldest first |
 | `GET` | `/api/v1/alerts/{id}/findings` | **200** with the alert's findings (automatic and manual), each with *why it matters* |
 | `POST` | `/api/v1/alerts/{id}/findings` | Add a manual finding `{type, severity, title, teachingText}` → **201** |
 | `GET` | `/api/v1/playbooks` | **200** with every playbook (name, case type, version, active) |
