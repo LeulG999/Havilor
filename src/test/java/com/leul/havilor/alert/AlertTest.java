@@ -84,6 +84,27 @@ class AlertTest {
     }
 
     @Test
+    void escalatingAndGettingTheAnswerBack() {
+        alert.escalate();
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.ESCALATED);
+
+        alert.endEscalation();
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.INVESTIGATING);
+
+        alert.endEscalation(); // not escalated any more: nothing changes
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.INVESTIGATING);
+    }
+
+    @Test
+    void aClosedAlertCannotBeEscalatedAndALateAnswerLeavesItClosed() {
+        alert.close(Verdict.BENIGN, CLOCK);
+
+        assertThatThrownBy(alert::escalate).isInstanceOf(ConflictException.class);
+        alert.endEscalation();
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.CLOSED);
+    }
+
+    @Test
     void aStepChangeTouchesTheAlert() {
         alert.attachPlaybook(1L, 1, List.of(11L));
         Instant later = NOW.plusSeconds(60);

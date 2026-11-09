@@ -138,6 +138,18 @@ public class AlertService {
         return alertQueryService.getById(id);
     }
 
+    // For the escalation module: escalating needs an open alert (404 / 409 otherwise).
+    @Transactional
+    public void escalate(Long id) {
+        load(id).escalate();
+    }
+
+    // For the escalation module: the other team gave its outcome.
+    @Transactional
+    public void endEscalation(Long id) {
+        load(id).endEscalation();
+    }
+
     private Alert load(Long id) {
         return alertRepository.findById(id).orElseThrow(() -> NotFoundException.of("Alert", id));
     }

@@ -18,6 +18,14 @@ public class AlertQueryService {
         this.alertRepository = alertRepository;
     }
 
+    // For other modules that only need "does this alert exist?" (404 if not).
+    @Transactional(readOnly = true)
+    public void ensureExists(Long id) {
+        if (!alertRepository.existsById(id)) {
+            throw NotFoundException.of("Alert", id);
+        }
+    }
+
     @Transactional(readOnly = true)
     public AlertDetailResponse getById(Long id) {
         Alert alert = alertRepository.findById(id).orElseThrow(() -> NotFoundException.of("Alert", id));

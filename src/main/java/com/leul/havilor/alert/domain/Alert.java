@@ -202,6 +202,20 @@ public class Alert {
         this.followUpOn = followUpOn;
     }
 
+    // Handed to another team (escalation module). An escalated alert can be escalated again.
+    public void escalate() {
+        ensureOpen();
+        this.status = AlertStatus.ESCALATED;
+    }
+
+    // The other team answered: back to our own investigation. Only from ESCALATED; any other status
+    // (e.g. CLOSED meanwhile) is left as it is, so a late answer never reopens or blocks anything.
+    public void endEscalation() {
+        if (status == AlertStatus.ESCALATED) {
+            this.status = AlertStatus.INVESTIGATING;
+        }
+    }
+
     // Called once, when the alert is created: one PENDING progress row per playbook step.
     public void attachPlaybook(Long playbookId, int playbookVersion, List<Long> stepIds) {
         if (this.playbookId != null) {
