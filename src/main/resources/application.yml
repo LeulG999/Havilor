@@ -22,3 +22,7 @@ havilor:
   dev:
     # Password for the two fake dev users (dev profile only). Only from the environment.
     password: ${HAVILOR_DEV_PASSWORD:}
+  ai:
+    # The Claude API key, only from the environment. Without it the app still runs; AI endpoints answer 502.
+    api-key: ${ANTHROPIC_API_KEY:}
+    model: claude-sonnet-5-5

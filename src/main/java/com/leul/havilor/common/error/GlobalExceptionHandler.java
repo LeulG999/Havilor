@@ -1,5 +1,6 @@
 package com.leul.havilor.common.error;
 
+import com.leul.havilor.common.ai.AiException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,6 +126,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ApiError> constraintViolation(DataIntegrityViolationException e, HttpServletRequest request) {
         return build(HttpStatus.CONFLICT, "The request conflicts with existing data", request, List.of());
+    }
+
+    // 502: the AI assistant (an upstream service) gave no usable answer. The details are logged by the AI client.
+    @ExceptionHandler(AiException.class)
+    ResponseEntity<ApiError> aiUnavailable(AiException e, HttpServletRequest request) {
+        return build(HttpStatus.BAD_GATEWAY, e.getMessage(), request, List.of());
     }
 
     // Everything else. Spring's own web exceptions (unknown URL 404, wrong method 405, wrong content
