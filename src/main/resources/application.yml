@@ -15,6 +15,18 @@ spring:
     # Close the DB session when the service call ends, not after the HTTP response
     open-in-view: false
 
+  # Matches compose.yaml (local dev only); tests point this at a Testcontainers Redis.
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # Spring Cache in Redis, used only for playbook reads (PlaybookService). TTL: how long a cached read stays.
+  cache:
+    type: redis
+    redis:
+      time-to-live: 10m
+
   # Manual intake (Flow 19) accepts screenshots and PDFs; the default limit (1MB) is too small for them.
   servlet:
     multipart:

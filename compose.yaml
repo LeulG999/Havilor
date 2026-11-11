@@ -15,5 +15,12 @@ services:
     volumes:
       - havilor-db-data:/var/lib/postgresql
 
+  redis:
+    # Cache for playbook reads (Flow 21). Nothing in it needs to survive a restart, so no volume.
+    image: redis:8
+    container_name: havilor-redis
+    ports:
+      - "6379:6379"
+
 volumes:
   havilor-db-data:

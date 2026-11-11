@@ -52,6 +52,15 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
+        <!-- Cache playbook reads in Redis (Flow 21) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
         <!-- The AI assistant (Flow 18): the official Anthropic Java SDK. Not managed by Spring Boot, so pinned here. -->
         <dependency>
             <groupId>com.anthropic</groupId>
