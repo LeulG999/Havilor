@@ -27,21 +27,25 @@ export class ApiError extends Error {
   }
 }
 
-// Calls /api/v1 + path. Sends the token (if we have one) and a JSON body (if given); returns the JSON answer.
+// Calls /api/v1 + path. Sends the token (if we have one) and a body (if given); returns the JSON answer.
+// The body is sent as JSON, except FormData (a file upload), which is sent as multipart/form-data.
 export async function api<T>(path: string, options: { method?: string; body?: unknown } = {}): Promise<T> {
   const token = getToken();
   const headers: Record<string, string> = {};
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  if (options.body !== undefined) {
+  const isForm = options.body instanceof FormData;
+  // For FormData we set NO Content-Type: the browser writes "multipart/form-data; boundary=…" itself,
+  // and the boundary (the separator between the parts) must match the body it builds.
+  if (options.body !== undefined && !isForm) {
     headers['Content-Type'] = 'application/json';
   }
 
   const response = await fetch(`/api/v1${path}`, {
     method: options.method ?? 'GET',
     headers,
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    body: isForm ? (options.body as FormData) : options.body !== undefined ? JSON.stringify(options.body) : undefined,
   });
 
   // 401 with a token = the token expired or is no longer valid: forget it and go to the login page.
