@@ -5,8 +5,10 @@ import type { Action, AlertDetail, AlertStep, Finding, User } from '../api/types
 import ActionList from '../components/ActionList';
 import AddActionButton from '../components/AddActionButton';
 import AddFindingButton from '../components/AddFindingButton';
+import AiAssessmentPanel from '../components/AiAssessmentPanel';
 import AlertChildrenSection from '../components/AlertChildrenSection';
 import AlertHeader from '../components/AlertHeader';
+import DraftEmailButton from '../components/DraftEmailButton';
 import EmailDetailsSection from '../components/EmailDetailsSection';
 import ErrorMessage from '../components/ErrorMessage';
 import FindingList from '../components/FindingList';
@@ -85,7 +87,17 @@ export default function AlertDetailPage() {
               <ActionList actions={actions} />
             </>
           )}
-          {tab === 'AI' && <section className="panel"><p className="muted">The AI assistant comes in Flow F10.</p></section>}
+          {tab === 'AI' && (alertIsOpen ? (
+            <>
+              {/* key: a new alert (e.g. after clicking a reference) starts with an empty panel */}
+              <AiAssessmentPanel key={alert.id} alertId={alert.id} onChanged={load} />
+              <p><DraftEmailButton alertId={alert.id} /></p>
+            </>
+          ) : (
+            <section className="panel">
+              <p className="muted">This alert is closed. Its saved AI suggestion is on the Overview tab.</p>
+            </section>
+          ))}
         </>
       )}
     </main>
