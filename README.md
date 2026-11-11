@@ -43,7 +43,7 @@ but the analyst always makes the decision.
 ## Front-end Batch F2 (working on an alert) — in progress
 
 - [x] F5. Backend fix: fake alerts only pass DMARC when SPF or DKIM passed
-- [ ] F6. Detail page: fixed header + tabs, reusable modal
+- [x] F6. Detail page: fixed header + tabs, reusable modal
 - [ ] F7. Header actions: assign to me, change priority
 - [ ] F8. Investigation tab: mark steps done / skipped
 - [ ] F9. Evidence + Actions tabs: add finding, add action
