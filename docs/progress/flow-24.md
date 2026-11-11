@@ -5,6 +5,11 @@
 
 **Built on:** `main` · **Status:** done, 161 tests passing, pushed
 
+> **Later change (Dependabot PR #5, kept by Leul):** the image now builds on `eclipse-temurin:25-jdk` and runs on
+> `eclipse-temurin:25-jre-alpine`. The code still targets Java 21 (`java.version` in `pom.xml`), and local
+> development and CI still use JDK 21, so the tests run on 21 and the container runs the same bytecode on 25.
+> Java runtimes are backward compatible, so a Java 21 jar runs unchanged on 25.
+
 ## Commands
 
 ```bash
@@ -19,11 +24,11 @@ docker compose up -d                            # unchanged: only db + redis, ru
 
 ```mermaid
 flowchart TB
-    subgraph Build["Dockerfile stage 1: eclipse-temurin:21-jdk"]
+    subgraph Build["Dockerfile stage 1: eclipse-temurin:25-jdk"]
         W[".mvn/ + mvnw + pom.xml"] -->|"mvnw dependency:go-offline<br/>(cached layer)"| D[("~/.m2")]
         S["src/"] -->|"mvnw -DskipTests package"| J["target/Havilor-*.jar"]
     end
-    subgraph Run["stage 2: eclipse-temurin:21-jre-alpine"]
+    subgraph Run["stage 2: eclipse-temurin:25-jre-alpine"]
         U["user havilor (uid 100), not root"] --> A["java -jar /app/app.jar :8080"]
         HC["HEALTHCHECK: wget /actuator/health every 30s"] --> A
     end
@@ -42,7 +47,7 @@ flowchart TB
 
 | File | What it does |
 |---|---|
-| `Dockerfile` (new) | Stage 1 builds with the project's Maven wrapper on JDK 21 (dependencies in their own cached layer). Stage 2: JRE 21 on Alpine, non-root user `havilor`, `HEALTHCHECK` on `/actuator/health`, `ENTRYPOINT java -jar`. No secret in the image. |
+| `Dockerfile` (new) | Stage 1 builds with the project's Maven wrapper on JDK 25 (targeting Java 21) (dependencies in their own cached layer). Stage 2: JRE 25 on Alpine, non-root user `havilor`, `HEALTHCHECK` on `/actuator/health`, `ENTRYPOINT java -jar`. No secret in the image. |
 | `.dockerignore` (new) | Only `.mvn/`, `mvnw`, `pom.xml`, `src/` matter; `target/`, `.git/`, IDE folders, docs, `.env` stay out of the build context. |
 | `compose.yaml` | Health checks for `db` and `redis`; new `app` service in profile `full` (built from the Dockerfile, waits for healthy db + Redis, reaches them by service name). Secrets as `${VAR:-}` from the host. |
 | `.gitignore` | `.env` (where you may keep the secrets for compose). |

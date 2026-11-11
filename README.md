@@ -210,7 +210,7 @@ docker compose --profile full up -d --build    # app (port 8080) + db + Redis; t
 docker compose --profile full down
 ```
 
-The image (`Dockerfile`) is built in two stages (JDK 21 + Maven wrapper, then JRE 21 Alpine), runs as a non-root user
+The image (`Dockerfile`) is built in two stages (JDK 25 + Maven wrapper, then JRE 25 Alpine; the code targets Java 21), runs as a non-root user
 and has a `HEALTHCHECK` on `/actuator/health`. No secret is baked into the image or written in `compose.yaml`.
 
 ### The full loop in Postman
