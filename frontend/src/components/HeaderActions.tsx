@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { api } from '../api/api';
 import type { AlertDetail, User } from '../api/types';
+import CloseAlertButton from './CloseAlertButton';
 import ErrorMessage from './ErrorMessage';
 
 const PRIORITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
 
-// "Assign to me" and the priority dropdown. Both send PATCH /api/v1/alerts/{id} with only the field that changes,
-// then ask the page to load the alert again (onChanged), so every part of the page shows the new state.
+// The actions on the whole alert. "Assign to me" and the priority dropdown send PATCH /api/v1/alerts/{id} with only
+// the field that changes; "Close alert" has its own modal. After any change the page loads the alert again
+// (onChanged), so every part of the page shows the new state.
 export default function HeaderActions({ alert, me, onChanged }: {
   alert: AlertDetail;
   me: User | null;
@@ -41,6 +43,7 @@ export default function HeaderActions({ alert, me, onChanged }: {
           {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
       </label>
+      <CloseAlertButton alertId={alert.id} onChanged={onChanged} />
       <ErrorMessage error={error} />
     </div>
   );
