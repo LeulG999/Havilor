@@ -116,3 +116,13 @@ export type EmailDraft = {
   type: string;
   draft: string;
 };
+
+// GET /api/v1/alerts/dashboard
+export type Dashboard = {
+  openAlerts: number;
+  assignedToMe: number;
+  criticalOpen: number;
+  closedLast7Days: number;
+  alertsPerDay: { date: string; count: number }[]; // 14 UTC days, oldest first; date like "2026-11-01"
+  recent: AlertSummary[];
+};
