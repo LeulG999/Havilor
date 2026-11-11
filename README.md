@@ -41,7 +41,7 @@ but the analyst always makes the decision.
 - [x] 20. pgvector + RAG: playbook steps and closed alerts as knowledge for the AI assessment
 - [x] 21. Redis cache for playbook reads
 - [x] 22. Performance review (N+1 queries, indexes)
-- [ ] 23. Health check (`/actuator/health`)
+- [x] 23. Health check (`/actuator/health`)
 - [ ] 24. Docker image + full compose stack
 - [ ] 25. CI/CD + DevSecOps (GitHub Actions, CodeQL, gitleaks, Dependabot)
 
@@ -143,6 +143,7 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `GET` | `/api/v1/standup/team` | **MANAGER only**: everybody's shared notes (paged) |
 | `GET` | `/api/v1/playbooks` | **200** with every playbook (name, case type, version, active) |
 | `GET` | `/api/v1/playbooks/{id}` | **200** with the playbook and its steps in order; **404** if unknown |
+| `GET` | `/actuator/health` | **No token.** **200** `{"status":"UP"}` or **503** `DOWN` (database, Redis, disk); no details. Every other Actuator endpoint is off |
 | `POST` | `/api/v1/dev/generate-alerts?count=10` | **dev profile only**: creates 1–100 realistic fake alerts (example.com/.net/.org only). **404** without the profile |
 
 Every error uses one body: `{status, error, message, path, timestamp, fieldErrors}`. No or a bad token gives **401**,
