@@ -1,7 +1,17 @@
-import type { AlertDetail } from '../api/types';
+import type { AlertDetail, User } from '../api/types';
+import HeaderActions from './HeaderActions';
 
-// The header that stays at the top of the detail page while you scroll: what this alert is and where it stands.
-export default function AlertHeader({ alert }: { alert: AlertDetail }) {
+// The header that stays at the top of the detail page while you scroll: what this alert is, where it stands,
+// and the actions on the whole alert. A closed alert can't change, so it shows no actions.
+export default function AlertHeader({ alert, me, onChanged }: {
+  alert: AlertDetail;
+  me: User | null;
+  onChanged: () => void;
+}) {
+  const closed = alert.status === 'CLOSED';
+  const assignee = alert.assigneeId === null ? 'Unassigned'
+    : alert.assigneeId === me?.id ? 'You' : `User #${alert.assigneeId}`;
+
   return (
     <header className="alert-header">
       <div>
@@ -14,8 +24,9 @@ export default function AlertHeader({ alert }: { alert: AlertDetail }) {
           <dt>Priority</dt>
           <dd><span className={`badge priority-${alert.priority.toLowerCase()}`}>{alert.priority}</span></dd>
         </div>
-        <div><dt>Assignee</dt><dd>{alert.assigneeId ? `User #${alert.assigneeId}` : 'Unassigned'}</dd></div>
+        <div><dt>Assignee</dt><dd>{assignee}</dd></div>
       </dl>
+      {!closed && <HeaderActions alert={alert} me={me} onChanged={onChanged} />}
     </header>
   );
 }

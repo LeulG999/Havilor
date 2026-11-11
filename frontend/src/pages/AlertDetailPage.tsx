@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api/api';
-import type { AlertDetail, AlertStep, Finding } from '../api/types';
+import type { AlertDetail, AlertStep, Finding, User } from '../api/types';
 import AlertChildrenSection from '../components/AlertChildrenSection';
 import AlertHeader from '../components/AlertHeader';
 import EmailDetailsSection from '../components/EmailDetailsSection';
@@ -14,17 +14,20 @@ import Tabs from '../components/Tabs';
 const TABS = ['Overview', 'Investigation', 'Evidence', 'Actions', 'AI'] as const;
 type Tab = (typeof TABS)[number];
 
-// One alert: a fixed header, then one tab at a time. Everything is loaded once; tabs only change what is shown.
+// One alert: a fixed header, then one tab at a time. Tabs only change what is shown; the data is loaded when the
+// page opens and again after each change.
 export default function AlertDetailPage() {
   const { id } = useParams(); // the {id} in /alerts/{id}
   const [alert, setAlert] = useState<AlertDetail | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [steps, setSteps] = useState<AlertStep[]>([]);
+  const [me, setMe] = useState<User | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [tab, setTab] = useState<Tab>('Overview'); // which tab is open: plain React state
 
-  // Three requests at the same time (Promise.all); if any fails, its error is shown.
-  useEffect(() => {
+  // Loads the alert, its findings and its steps, all at the same time (Promise.all); if any fails, the error is
+  // shown. Called when the page opens and again after every change, so the page always shows the backend's state.
+  function load() {
     setError(null);
     Promise.all([
       api<AlertDetail>(`/alerts/${id}`),
@@ -37,7 +40,14 @@ export default function AlertDetailPage() {
         setSteps(stepsAnswer);
       })
       .catch(setError);
-  }, [id]);
+  }
+
+  useEffect(load, [id]);
+
+  // Who is logged in: needed for "Assign to me" and to show "You" as the assignee.
+  useEffect(() => {
+    api<User>('/users/me').then(setMe).catch(setError);
+  }, []);
 
   return (
     <main className="page">
@@ -45,7 +55,7 @@ export default function AlertDetailPage() {
       <ErrorMessage error={error} />
       {alert && (
         <>
-          <AlertHeader alert={alert} />
+          <AlertHeader alert={alert} me={me} onChanged={load} />
           <Tabs tabs={[...TABS]} active={tab} onSelect={setTab} />
 
           {tab === 'Overview' && <OverviewSection alert={alert} />}
