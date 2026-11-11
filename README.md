@@ -40,6 +40,13 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Front-end Batch F3 (layout, dashboard, new alert) — in progress
+
+- [x] F12. App layout: dark sidebar, light main area, land on the dashboard
+- [ ] F13. Backend: `GET /api/v1/alerts/dashboard`
+- [ ] F14. Dashboard page (stat cards, SVG bar chart, recent alerts)
+- [ ] F15. New alert page (manual intake → draft → save)
+
 ## Front-end Batch F2 (working on an alert) ✅
 
 - [x] F5. Backend fix: fake alerts only pass DMARC when SPF or DKIM passed
