@@ -126,3 +126,33 @@ export type Dashboard = {
   alertsPerDay: { date: string; count: number }[]; // 14 UTC days, oldest first; date like "2026-11-01"
   recent: AlertSummary[];
 };
+
+// A draft alert: what POST /api/v1/alerts/manual/extract returns, and what POST /api/v1/alerts accepts
+// (the backend's CreateAlertRequest). null = unknown / not filled in.
+export type AlertDraft = {
+  ticketNumber: string | null; // empty for a manual alert: the backend generates MAN-<date>-<n>
+  source: string;
+  caseType: string;
+  priority: string;
+  receivedAt: string | null;
+  email: {
+    subject: string;
+    fromAddress: string;
+    envelopeSender: string | null;
+    senderHeader: string | null;
+    replyTo: string | null;
+    xMailer: string | null;
+    spfResult: string | null;
+    dkimResult: string | null;
+    dmarcResult: string | null;
+    phishScore: number | null;
+    spamScore: number | null;
+    filterAction: string | null;
+    quarantineFolder: string | null;
+    rawHeaders: string | null;
+  };
+  recipients: { address: string; delivery: string }[];
+  urls: { address: string; domain: string | null; onBadList: boolean | null }[];
+  attachments: { fileName: string; fileType: string | null; sha256: string | null; verdict: string | null }[];
+  clicks: unknown[];
+};
