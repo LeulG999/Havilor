@@ -40,12 +40,12 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
-## Front-end Batch F3 (layout, dashboard, new alert) — in progress
+## Front-end Batch F3 (layout, dashboard, new alert) ✅
 
 - [x] F12. App layout: dark sidebar, light main area, land on the dashboard
 - [x] F13. Backend: `GET /api/v1/alerts/dashboard`
 - [x] F14. Dashboard page (stat cards, SVG bar chart, recent alerts)
-- [ ] F15. New alert page (manual intake → draft → save)
+- [x] F15. New alert page (manual intake → draft → save)
 
 ## Front-end Batch F2 (working on an alert) ✅
 
@@ -252,8 +252,10 @@ export HAVILOR_JWT_SECRET="<at least 32 characters>" HAVILOR_DEV_PASSWORD="<any 
 cd frontend && npm install && npm run dev
 ```
 
-Open http://localhost:5173 and log in as `analyst@havilor.example.com` with your `HAVILOR_DEV_PASSWORD`. Pages:
-login → alert queue (paged) → alert detail with a fixed header (assign to me, priority, close) and tabs:
+Open http://localhost:5173 and log in as `analyst@havilor.example.com` with your `HAVILOR_DEV_PASSWORD`. A dark
+sidebar links the pages: **Dashboard** (start page: stat cards, alerts per day, recent alerts), **Alert queue**, and
+**New alert** (paste an email or upload `.eml`/`.txt`/image/PDF → the AI drafts it → check → save). Alert detail has
+a fixed header (assign to me, priority, close) and tabs:
 Overview · Investigation (work the steps) · Evidence (email, recipients, URLs, attachments, clicks, findings + add
 finding) · Actions (list + add action) · AI (assessment, email drafts). A closed alert shows no action buttons.
 No alerts yet? `POST /api/v1/dev/generate-alerts?count=20` with your token (see the curl example above).
