@@ -1,0 +1,44 @@
+# DevSecOps checks on every push and pull request to main (Flow 25). No secret needed: GITHUB_TOKEN is the token
+# GitHub creates for every run; nothing has to be configured in the repository.
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  codeql:
+    name: CodeQL (Java)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write   # upload the results to the repository's Security tab
+      actions: read
+    steps:
+      - uses: actions/checkout@v6
+
+      # build-mode none: CodeQL reads the Java sources directly, no Maven build needed.
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+          build-mode: none
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:java-kotlin
+
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0   # the whole history: a secret removed later is still in git
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
