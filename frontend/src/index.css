@@ -32,11 +32,13 @@ h1 {
   color: var(--muted);
 }
 
+/* The white "card" every section sits in. */
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 
 /* Errors from the backend: red, and never hidden. */
@@ -86,25 +88,88 @@ button:disabled {
   margin-top: 10vh;
 }
 
-/* The bar at the top of every logged-in page. */
-.topbar {
+/* App layout (components/LoggedInLayout.tsx): a dark sidebar on the left, the light main area on the right. */
+.app-layout {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 10px 16px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  min-height: 100vh;
 }
 
-.brand {
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: #111827;
+  color: #e5e7eb;
+  padding: 20px 12px;
+  position: sticky; /* stays in place while the main area scrolls */
+  top: 0;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.sidebar-brand {
+  font-size: 1.25rem;
   font-weight: 700;
-  color: var(--text);
+  color: white;
+  padding: 0 10px 20px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  color: #d1d5db;
   text-decoration: none;
 }
 
-.topbar-user {
-  margin-left: auto; /* pushes the user and the button to the right */
+.nav-link:hover {
+  background: #1f2937;
 }
+
+/* The link of the page you are on. */
+.nav-link.active {
+  background: var(--accent);
+  color: white;
+}
+
+.icon {
+  width: 18px;
+  text-align: center;
+}
+
+.sidebar-user {
+  margin-top: auto; /* pushes the user and the logout button to the bottom */
+  border-top: 1px solid #374151;
+  padding: 14px 10px 0;
+}
+
+.sidebar-role {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-bottom: 10px;
+}
+
+.sidebar-logout {
+  width: 100%;
+  background: transparent;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0; /* lets wide tables shrink instead of pushing the page wider */
+}
+
 
 /* Tables (the alert queue, lists on the detail page). */
 table {
