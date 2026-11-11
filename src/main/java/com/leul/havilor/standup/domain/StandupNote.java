@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -48,7 +49,10 @@ public class StandupNote {
     @Column(nullable = false, length = 20)
     private NoteStatus status;
 
+    // @BatchSize: when a page of notes is shown, the mentioned alerts of all of them load in ONE query
+    // ("... WHERE note_id IN (...)") instead of one query per note (N+1, found in Flow 22). 100 = the page maximum.
     @ElementCollection
+    @BatchSize(size = 100)
     @CollectionTable(name = "standup_note_alert", joinColumns = @JoinColumn(name = "note_id"))
     @Column(name = "alert_id")
     private Set<Long> alertIds = new HashSet<>();
