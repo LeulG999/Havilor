@@ -32,3 +32,60 @@ export type AlertSummary = {
   subject: string;
   receivedAt: string; // an ISO date-time, e.g. "2026-10-28T14:00:00Z"
 };
+
+// GET /api/v1/alerts/{id} (AlertDetailResponse) and its parts.
+export type AlertDetail = {
+  id: number;
+  ticketNumber: string;
+  source: string;
+  caseType: string;
+  priority: string;
+  status: string;
+  verdict: string;
+  suggestedVerdict: string | null;
+  suggestionReason: string | null;
+  receivedAt: string;
+  closedAt: string | null;
+  email: EmailDetails;
+  recipients: Recipient[];
+  urls: AlertUrl[];
+  attachments: Attachment[];
+  clicks: Click[];
+};
+
+export type EmailDetails = {
+  subject: string;
+  fromAddress: string;
+  envelopeSender: string | null;
+  replyTo: string | null;
+  spfResult: string | null;
+  dkimResult: string | null;
+  dmarcResult: string | null;
+  phishScore: number | null;
+};
+
+export type Recipient = { id: number; address: string; delivery: string };
+export type AlertUrl = { id: number; address: string; domain: string | null; onBadList: boolean };
+export type Attachment = { id: number; fileName: string; fileType: string | null; sha256: string | null; verdict: string | null };
+export type Click = { id: number; recipientAddress: string; urlAddress: string; clickedAt: string; permitted: boolean };
+
+// GET /api/v1/alerts/{id}/findings
+export type Finding = {
+  id: number;
+  type: string;
+  severity: string;
+  title: string;
+  teachingText: string | null;
+  source: string;
+};
+
+// GET /api/v1/alerts/{id}/steps
+export type AlertStep = {
+  stepId: number;
+  orderNo: number;
+  title: string;
+  whyItMatters: string;
+  question: string;
+  status: string;
+  answer: string | null;
+};
