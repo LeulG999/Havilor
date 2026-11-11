@@ -47,7 +47,7 @@ but the analyst always makes the decision.
 - [x] F7. Header actions: assign to me, change priority
 - [x] F8. Investigation tab: mark steps done / skipped
 - [x] F9. Evidence + Actions tabs: add finding, add action
-- [ ] F10. AI tab: assessment, email drafts
+- [x] F10. AI tab: assessment, email drafts
 - [ ] F11. Close an alert
 
 ## Front-end Batch F1 (React) ✅
