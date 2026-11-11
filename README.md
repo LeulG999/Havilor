@@ -43,7 +43,7 @@ but the analyst always makes the decision.
 ## Front-end Batch F3 (layout, dashboard, new alert) — in progress
 
 - [x] F12. App layout: dark sidebar, light main area, land on the dashboard
-- [ ] F13. Backend: `GET /api/v1/alerts/dashboard`
+- [x] F13. Backend: `GET /api/v1/alerts/dashboard`
 - [ ] F14. Dashboard page (stat cards, SVG bar chart, recent alerts)
 - [ ] F15. New alert page (manual intake → draft → save)
 
@@ -151,6 +151,7 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `GET` | `/api/v1/users/me` | **200** with the logged-in user (id, name, email, role, active) |
 | `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps. New alerts get their automatic findings; a click on a bad-list URL makes the priority **CRITICAL** |
 | `POST` | `/api/v1/alerts/manual/extract` | `multipart/form-data` with ONE part: `text` (pasted email / raw headers) or `file` (.eml, image, PDF, max 10 MB) → **200** a draft `CreateAlertRequest` (source `MANUAL`, nothing saved). POST it to `/api/v1/alerts`: a manual alert without a ticket gets `MAN-<yyyyMMdd>-<n>` |
+| `GET` | `/api/v1/alerts/dashboard` | **200** `{openAlerts, assignedToMe, criticalOpen, closedLast7Days, alertsPerDay (14 UTC days), recent (5 newest)}` |
 | `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries*, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
 | `GET` | `/api/v1/alerts/{id}` | **200** with the full alert: email details, recipients, URLs, attachments, clicks, playbook and `version`; **404** if unknown |
 | `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). The assignee must be an existing user (else **400**). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or another request changed it at the same time (`@Version`) |
