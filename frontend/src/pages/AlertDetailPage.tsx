@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api/api';
-import type { AlertDetail, AlertStep, Finding, User } from '../api/types';
+import type { Action, AlertDetail, AlertStep, Finding, User } from '../api/types';
+import ActionList from '../components/ActionList';
+import AddActionButton from '../components/AddActionButton';
+import AddFindingButton from '../components/AddFindingButton';
 import AlertChildrenSection from '../components/AlertChildrenSection';
 import AlertHeader from '../components/AlertHeader';
 import EmailDetailsSection from '../components/EmailDetailsSection';
@@ -21,11 +24,12 @@ export default function AlertDetailPage() {
   const [alert, setAlert] = useState<AlertDetail | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [steps, setSteps] = useState<AlertStep[]>([]);
+  const [actions, setActions] = useState<Action[]>([]);
   const [me, setMe] = useState<User | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [tab, setTab] = useState<Tab>('Overview'); // which tab is open: plain React state
 
-  // Loads the alert, its findings and its steps, all at the same time (Promise.all); if any fails, the error is
+  // Loads the alert, its findings, steps and actions, all at the same time (Promise.all); if any fails, the error is
   // shown. Called when the page opens and again after every change, so the page always shows the backend's state.
   function load() {
     setError(null);
@@ -33,11 +37,13 @@ export default function AlertDetailPage() {
       api<AlertDetail>(`/alerts/${id}`),
       api<Finding[]>(`/alerts/${id}/findings`),
       api<AlertStep[]>(`/alerts/${id}/steps`),
+      api<Action[]>(`/alerts/${id}/actions`),
     ])
-      .then(([alertAnswer, findingsAnswer, stepsAnswer]) => {
+      .then(([alertAnswer, findingsAnswer, stepsAnswer, actionsAnswer]) => {
         setAlert(alertAnswer);
         setFindings(findingsAnswer);
         setSteps(stepsAnswer);
+        setActions(actionsAnswer);
       })
       .catch(setError);
   }
@@ -48,6 +54,9 @@ export default function AlertDetailPage() {
   useEffect(() => {
     api<User>('/users/me').then(setMe).catch(setError);
   }, []);
+
+  // A closed alert is final: no buttons or forms that would change it.
+  const alertIsOpen = alert !== null && alert.status !== 'CLOSED';
 
   return (
     <main className="page">
@@ -60,16 +69,22 @@ export default function AlertDetailPage() {
 
           {tab === 'Overview' && <OverviewSection alert={alert} />}
           {tab === 'Investigation' && (
-            <StepList alertId={alert.id} steps={steps} editable={alert.status !== 'CLOSED'} onChanged={load} />
+            <StepList alertId={alert.id} steps={steps} editable={alertIsOpen} onChanged={load} />
           )}
           {tab === 'Evidence' && (
             <>
               <EmailDetailsSection email={alert.email} />
               <AlertChildrenSection alert={alert} />
+              {alertIsOpen && <p><AddFindingButton alertId={alert.id} onChanged={load} /></p>}
               <FindingList findings={findings} />
             </>
           )}
-          {tab === 'Actions' && <section className="panel"><p className="muted">Actions come in Flow F9.</p></section>}
+          {tab === 'Actions' && (
+            <>
+              {alertIsOpen && <p><AddActionButton alertId={alert.id} onChanged={load} /></p>}
+              <ActionList actions={actions} />
+            </>
+          )}
           {tab === 'AI' && <section className="panel"><p className="muted">The AI assistant comes in Flow F10.</p></section>}
         </>
       )}
