@@ -494,3 +494,43 @@ a.button.secondary {
   font-size: 11px;
   fill: var(--muted);
 }
+
+/* New alert (pages/NewAlertPage.tsx): the draft's fields in two columns. */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+.form-grid .wide {
+  grid-column: 1 / -1; /* the subject takes the whole row */
+}
+
+textarea {
+  font: inherit;
+}
+
+h3 {
+  font-size: 1rem;
+  margin: 16px 0 6px;
+}
+
+.draft-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.draft-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+button.small {
+  padding: 3px 10px;
+  font-size: 0.85rem;
+}
