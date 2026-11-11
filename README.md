@@ -43,7 +43,7 @@ but the analyst always makes the decision.
 ## Front-end Batch F1 (React) — in progress
 
 - [x] F1. Project setup (Vite + React + TypeScript, `/api` proxy, CI build)
-- [ ] F2. Login page and top bar
+- [x] F2. Login page and top bar
 - [ ] F3. Alert queue
 - [ ] F4. Alert detail (read only)
 
