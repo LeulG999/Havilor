@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router';
 import LoggedInLayout from './components/LoggedInLayout';
 import AlertDetailPage from './pages/AlertDetailPage';
+import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import QueuePage from './pages/QueuePage';
 
@@ -11,8 +12,8 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route element={<LoggedInLayout />}>
-        {/* The dashboard arrives in Flow F14, the new-alert page in Flow F15. */}
-        <Route path="/dashboard" element={<main className="page"><h1>Dashboard</h1></main>} />
+        {/* The new-alert page arrives in Flow F15. */}
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/alerts" element={<QueuePage />} />
         <Route path="/alerts/new" element={<main className="page"><h1>New alert</h1></main>} />
         <Route path="/alerts/:id" element={<AlertDetailPage />} />

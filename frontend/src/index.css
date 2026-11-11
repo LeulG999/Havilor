@@ -425,3 +425,72 @@ button.danger {
   border-color: var(--danger);
   color: white;
 }
+
+/* Dashboard (pages/DashboardPage.tsx). */
+.page-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.page-title h1 {
+  margin: 0;
+}
+
+/* A link that looks like a button (same look as <button>). */
+a.button {
+  display: inline-block;
+  padding: 8px 14px;
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+}
+
+a.button.secondary {
+  background: transparent;
+  color: var(--accent);
+}
+
+/* Four stat cards side by side. */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.danger-text {
+  color: var(--danger);
+}
+
+/* The SVG bar chart (components/BarChart.tsx). */
+.bar-chart {
+  width: 100%;
+  height: auto;
+}
+
+.bar-chart-bar {
+  fill: var(--accent);
+}
+
+.bar-chart-axis {
+  stroke: var(--border);
+}
+
+.bar-chart-count {
+  font-size: 12px;
+  fill: var(--text);
+}
+
+.bar-chart-label {
+  font-size: 11px;
+  fill: var(--muted);
+}
