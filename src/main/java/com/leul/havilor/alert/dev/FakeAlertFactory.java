@@ -85,11 +85,13 @@ class FakeAlertFactory {
             }
         }
 
+        AuthResult spf = authResult();
+        AuthResult dkim = authResult();
         EmailDetailsRequest email = new EmailDetailsRequest(
                 pick(SUBJECTS).formatted(n), from, envelope, "\"" + capitalize(from) + "\" <" + from + ">",
                 random.nextInt(4) == 0 ? "collect@harvest" + n + ".example.org" : null,
                 "FakeMailer " + random.nextInt(1, 9) + ".0",
-                authResult(), authResult(), authResult(),
+                spf, dkim, dmarcResult(spf, dkim),
                 random.nextInt(0, 101), random.nextInt(0, 101),
                 random.nextBoolean() ? "quarantine" : "deliver", random.nextBoolean() ? "Phish" : null,
                 "Received: from mx" + n + ".example.net\nX-Fake-Generator: havilor-dev");
@@ -107,6 +109,12 @@ class FakeAlertFactory {
 
     private AuthResult authResult() {
         return pick(AuthResult.values());
+    }
+
+    // Like real DMARC: it can only pass when SPF or DKIM passed (DMARC builds on them). If neither passed, it fails.
+    // When one did pass, DMARC can still fail (e.g. the passing domain doesn't match the From domain), so it stays random.
+    private AuthResult dmarcResult(AuthResult spf, AuthResult dkim) {
+        return spf == AuthResult.PASS || dkim == AuthResult.PASS ? authResult() : AuthResult.FAIL;
     }
 
     private String fakeSha256() {
