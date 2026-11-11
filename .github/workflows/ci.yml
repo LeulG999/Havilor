@@ -1,0 +1,33 @@
+# Build, test and package on every push and pull request to main (Flow 25).
+# Needs no secret: the tests use fakes for Claude and Voyage, a test-only JWT secret, and Testcontainers
+# (Docker is available on GitHub's ubuntu runners). The image is built but not pushed anywhere yet.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build, test, Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build and run all tests (Testcontainers starts PostgreSQL + pgvector and Redis)
+        run: ./mvnw -B verify
+
+      - name: Build the Docker image (not pushed)
+        run: docker build -t havilor:ci .
