@@ -17,7 +17,7 @@ jobs:
       security-events: write   # upload the results to the repository's Security tab
       actions: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # build-mode none: CodeQL reads the Java sources directly, no Maven build needed.
       - uses: github/codeql-action/init@v4
@@ -35,7 +35,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # the whole history: a secret removed later is still in git
 
