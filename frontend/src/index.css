@@ -155,3 +155,59 @@ tr.clickable:hover {
   justify-content: space-between;
   margin-top: 12px;
 }
+
+/* The alert detail page: sections stacked with space between them. */
+section.panel {
+  margin-bottom: 16px;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 16px 0 8px;
+}
+
+section.panel > h2:first-child {
+  margin-top: 0;
+}
+
+/* Label / value pairs in two columns. */
+.fields {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 6px 16px;
+  margin: 0;
+}
+
+.fields dt {
+  color: var(--muted);
+}
+
+.fields dd {
+  margin: 0;
+}
+
+/* Long URLs and hashes break instead of stretching the table. */
+.wrap {
+  word-break: break-all;
+}
+
+/* Findings and steps as a list of small cards. */
+.cards {
+  list-style-position: inside;
+  padding: 0;
+  margin: 0;
+}
+
+.cards li {
+  border-top: 1px solid var(--border);
+  padding: 10px 0;
+}
+
+.cards li p {
+  margin: 4px 0 0;
+}
+
+.why {
+  color: var(--muted);
+  font-size: 0.9rem;
+}

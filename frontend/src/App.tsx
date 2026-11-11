@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router';
 import LoggedInLayout from './components/LoggedInLayout';
+import AlertDetailPage from './pages/AlertDetailPage';
 import LoginPage from './pages/LoginPage';
 import QueuePage from './pages/QueuePage';
 
@@ -10,6 +11,7 @@ export default function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<LoggedInLayout />}>
         <Route path="/alerts" element={<QueuePage />} />
+        <Route path="/alerts/:id" element={<AlertDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/alerts" replace />} />
     </Routes>
