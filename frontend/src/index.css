@@ -353,3 +353,10 @@ textarea.draft {
   font-family: ui-monospace, Consolas, monospace;
   font-size: 0.9rem;
 }
+
+/* A button for a final, serious step (closing an alert). */
+button.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: white;
+}
