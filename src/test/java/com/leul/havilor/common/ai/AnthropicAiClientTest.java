@@ -2,7 +2,7 @@ package com.leul.havilor.common.ai;
 
 import com.anthropic.models.messages.ContentBlockParam;
 import com.anthropic.models.messages.StructuredMessageCreateParams;
-import com.leul.havilor.alert.api.response.AiAssessmentResponse;
+import com.leul.havilor.alert.service.AiAssessment;
 import com.leul.havilor.alert.service.ExtractedEmail;
 import org.junit.jupiter.api.Test;
 
@@ -18,8 +18,8 @@ class AnthropicAiClientTest {
 
     @Test
     void aStructuredRequestBuildsWithTheSchemaOfTheAnswerType() {
-        StructuredMessageCreateParams<AiAssessmentResponse> params =
-                client.structuredParams("Assess this.", AiInput.text("{}"), AiAssessmentResponse.class);
+        StructuredMessageCreateParams<AiAssessment> params =
+                client.structuredParams("Assess this.", AiInput.text("{}"), AiAssessment.class);
 
         assertThat(params.rawParams().model().asString()).isEqualTo("claude-sonnet-5-5");
         assertThat(params.rawParams().outputConfig()).isPresent();

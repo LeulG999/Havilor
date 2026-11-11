@@ -2,11 +2,17 @@ package com.leul.havilor.alert.api.response;
 
 import com.leul.havilor.alert.domain.enums.Verdict;
 
-// Claude's assessment of an alert. Also the structured-output type: the SDK derives the JSON schema Claude must
-// answer in from this record, so the answer always has these three fields and a valid Verdict.
+import java.util.List;
+
+// Claude's assessment of an alert, plus the reference knowledge it was given (similar closed alerts, playbook steps).
 public record AiAssessmentResponse(
         String summary,
         Verdict suggestedVerdict,
-        String suggestionReason
+        String suggestionReason,
+        List<Reference> references
 ) {
+
+    // sourceType: CLOSED_ALERT (sourceId = an alert id) or PLAYBOOK_STEP (sourceId = a playbook step id).
+    public record Reference(String sourceType, Long sourceId) {
+    }
 }

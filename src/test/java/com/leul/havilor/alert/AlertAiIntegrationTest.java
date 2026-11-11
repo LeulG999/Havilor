@@ -5,7 +5,7 @@ import com.leul.havilor.FakeAiConfiguration.FakeAiClient;
 import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.TestAuthConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
-import com.leul.havilor.alert.api.response.AiAssessmentResponse;
+import com.leul.havilor.alert.service.AiAssessment;
 import com.leul.havilor.alert.domain.enums.Verdict;
 import com.leul.havilor.common.ai.AiException;
 import org.junit.jupiter.api.AfterEach;
@@ -52,7 +52,7 @@ class AlertAiIntegrationTest {
     @Test
     void theAssessmentIsReturnedAndTheSuggestionSavedButTheVerdictStaysTheAnalysts() throws Exception {
         long id = createAlert();
-        fakeAi.answer(AiAssessmentResponse.class, () -> new AiAssessmentResponse(
+        fakeAi.answer(AiAssessment.class, () -> new AiAssessment(
                 "A fake invoice from a look-alike domain; DMARC failed.", Verdict.MALICIOUS,
                 "DMARC_FAIL and the sender domain does not match the vendor."));
 
@@ -102,7 +102,7 @@ class AlertAiIntegrationTest {
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("type"));
         mockMvc.perform(post(ALERTS + "/{id}/ai/assessment", Long.MAX_VALUE)).andExpect(status().isNotFound());
 
-        fakeAi.answer(AiAssessmentResponse.class, () -> {
+        fakeAi.answer(AiAssessment.class, () -> {
             throw new AiException("The AI assistant is not available right now");
         });
         mockMvc.perform(post(ALERTS + "/{id}/ai/assessment", id))

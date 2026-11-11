@@ -39,6 +39,9 @@ class ModuleBorderTest {
     @ArchTest
     static final ArchRule standup = onlyThroughServiceAndResponses("standup");
 
+    @ArchTest
+    static final ArchRule knowledge = onlyThroughServiceAndResponses("knowledge");
+
     // Each top-level package (alert, playbook, user, ..., common) is one slice; slices must not form a cycle.
     @ArchTest
     static final ArchRule noCyclesBetweenModules = slices().matching("com.leul.havilor.(*)..")
@@ -51,7 +54,7 @@ class ModuleBorderTest {
             .should().dependOnClassesThat().resideInAnyPackage(
                     "com.leul.havilor.alert..", "com.leul.havilor.playbook..", "com.leul.havilor.user..",
                     "com.leul.havilor.finding..", "com.leul.havilor.escalation..", "com.leul.havilor.audit..",
-                    "com.leul.havilor.standup..");
+                    "com.leul.havilor.standup..", "com.leul.havilor.knowledge..");
 
     private static ArchRule onlyThroughServiceAndResponses(String module) {
         String root = "com.leul.havilor." + module;
