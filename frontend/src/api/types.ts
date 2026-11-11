@@ -42,6 +42,7 @@ export type AlertDetail = {
   priority: string;
   status: string;
   verdict: string;
+  assigneeId: number | null;
   suggestedVerdict: string | null;
   suggestionReason: string | null;
   receivedAt: string;

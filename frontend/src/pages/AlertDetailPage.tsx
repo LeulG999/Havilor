@@ -3,19 +3,25 @@ import { Link, useParams } from 'react-router';
 import { api } from '../api/api';
 import type { AlertDetail, AlertStep, Finding } from '../api/types';
 import AlertChildrenSection from '../components/AlertChildrenSection';
+import AlertHeader from '../components/AlertHeader';
 import EmailDetailsSection from '../components/EmailDetailsSection';
 import ErrorMessage from '../components/ErrorMessage';
 import FindingList from '../components/FindingList';
+import OverviewSection from '../components/OverviewSection';
 import StepList from '../components/StepList';
-import { formatDateTime } from '../format';
+import Tabs from '../components/Tabs';
 
-// One alert, read only: the alert itself, its findings and its playbook steps.
+const TABS = ['Overview', 'Investigation', 'Evidence', 'Actions', 'AI'] as const;
+type Tab = (typeof TABS)[number];
+
+// One alert: a fixed header, then one tab at a time. Everything is loaded once; tabs only change what is shown.
 export default function AlertDetailPage() {
   const { id } = useParams(); // the {id} in /alerts/{id}
   const [alert, setAlert] = useState<AlertDetail | null>(null);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [steps, setSteps] = useState<AlertStep[]>([]);
   const [error, setError] = useState<unknown>(null);
+  const [tab, setTab] = useState<Tab>('Overview'); // which tab is open: plain React state
 
   // Three requests at the same time (Promise.all); if any fails, its error is shown.
   useEffect(() => {
@@ -39,26 +45,20 @@ export default function AlertDetailPage() {
       <ErrorMessage error={error} />
       {alert && (
         <>
-          <h1>{alert.ticketNumber}: {alert.email.subject}</h1>
+          <AlertHeader alert={alert} />
+          <Tabs tabs={[...TABS]} active={tab} onSelect={setTab} />
 
-          <section className="panel">
-            <dl className="fields">
-              <dt>Status</dt><dd>{alert.status}</dd>
-              <dt>Priority</dt>
-              <dd><span className={`badge priority-${alert.priority.toLowerCase()}`}>{alert.priority}</span></dd>
-              <dt>Verdict</dt><dd>{alert.verdict}</dd>
-              <dt>Suggested verdict</dt><dd>{alert.suggestedVerdict ?? '—'}</dd>
-              <dt>Reason</dt><dd>{alert.suggestionReason ?? '—'}</dd>
-              <dt>Case type / source</dt><dd>{alert.caseType} / {alert.source}</dd>
-              <dt>Received</dt><dd>{formatDateTime(alert.receivedAt)}</dd>
-              <dt>Closed</dt><dd>{formatDateTime(alert.closedAt)}</dd>
-            </dl>
-          </section>
-
-          <EmailDetailsSection email={alert.email} />
-          <FindingList findings={findings} />
-          <StepList steps={steps} />
-          <AlertChildrenSection alert={alert} />
+          {tab === 'Overview' && <OverviewSection alert={alert} />}
+          {tab === 'Investigation' && <StepList steps={steps} />}
+          {tab === 'Evidence' && (
+            <>
+              <EmailDetailsSection email={alert.email} />
+              <AlertChildrenSection alert={alert} />
+              <FindingList findings={findings} />
+            </>
+          )}
+          {tab === 'Actions' && <section className="panel"><p className="muted">Actions come in Flow F9.</p></section>}
+          {tab === 'AI' && <section className="panel"><p className="muted">The AI assistant comes in Flow F10.</p></section>}
         </>
       )}
     </main>
