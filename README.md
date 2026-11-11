@@ -40,12 +40,12 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
-## Front-end Batch F1 (React) — in progress
+## Front-end Batch F1 (React) ✅
 
 - [x] F1. Project setup (Vite + React + TypeScript, `/api` proxy, CI build)
 - [x] F2. Login page and top bar
 - [x] F3. Alert queue
-- [ ] F4. Alert detail (read only)
+- [x] F4. Alert detail (read only)
 
 ## Batch 3a (knowledge, cache, operations) ✅
 
@@ -221,6 +221,22 @@ npm install        # once, and after package.json changes
 npm run dev        # http://localhost:5173  (calls to /api are passed on to the backend on :8080)
 npm run build      # type-check + production build into frontend/dist
 ```
+
+**Backend and front end together** (two terminals):
+
+```bash
+# terminal 1: database + Redis, then the backend on :8080 (dev profile = fake users + fake alert generator)
+docker compose up -d
+export HAVILOR_JWT_SECRET="<at least 32 characters>" HAVILOR_DEV_PASSWORD="<any password>"
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+# terminal 2: the front end on :5173
+cd frontend && npm install && npm run dev
+```
+
+Open http://localhost:5173 and log in as `analyst@havilor.example.com` with your `HAVILOR_DEV_PASSWORD`. Pages:
+login → alert queue (paged) → alert detail (email, recipients, URLs, attachments, clicks, findings, playbook steps).
+No alerts yet? `POST /api/v1/dev/generate-alerts?count=20` with your token (see the curl example above).
 
 ### Everything in containers
 
