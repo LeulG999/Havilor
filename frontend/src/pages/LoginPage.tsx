@@ -4,7 +4,7 @@ import { api, saveToken } from '../api/api';
 import type { LoginResponse } from '../api/types';
 import ErrorMessage from '../components/ErrorMessage';
 
-// POST /api/v1/auth/login → keep the token → go to the alert queue.
+// POST /api/v1/auth/login → keep the token → go to the dashboard.
 export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -19,7 +19,7 @@ export default function LoginPage() {
     try {
       const login = await api<LoginResponse>('/auth/login', { method: 'POST', body: { email, password } });
       saveToken(login.accessToken);
-      navigate('/alerts');
+      navigate('/dashboard');
     } catch (e) {
       setError(e); // e.g. "Invalid email or password", straight from the backend
     } finally {
