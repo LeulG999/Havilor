@@ -39,7 +39,7 @@ but the analyst always makes the decision.
 ## Batch 3a (knowledge, cache, operations) — in progress
 
 - [x] 20. pgvector + RAG: playbook steps and closed alerts as knowledge for the AI assessment
-- [ ] 21. Redis cache for playbook reads
+- [x] 21. Redis cache for playbook reads
 - [ ] 22. Performance review (N+1 queries, indexes)
 - [ ] 23. Health check (`/actuator/health`)
 - [ ] 24. Docker image + full compose stack
@@ -55,9 +55,10 @@ Build notes for every flow are in [`docs/progress/`](docs/progress).
 - The Claude API (Anthropic) through the official Java SDK, behind one `AiClient` interface (structured outputs)
 - PostgreSQL 18 with **pgvector** (in Docker), Flyway migrations
 - Voyage AI embeddings (Spring `RestClient`) for knowledge search (RAG)
+- Redis (Spring Cache) for playbook reads
 - Tests: JUnit 5, Mockito, MockMvc, **Testcontainers** (a throwaway PostgreSQL per test run), **ArchUnit** (module borders)
 
-Planned: JaCoCo, OpenAPI/Swagger, Redis,
+Planned: JaCoCo, OpenAPI/Swagger,
 pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
 
 ## Architecture
@@ -179,7 +180,7 @@ export HAVILOR_DEV_PASSWORD="<any password>"                  # dev profile only
 export ANTHROPIC_API_KEY="<your key>"                         # optional: without it the AI endpoints answer 502
 export VOYAGE_API_KEY="<your key>"                            # optional: without it knowledge search finds nothing
 
-# The app: start the dev database (container "havilor-db", host port 5433), then the app on :8080
+# The app: start the dev database (container "havilor-db", host port 5433) and Redis (6379), then the app on :8080
 docker compose up -d
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # dev: creates analyst@ / manager@havilor.example.com
 
@@ -190,7 +191,7 @@ curl -X POST "http://localhost:8080/api/v1/dev/generate-alerts?count=20" -H "Aut
 docker compose down
 ```
 
-The database uses host port **5433**, not the default 5432, so it doesn't clash with a locally installed
+Redis (`havilor-redis`, port 6379) caches playbook reads for 10 minutes. The database uses host port **5433**, not the default 5432, so it doesn't clash with a locally installed
 PostgreSQL. The credentials in `compose.yaml` and `application.yml` are for local development only.
 
 ### The full loop in Postman
