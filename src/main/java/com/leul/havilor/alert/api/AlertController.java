@@ -5,6 +5,7 @@ import com.leul.havilor.alert.api.request.CreateAlertRequest;
 import com.leul.havilor.alert.api.request.UpdateAlertRequest;
 import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
+import com.leul.havilor.alert.api.response.DashboardResponse;
 import com.leul.havilor.alert.service.AlertQueryService;
 import com.leul.havilor.alert.service.AlertService;
 import com.leul.havilor.alert.service.CreateAlertResult;
@@ -58,6 +59,12 @@ public class AlertController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "" + Paging.DEFAULT_SIZE) int size) {
         return alertService.list(page, size);
+    }
+
+    // The analyst's start page. "/dashboard" doesn't clash with "/{id}": Spring prefers the exact path.
+    @GetMapping("/dashboard")
+    public DashboardResponse dashboard(@AuthenticationPrincipal Jwt token) {
+        return alertQueryService.dashboard(Long.valueOf(token.getSubject()));
     }
 
     // An unknown id throws NotFoundException in the service; GlobalExceptionHandler makes it a 404.

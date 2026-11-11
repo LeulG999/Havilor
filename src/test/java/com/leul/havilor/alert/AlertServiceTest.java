@@ -82,7 +82,7 @@ class AlertServiceTest {
 
     @BeforeEach
     void setUp() {
-        alertQueryService = new AlertQueryService(alertRepository);
+        alertQueryService = new AlertQueryService(alertRepository, FixedClockConfiguration.CLOCK);
         alertService = new AlertService(alertRepository, playbookService, new AlertFactory(),
                 alertQueryService, userService, findingService, auditService, knowledgeService,
                 FixedClockConfiguration.CLOCK);
