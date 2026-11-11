@@ -105,3 +105,53 @@ button:disabled {
 .topbar-user {
   margin-left: auto; /* pushes the user and the button to the right */
 }
+
+/* Tables (the alert queue, lists on the detail page). */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+tr.clickable {
+  cursor: pointer;
+}
+
+tr.clickable:hover {
+  background: #eef4ff;
+}
+
+/* A small coloured label, e.g. for priority. */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--border);
+}
+
+.priority-critical { background: #fde2e2; color: var(--danger); }
+.priority-high { background: #ffedd5; color: #9a3412; }
+.priority-medium { background: #fef9c3; color: #854d0e; }
+.priority-low { background: #e0f2fe; color: #075985; }
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}

@@ -22,3 +22,13 @@ export type Page<T> = {
   totalElements: number;
   totalPages: number;
 };
+
+// One row of GET /api/v1/alerts (AlertSummaryResponse).
+export type AlertSummary = {
+  id: number;
+  ticketNumber: string;
+  priority: string;
+  status: string;
+  subject: string;
+  receivedAt: string; // an ISO date-time, e.g. "2026-10-28T14:00:00Z"
+};
