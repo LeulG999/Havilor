@@ -40,6 +40,13 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Front-end Batch F1 (React) — in progress
+
+- [x] F1. Project setup (Vite + React + TypeScript, `/api` proxy, CI build)
+- [ ] F2. Login page and top bar
+- [ ] F3. Alert queue
+- [ ] F4. Alert detail (read only)
+
 ## Batch 3a (knowledge, cache, operations) ✅
 
 - [x] 20. pgvector + RAG: playbook steps and closed alerts as knowledge for the AI assessment
@@ -65,7 +72,9 @@ Build notes for every flow are in [`docs/progress/`](docs/progress).
 - Spring Boot Actuator (`/actuator/health` only), Docker (multi-stage image, compose profile `full`)
 - CI: GitHub Actions (build + tests + Docker image), CodeQL, gitleaks, Dependabot
 
-Planned: JaCoCo, OpenAPI/Swagger, AWS, and a React + TypeScript front end.
+- Front end: React 19 + TypeScript + Vite + React Router, plain CSS ([`frontend/`](frontend))
+
+Planned: JaCoCo, OpenAPI/Swagger, AWS.
 
 ## Architecture
 
@@ -200,6 +209,18 @@ docker compose down
 
 Redis (`havilor-redis`, port 6379) caches playbook reads for 10 minutes. The database uses host port **5433**, not the default 5432, so it doesn't clash with a locally installed
 PostgreSQL. The credentials in `compose.yaml` and `application.yml` are for local development only.
+
+### Run the front end
+
+A simple React + TypeScript app (Vite) in [`frontend/`](frontend). You need **Node 22**. Start the backend first
+(it listens on :8080), then:
+
+```bash
+cd frontend
+npm install        # once, and after package.json changes
+npm run dev        # http://localhost:5173  (calls to /api are passed on to the backend on :8080)
+npm run build      # type-check + production build into frontend/dist
+```
 
 ### Everything in containers
 
