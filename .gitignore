@@ -34,3 +34,6 @@ build/
 
 ### Other AI tools (CLAUDE.md is the only instruction file) ###
 AGENTS.md
+
+# Local secrets for docker compose (Flow 24): never commit
+.env

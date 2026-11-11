@@ -1,4 +1,7 @@
-# Local development services. Start: docker compose up -d   Stop: docker compose down
+# Local services.
+#   docker compose up -d                  database + Redis (run the app from the IDE / ./mvnw spring-boot:run)
+#   docker compose --profile full up -d   database + Redis + the app as a container (built from the Dockerfile)
+#   docker compose down                   stop (the database keeps its data in a volume)
 services:
   db:
     # PostgreSQL 18 with the pgvector extension (similarity search for the knowledge module, Flow 20)
@@ -14,6 +17,11 @@ services:
       - "5433:5432"
     volumes:
       - havilor-db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U havilor -d havilor"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   redis:
     # Cache for playbook reads (Flow 21). Nothing in it needs to survive a restart, so no volume.
@@ -21,6 +29,37 @@ services:
     container_name: havilor-redis
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    # Only with --profile full. Starts after the database and Redis are healthy.
+    profiles: ["full"]
+    build: .
+    image: havilor:local
+    container_name: havilor-app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      # Inside the compose network the services are reached by name, on their own ports.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/havilor
+      SPRING_DATA_REDIS_HOST: redis
+      # Secrets: taken from the host's environment (or an untracked .env file), never written here.
+      # HAVILOR_JWT_SECRET is required: compose refuses to start the app without it.
+      HAVILOR_JWT_SECRET: ${HAVILOR_JWT_SECRET:?set HAVILOR_JWT_SECRET (at least 32 characters)}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
+      # Optional: SPRING_PROFILES_ACTIVE=dev + HAVILOR_DEV_PASSWORD create the fake dev users to log in with.
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-}
+      HAVILOR_DEV_PASSWORD: ${HAVILOR_DEV_PASSWORD:-}
 
 volumes:
   havilor-db-data:
