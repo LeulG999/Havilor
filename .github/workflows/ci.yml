@@ -1,4 +1,4 @@
-# Build, test and package on every push and pull request to main (Flow 25).
+# Build, test and package on every push and pull request to main (Flow 25), and build the front end (Flow F1).
 # Needs no secret: the tests use fakes for Claude and Voyage, a test-only JWT secret, and Testcontainers
 # (Docker is available on GitHub's ubuntu runners). The image is built but not pushed anywhere yet.
 name: CI
@@ -31,3 +31,23 @@ jobs:
 
       - name: Build the Docker image (not pushed)
         run: docker build -t havilor:ci .
+
+  frontend:
+    name: Front end build (type-check + bundle)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Node 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # npm ci installs exactly what package-lock.json says; the build runs tsc (type errors fail the job) + vite.
+      - run: npm ci
+      - run: npm run build
