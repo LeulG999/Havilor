@@ -53,8 +53,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/havilor
       SPRING_DATA_REDIS_HOST: redis
       # Secrets: taken from the host's environment (or an untracked .env file), never written here.
-      # HAVILOR_JWT_SECRET is required: compose refuses to start the app without it.
-      HAVILOR_JWT_SECRET: ${HAVILOR_JWT_SECRET:?set HAVILOR_JWT_SECRET (at least 32 characters)}
+      # HAVILOR_JWT_SECRET is required: without it (or if shorter than 32 characters) the app stops at startup.
+      # (Not ":?" here: compose would then refuse even "docker compose up -d" for the db and Redis.)
+      HAVILOR_JWT_SECRET: ${HAVILOR_JWT_SECRET:-}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       VOYAGE_API_KEY: ${VOYAGE_API_KEY:-}
       # Optional: SPRING_PROFILES_ACTIVE=dev + HAVILOR_DEV_PASSWORD create the fake dev users to log in with.
