@@ -42,7 +42,7 @@ but the analyst always makes the decision.
 - [x] 21. Redis cache for playbook reads
 - [x] 22. Performance review (N+1 queries, indexes)
 - [x] 23. Health check (`/actuator/health`)
-- [ ] 24. Docker image + full compose stack
+- [x] 24. Docker image + full compose stack
 - [ ] 25. CI/CD + DevSecOps (GitHub Actions, CodeQL, gitleaks, Dependabot)
 
 Build notes for every flow are in [`docs/progress/`](docs/progress).
@@ -194,6 +194,18 @@ docker compose down
 
 Redis (`havilor-redis`, port 6379) caches playbook reads for 10 minutes. The database uses host port **5433**, not the default 5432, so it doesn't clash with a locally installed
 PostgreSQL. The credentials in `compose.yaml` and `application.yml` are for local development only.
+
+### Everything in containers
+
+```bash
+export HAVILOR_JWT_SECRET="<at least 32 random characters>"
+export SPRING_PROFILES_ACTIVE=dev HAVILOR_DEV_PASSWORD="<any password>"   # optional: fake dev users
+docker compose --profile full up -d --build    # app (port 8080) + db + Redis; the app waits until both are healthy
+docker compose --profile full down
+```
+
+The image (`Dockerfile`) is built in two stages (JDK 21 + Maven wrapper, then JRE 21 Alpine), runs as a non-root user
+and has a `HEALTHCHECK` on `/actuator/health`. No secret is baked into the image or written in `compose.yaml`.
 
 ### The full loop in Postman
 
