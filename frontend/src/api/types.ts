@@ -91,3 +91,13 @@ export type AlertStep = {
   status: string;
   answer: string | null;
 };
+
+// GET /api/v1/alerts/{id}/actions
+export type Action = {
+  id: number;
+  type: string;
+  result: string;
+  note: string | null;
+  performedBy: number;
+  performedAt: string;
+};
