@@ -39,6 +39,6 @@ jobs:
         with:
           fetch-depth: 0   # the whole history: a secret removed later is still in git
 
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
