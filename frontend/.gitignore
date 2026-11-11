@@ -1,0 +1,4 @@
+# Installed packages (npm install recreates them) and the build output.
+node_modules/
+dist/
+*.tsbuildinfo
