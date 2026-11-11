@@ -59,7 +59,9 @@ export default function AlertDetailPage() {
           <Tabs tabs={[...TABS]} active={tab} onSelect={setTab} />
 
           {tab === 'Overview' && <OverviewSection alert={alert} />}
-          {tab === 'Investigation' && <StepList steps={steps} />}
+          {tab === 'Investigation' && (
+            <StepList alertId={alert.id} steps={steps} editable={alert.status !== 'CLOSED'} onChanged={load} />
+          )}
           {tab === 'Evidence' && (
             <>
               <EmailDetailsSection email={alert.email} />

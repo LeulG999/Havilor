@@ -87,6 +87,7 @@ export type AlertStep = {
   title: string;
   whyItMatters: string;
   question: string;
+  answerOptions: string[]; // empty when the answer is free text
   status: string;
   answer: string | null;
 };
