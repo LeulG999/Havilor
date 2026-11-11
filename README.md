@@ -44,7 +44,7 @@ but the analyst always makes the decision.
 
 - [x] F1. Project setup (Vite + React + TypeScript, `/api` proxy, CI build)
 - [x] F2. Login page and top bar
-- [ ] F3. Alert queue
+- [x] F3. Alert queue
 - [ ] F4. Alert detail (read only)
 
 ## Batch 3a (knowledge, cache, operations) ✅
