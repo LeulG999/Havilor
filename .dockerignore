@@ -1,0 +1,14 @@
+# Only what the Dockerfile copies is needed: .mvn/, mvnw, pom.xml, src/. Everything else stays out of the
+# build context (smaller, faster, and no local files or secrets end up in an image layer).
+target/
+.git/
+.idea/
+.vscode/
+.claude/
+docs/
+*.iml
+*.md
+.env
+.env.*
+compose.yaml
+Dockerfile
