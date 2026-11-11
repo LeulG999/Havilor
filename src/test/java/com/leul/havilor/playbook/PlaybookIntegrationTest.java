@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.cache.CacheManager;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.context.annotation.Import;
@@ -41,6 +42,9 @@ class PlaybookIntegrationTest {
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
+    @Autowired
+    private CacheManager cacheManager;
+
     @Test
     void listsTheSeededPhishingPlaybook() throws Exception {
         mockMvc.perform(get(PLAYBOOKS))
@@ -55,6 +59,7 @@ class PlaybookIntegrationTest {
     @Test
     void detailHasEightTeachingStepsInOrderInOneQuery() throws Exception {
         long id = phishingPlaybookId();
+        cacheManager.getCache("playbook").clear(); // a cold read: the warm one is in PlaybookCacheIntegrationTest
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.clear();
 
