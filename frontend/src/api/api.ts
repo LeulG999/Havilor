@@ -53,7 +53,16 @@ export async function api<T>(path: string, options: { method?: string; body?: un
 
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    throw new ApiError(response.status, error?.message ?? `Request failed (${response.status})`);
+    throw new ApiError(response.status, errorText(error, response.status));
   }
   return response.json() as Promise<T>;
+}
+
+// The backend's message, plus its field errors if there are any:
+// "Validation failed: verdict must not be null" says more than "Validation failed" alone.
+function errorText(error: { message?: string; fieldErrors?: { field: string; message: string }[] } | null,
+                   status: number): string {
+  const message = error?.message ?? `Request failed (${status})`;
+  const fields = error?.fieldErrors ?? [];
+  return fields.length === 0 ? message : `${message}: ${fields.map((f) => `${f.field} ${f.message}`).join('; ')}`;
 }
