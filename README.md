@@ -40,7 +40,7 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
-## Front-end Batch F2 (working on an alert) — in progress
+## Front-end Batch F2 (working on an alert) ✅
 
 - [x] F5. Backend fix: fake alerts only pass DMARC when SPF or DKIM passed
 - [x] F6. Detail page: fixed header + tabs, reusable modal
@@ -48,7 +48,7 @@ but the analyst always makes the decision.
 - [x] F8. Investigation tab: mark steps done / skipped
 - [x] F9. Evidence + Actions tabs: add finding, add action
 - [x] F10. AI tab: assessment, email drafts
-- [ ] F11. Close an alert
+- [x] F11. Close an alert
 
 ## Front-end Batch F1 (React) ✅
 
@@ -245,7 +245,9 @@ cd frontend && npm install && npm run dev
 ```
 
 Open http://localhost:5173 and log in as `analyst@havilor.example.com` with your `HAVILOR_DEV_PASSWORD`. Pages:
-login → alert queue (paged) → alert detail (email, recipients, URLs, attachments, clicks, findings, playbook steps).
+login → alert queue (paged) → alert detail with a fixed header (assign to me, priority, close) and tabs:
+Overview · Investigation (work the steps) · Evidence (email, recipients, URLs, attachments, clicks, findings + add
+finding) · Actions (list + add action) · AI (assessment, email drafts). A closed alert shows no action buttons.
 No alerts yet? `POST /api/v1/dev/generate-alerts?count=20` with your token (see the curl example above).
 
 ### Everything in containers
