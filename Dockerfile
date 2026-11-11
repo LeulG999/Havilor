@@ -2,9 +2,9 @@
 #   docker build -t havilor .
 # Tests are not run here (they need Docker for Testcontainers); CI runs them before building the image.
 
-# ---- build: the project's own Maven wrapper on JDK 25 ----
-# The code still targets Java 21 (java.version in pom.xml), so the jar also runs on any Java 21+ runtime.
-FROM eclipse-temurin:25-jdk AS build
+# ---- build: the project's own Maven wrapper on JDK 21 ----
+# Java 21 everywhere (pom.xml, CI, this image). Dependabot only proposes minor/patch updates of eclipse-temurin.
+FROM eclipse-temurin:21-jdk AS build
 WORKDIR /build
 # Dependencies first: this layer is reused as long as pom.xml doesn't change.
 COPY .mvn/ .mvn/
@@ -13,8 +13,8 @@ RUN ./mvnw -q -B dependency:go-offline
 COPY src/ src/
 RUN ./mvnw -q -B -DskipTests package
 
-# ---- run: JRE 25 only (no compiler, no Maven), as a non-root user ----
-FROM eclipse-temurin:25-jre-alpine
+# ---- run: JRE 21 only (no compiler, no Maven), as a non-root user ----
+FROM eclipse-temurin:21-jre-alpine
 RUN addgroup -S havilor && adduser -S -G havilor havilor
 WORKDIR /app
 COPY --from=build --chown=havilor:havilor /build/target/Havilor-*.jar app.jar

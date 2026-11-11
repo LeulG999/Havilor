@@ -15,3 +15,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # Stay on Java 21 (the version pom.xml, CI and the tests use): no 21 -> 25 PRs, only minor/patch updates.
+      - dependency-name: eclipse-temurin
+        update-types: ["version-update:semver-major"]
