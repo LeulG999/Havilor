@@ -1,13 +1,17 @@
 # Havilor
 
+[![CI](https://github.com/LeulG999/Havilor/actions/workflows/ci.yml/badge.svg)](https://github.com/LeulG999/Havilor/actions/workflows/ci.yml)
+[![Security](https://github.com/LeulG999/Havilor/actions/workflows/security.yml/badge.svg)](https://github.com/LeulG999/Havilor/actions/workflows/security.yml)
+
 An AI-assisted security investigation and analyst-guidance tool, built as a learning project.
 
 The MVP handles **phishing / email cases**. Havilor helps a SOC analyst work a case faster, and it teaches the
 concepts along the way: every investigation step explains *why it matters*. Havilor can *suggest* a verdict,
 but the analyst always makes the decision.
 
-> **Status:** Slice 1 (the core loop) and Batch 2 (login, findings, actions, escalation, audit, standup notes,
-> AI assistant, manual intake) are complete. Nothing here is production-ready yet.
+> **Status:** Slice 1, Batch 2 (login, findings, actions, escalation, audit, standup notes, AI assistant, manual
+> intake) and Batch 3a (RAG, Redis cache, performance review, health check, Docker, CI) are complete.
+> Nothing here is production-ready yet.
 > All data in this project is fake/synthetic. No real emails, tenants, or credentials.
 
 ## Current status: Slice 1 (core loop) ✅
@@ -36,14 +40,14 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
-## Batch 3a (knowledge, cache, operations) — in progress
+## Batch 3a (knowledge, cache, operations) ✅
 
 - [x] 20. pgvector + RAG: playbook steps and closed alerts as knowledge for the AI assessment
 - [x] 21. Redis cache for playbook reads
 - [x] 22. Performance review (N+1 queries, indexes)
 - [x] 23. Health check (`/actuator/health`)
 - [x] 24. Docker image + full compose stack
-- [ ] 25. CI/CD + DevSecOps (GitHub Actions, CodeQL, gitleaks, Dependabot)
+- [x] 25. CI/CD + DevSecOps (GitHub Actions, CodeQL, gitleaks, Dependabot)
 
 Build notes for every flow are in [`docs/progress/`](docs/progress).
 
@@ -56,10 +60,12 @@ Build notes for every flow are in [`docs/progress/`](docs/progress).
 - PostgreSQL 18 with **pgvector** (in Docker), Flyway migrations
 - Voyage AI embeddings (Spring `RestClient`) for knowledge search (RAG)
 - Redis (Spring Cache) for playbook reads
-- Tests: JUnit 5, Mockito, MockMvc, **Testcontainers** (a throwaway PostgreSQL per test run), **ArchUnit** (module borders)
+- Tests: JUnit 5, Mockito, MockMvc, **Testcontainers** (throwaway PostgreSQL + pgvector and Redis per test run),
+  **ArchUnit** (module borders); fakes for Claude and Voyage, so tests never call external APIs
+- Spring Boot Actuator (`/actuator/health` only), Docker (multi-stage image, compose profile `full`)
+- CI: GitHub Actions (build + tests + Docker image), CodeQL, gitleaks, Dependabot
 
-Planned: JaCoCo, OpenAPI/Swagger,
-pgvector (RAG), GitHub Actions, AWS, and a React + TypeScript front end.
+Planned: JaCoCo, OpenAPI/Swagger, AWS, and a React + TypeScript front end.
 
 ## Architecture
 
