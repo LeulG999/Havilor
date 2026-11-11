@@ -292,3 +292,28 @@ section.panel > h2:first-child {
   color: var(--accent);
   border-bottom-color: var(--accent);
 }
+
+/* Actions in the detail header (assign, priority; close comes in F11). */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+label.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+select,
+textarea {
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: white;
+}
