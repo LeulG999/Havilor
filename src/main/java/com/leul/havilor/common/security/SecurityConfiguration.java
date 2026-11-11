@@ -29,7 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 
 // Who may call what. Every /api/v1 endpoint needs a valid access token (a JWT we signed ourselves),
-// except the login itself. Manager-only URLs are listed here too, so all access rules are in one place.
+// except the login itself; /actuator/health is open, every other /actuator path is refused. Manager-only URLs are listed here too, so all access rules are in one place.
 @Configuration(proxyBeanMethods = false)
 public class SecurityConfiguration {
 
@@ -48,6 +48,9 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                        // The health check is for Docker, load balancers and CI: no token, no details (Flow 23).
+                        .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
+                        .requestMatchers("/actuator/**").denyAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/audit").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/standup/team").hasRole("MANAGER")
                         .requestMatchers("/api/v1/**").authenticated()

@@ -52,6 +52,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
+        <!-- Health check for Docker / CI (Flow 23): only /actuator/health is switched on -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
         <!-- Cache playbook reads in Redis (Flow 21) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
