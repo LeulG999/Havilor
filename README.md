@@ -40,7 +40,7 @@ but the analyst always makes the decision.
 
 - [x] 20. pgvector + RAG: playbook steps and closed alerts as knowledge for the AI assessment
 - [x] 21. Redis cache for playbook reads
-- [ ] 22. Performance review (N+1 queries, indexes)
+- [x] 22. Performance review (N+1 queries, indexes)
 - [ ] 23. Health check (`/actuator/health`)
 - [ ] 24. Docker image + full compose stack
 - [ ] 25. CI/CD + DevSecOps (GitHub Actions, CodeQL, gitleaks, Dependabot)
