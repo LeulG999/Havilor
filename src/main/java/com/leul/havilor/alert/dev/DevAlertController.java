@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Clock;
 import java.util.List;
-import java.util.random.RandomGenerator;
+import java.util.SplittableRandom;
 import java.util.stream.IntStream;
 
 // Fills the queue with fake alerts for demos and manual testing. @Profile("dev"): the bean only exists when
@@ -31,7 +31,9 @@ public class DevAlertController {
 
     public DevAlertController(AlertService alertService, Clock clock) {
         this.alertService = alertService;
-        this.factory = new FakeAlertFactory(RandomGenerator.getDefault(), clock);
+        // SplittableRandom lives in java.base. RandomGenerator.getDefault() needs the jdk.random module, which the
+        // slim JRE image (Dockerfile) doesn't have: the dev profile failed to start in the container (Flow 24).
+        this.factory = new FakeAlertFactory(new SplittableRandom(), clock);
     }
 
     @PostMapping("/generate-alerts")
