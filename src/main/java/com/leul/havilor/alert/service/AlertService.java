@@ -16,9 +16,13 @@ import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.common.paging.PageResponse;
 import com.leul.havilor.common.paging.Paging;
 import com.leul.havilor.finding.service.CheckFacts;
+import com.leul.havilor.finding.api.response.FindingResponse;
 import com.leul.havilor.finding.service.FindingService;
+import com.leul.havilor.knowledge.service.KnowledgeService;
 import com.leul.havilor.playbook.service.PlaybookService;
 import com.leul.havilor.user.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -27,10 +31,14 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AlertService {
+
+    private static final Logger log = LoggerFactory.getLogger(AlertService.class);
 
     // Newest first; id breaks ties so alerts with the same receivedAt never jump between pages.
     private static final Sort NEWEST_FIRST = Sort.by(Sort.Order.desc("receivedAt"), Sort.Order.desc("id"));
@@ -42,11 +50,13 @@ public class AlertService {
     private final UserService userService;
     private final FindingService findingService;
     private final AuditService auditService;
+    private final KnowledgeService knowledgeService;
     private final Clock clock;
 
     public AlertService(AlertRepository alertRepository, PlaybookService playbookService,
                         AlertFactory alertFactory, AlertQueryService alertQueryService, UserService userService,
-                        FindingService findingService, AuditService auditService, Clock clock) {
+                        FindingService findingService, AuditService auditService, KnowledgeService knowledgeService,
+                        Clock clock) {
         this.alertRepository = alertRepository;
         this.playbookService = playbookService;
         this.alertFactory = alertFactory;
@@ -54,6 +64,7 @@ public class AlertService {
         this.userService = userService;
         this.findingService = findingService;
         this.auditService = auditService;
+        this.knowledgeService = knowledgeService;
         this.clock = clock;
     }
 
@@ -148,7 +159,23 @@ public class AlertService {
         alertRepository.flush();
         auditService.record(actorId, "ALERT_CLOSED", AuditService.ALERT, id, before,
                 "status=" + alert.getStatus() + ", verdict=" + alert.getVerdict());
+        // A closed case becomes knowledge for the AI assistant. Never let that stop the close: log and go on.
+        try {
+            knowledgeService.indexClosedAlert(id, knowledgeText(alert, findingService.listForAlert(id)));
+        } catch (RuntimeException e) {
+            log.warn("Could not index closed alert {} for knowledge search", id, e);
+        }
         return alertQueryService.getById(id);
+    }
+
+    // What a closed case teaches: what it looked like, what was found, and what the analyst decided.
+    static String knowledgeText(Alert alert, List<FindingResponse> findings) {
+        return "Closed alert " + alert.getId() + ": subject \"" + alert.getEmail().getSubject() + "\" from "
+                + alert.getEmail().getFromAddress()
+                + "\nFindings: " + (findings.isEmpty() ? "none"
+                        : findings.stream().map(FindingResponse::title).collect(Collectors.joining("; ")))
+                + "\nVerdict: " + alert.getVerdict()
+                + (alert.getSuggestionReason() == null ? "" : "\nReason: " + alert.getSuggestionReason());
     }
 
     // Saves the AI assistant's suggested verdict (AlertAiService). 404 / 409 like every change.

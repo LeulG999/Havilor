@@ -23,6 +23,7 @@ import com.leul.havilor.common.error.BadRequestException;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.common.paging.PageResponse;
 import com.leul.havilor.finding.service.FindingService;
+import com.leul.havilor.knowledge.service.KnowledgeService;
 import com.leul.havilor.playbook.service.ActivePlaybook;
 import com.leul.havilor.playbook.service.PlaybookService;
 import com.leul.havilor.user.service.UserService;
@@ -73,6 +74,9 @@ class AlertServiceTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private KnowledgeService knowledgeService;
+
     private AlertQueryService alertQueryService;
     private AlertService alertService;
 
@@ -80,7 +84,8 @@ class AlertServiceTest {
     void setUp() {
         alertQueryService = new AlertQueryService(alertRepository);
         alertService = new AlertService(alertRepository, playbookService, new AlertFactory(),
-                alertQueryService, userService, findingService, auditService, FixedClockConfiguration.CLOCK);
+                alertQueryService, userService, findingService, auditService, knowledgeService,
+                FixedClockConfiguration.CLOCK);
     }
 
     @Test
