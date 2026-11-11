@@ -1,7 +1,8 @@
 # Local development services. Start: docker compose up -d   Stop: docker compose down
 services:
   db:
-    image: postgres:18
+    # PostgreSQL 18 with the pgvector extension (similarity search for the knowledge module, Flow 20)
+    image: pgvector/pgvector:pg18
     container_name: havilor-db
     environment:
       # Local dev only. Never reuse these values anywhere real.
