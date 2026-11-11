@@ -101,3 +101,18 @@ export type Action = {
   performedBy: number;
   performedAt: string;
 };
+
+// POST /api/v1/alerts/{id}/ai/assessment
+export type AiAssessment = {
+  summary: string;
+  suggestedVerdict: string;
+  suggestionReason: string;
+  // The knowledge Claude was given: a past closed alert (sourceId = alert id) or a playbook step (step id).
+  references: { sourceType: 'CLOSED_ALERT' | 'PLAYBOOK_STEP'; sourceId: number }[];
+};
+
+// POST /api/v1/alerts/{id}/ai/draft-email
+export type EmailDraft = {
+  type: string;
+  draft: string;
+};
