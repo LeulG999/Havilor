@@ -2,9 +2,12 @@ package com.leul.havilor.alert.repository;
 
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.domain.ClickEvent;
+import com.leul.havilor.alert.domain.enums.AlertStatus;
+import com.leul.havilor.alert.domain.enums.Priority;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +19,22 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
 
     // For numbering manual tickets: how many MAN-<date>- tickets exist already.
     long countByTicketNumberStartingWith(String prefix);
+
+    // ---- Dashboard (Flow F13): Spring Data turns each method name into one "SELECT COUNT(*) ... WHERE ..." ----
+
+    long countByStatusNot(AlertStatus status);
+
+    long countByStatusNotAndAssigneeId(AlertStatus status, Long assigneeId);
+
+    long countByStatusNotAndPriority(AlertStatus status, Priority priority);
+
+    long countByClosedAtGreaterThanEqual(Instant from);
+
+    // Alerts received in [from, to): one day of the "alerts per day" chart.
+    long countByReceivedAtGreaterThanEqualAndReceivedAtLessThan(Instant from, Instant to);
+
+    // The 5 newest alerts (same order as the queue).
+    List<Alert> findTop5ByOrderByReceivedAtDescIdDesc();
 
     // Every click of the alert, with its recipient and URL, for the detail view.
     @Query("""
