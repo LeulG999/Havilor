@@ -3,8 +3,10 @@ package com.leul.havilor.alert.dev;
 import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.alert.api.request.ClickRequest;
 import com.leul.havilor.alert.api.request.CreateAlertRequest;
+import com.leul.havilor.alert.api.request.EmailDetailsRequest;
 import com.leul.havilor.alert.api.request.RecipientRequest;
 import com.leul.havilor.alert.api.request.UrlRequest;
+import com.leul.havilor.alert.domain.enums.AuthResult;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
@@ -44,6 +46,21 @@ class FakeAlertFactoryTest {
                 .map(value -> value.substring(value.indexOf('@') + 1));
 
         assertThat(hosts).allMatch(host -> host.matches("(.+\\.)?example\\.(com|net|org)"));
+    }
+
+    @Test
+    void dmarcPassesOnlyWhenSpfOrDkimPassed() {
+        assertThat(alerts).allSatisfy(alert -> {
+            EmailDetailsRequest email = alert.email();
+            boolean spfOrDkimPassed = email.spfResult() == AuthResult.PASS || email.dkimResult() == AuthResult.PASS;
+            if (!spfOrDkimPassed) {
+                assertThat(email.dmarcResult()).isEqualTo(AuthResult.FAIL);
+            }
+        });
+        // Both branches really happen in the 200 alerts (so the test can't pass by accident).
+        assertThat(alerts).anyMatch(a -> a.email().dmarcResult() == AuthResult.PASS);
+        assertThat(alerts).anyMatch(a -> a.email().spfResult() != AuthResult.PASS
+                && a.email().dkimResult() != AuthResult.PASS);
     }
 
     @Test
