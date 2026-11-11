@@ -1,0 +1,17 @@
+# Dependabot (Flow 25): weekly pull requests for outdated or vulnerable dependencies.
+version: 2
+updates:
+  - package-ecosystem: maven          # pom.xml (Spring Boot parent, Anthropic SDK, ArchUnit, ...)
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions # .github/workflows/*.yml
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: docker         # Dockerfile base images (eclipse-temurin)
+    directory: /
+    schedule:
+      interval: weekly
