@@ -32,3 +32,8 @@ havilor:
     # The Claude API key, only from the environment. Without it the app still runs; AI endpoints answer 502.
     api-key: ${ANTHROPIC_API_KEY:}
     model: claude-sonnet-5-5
+  embedding:
+    # Voyage AI key for knowledge search (RAG), only from the environment. Without it the app still runs and
+    # knowledge search returns nothing. The model's size (1024) must match vector(1024) in V16.
+    api-key: ${VOYAGE_API_KEY:}
+    model: voyage-3.5
