@@ -1,5 +1,6 @@
 package com.leul.havilor.common.ai;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -75,8 +76,11 @@ class VoyageEmbeddingClient implements EmbeddingClient {
         }
     }
 
-    // The part of Voyage's answer we use: {"data": [{"index": 0, "embedding": [0.01, ...]}, ...]}
+    // The part of Voyage's answer we use: {"data": [{"index": 0, "embedding": [0.01, ...]}, ...]};
+    // other fields ("model", "usage", "object") are ignored.
+    @JsonIgnoreProperties(ignoreUnknown = true)
     record VoyageResponse(List<Item> data) {
+        @JsonIgnoreProperties(ignoreUnknown = true)
         record Item(int index, float[] embedding) {
         }
     }
