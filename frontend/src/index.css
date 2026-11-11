@@ -211,3 +211,26 @@ section.panel > h2:first-child {
   color: var(--muted);
   font-size: 0.9rem;
 }
+
+/* Modal (components/Modal.tsx): the browser draws the <dialog>; we only style it. */
+.modal {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  width: min(520px, 90vw);
+}
+
+.modal::backdrop {
+  background: rgba(15, 23, 42, 0.4); /* dims the page behind the modal */
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
