@@ -3,6 +3,7 @@ import { api } from '../api/api';
 import type { Page, StandupNote } from '../api/types';
 import ErrorMessage from '../components/ErrorMessage';
 import NoteCard from '../components/NoteCard';
+import NoteFormModal from '../components/NoteFormModal';
 import Pager from '../components/Pager';
 
 const PAGE_SIZE = 10;
@@ -13,6 +14,9 @@ export default function StandupNotesPage() {
   const [pageNumber, setPageNumber] = useState(0);
   const [page, setPage] = useState<Page<StandupNote> | null>(null);
   const [error, setError] = useState<unknown>(null);
+  // The modal: closed, open for a new note (editing = null), or open for one draft (editing = that note).
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<StandupNote | null>(null);
 
   function load() {
     setError(null);
@@ -21,21 +25,39 @@ export default function StandupNotesPage() {
 
   useEffect(load, [pageNumber]); // again whenever the page number changes
 
+  function openModal(note: StandupNote | null) {
+    setEditing(note);
+    setModalOpen(true);
+  }
+
+  function handleSaved() {
+    setModalOpen(false);
+    load();
+  }
+
   return (
     <main className="page">
       <div className="page-title">
         <h1>Standup notes</h1>
+        <button type="button" onClick={() => openModal(null)}>+ New note</button>
       </div>
       <ErrorMessage error={error} />
       {page && (
         <section className="panel">
           {page.content.length === 0 && <p className="muted">No notes yet.</p>}
           <ul className="cards">
-            {page.content.map((note) => <NoteCard key={note.id} note={note} />)}
+            {page.content.map((note) => (
+              <NoteCard key={note.id} note={note}>
+                {note.status === 'DRAFT' && (
+                  <button type="button" className="secondary small" onClick={() => openModal(note)}>Edit</button>
+                )}
+              </NoteCard>
+            ))}
           </ul>
           <Pager page={page} noun="notes" onPage={setPageNumber} />
         </section>
       )}
+      <NoteFormModal open={modalOpen} note={editing} onClose={() => setModalOpen(false)} onSaved={handleSaved} />
     </main>
   );
 }
