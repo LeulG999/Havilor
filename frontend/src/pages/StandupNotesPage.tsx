@@ -4,6 +4,7 @@ import type { Page, StandupNote } from '../api/types';
 import ErrorMessage from '../components/ErrorMessage';
 import NoteCard from '../components/NoteCard';
 import NoteFormModal from '../components/NoteFormModal';
+import ShareNoteButton from '../components/ShareNoteButton';
 import Pager from '../components/Pager';
 
 const PAGE_SIZE = 10;
@@ -48,8 +49,12 @@ export default function StandupNotesPage() {
           <ul className="cards">
             {page.content.map((note) => (
               <NoteCard key={note.id} note={note}>
+                {/* Only a DRAFT can change; a SHARED note shows no buttons (read-only). */}
                 {note.status === 'DRAFT' && (
-                  <button type="button" className="secondary small" onClick={() => openModal(note)}>Edit</button>
+                  <>
+                    <button type="button" className="secondary small" onClick={() => openModal(note)}>Edit</button>
+                    <ShareNoteButton noteId={note.id} onShared={load} />
+                  </>
                 )}
               </NoteCard>
             ))}
