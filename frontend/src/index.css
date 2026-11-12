@@ -641,6 +641,17 @@ button.small {
   }
 }
 
-.ai-draft {
-  margin-bottom: 12px;
+/* Step 1 of a new note: AI first (components/AiNoteStart.tsx). */
+.ai-start {
+  max-width: 460px;
+}
+
+/* A button that looks like a small text link ("Write it myself instead", "Add an alert"). */
+button.link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  text-decoration: underline;
+  font-size: 0.9rem;
 }
