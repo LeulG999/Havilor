@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api/api';
-import type { Action, AlertDetail, AlertStep, Escalation, Finding, User } from '../api/types';
+import type { Action, AlertDetail, AlertStep, AuditEntry, Escalation, Finding, User } from '../api/types';
 import ActionList from '../components/ActionList';
 import AddActionButton from '../components/AddActionButton';
 import AddFindingButton from '../components/AddFindingButton';
@@ -13,11 +13,12 @@ import EscalationList from '../components/EscalationList';
 import EmailDetailsSection from '../components/EmailDetailsSection';
 import ErrorMessage from '../components/ErrorMessage';
 import FindingList from '../components/FindingList';
+import HistoryTimeline from '../components/HistoryTimeline';
 import OverviewSection from '../components/OverviewSection';
 import StepList from '../components/StepList';
 import Tabs from '../components/Tabs';
 
-const TABS = ['Overview', 'Investigation', 'Evidence', 'Actions', 'AI'] as const;
+const TABS = ['Overview', 'Investigation', 'Evidence', 'Actions', 'AI', 'History'] as const;
 type Tab = (typeof TABS)[number];
 
 // One alert: a fixed header, then one tab at a time. Tabs only change what is shown; the data is loaded when the
@@ -29,11 +30,12 @@ export default function AlertDetailPage() {
   const [steps, setSteps] = useState<AlertStep[]>([]);
   const [actions, setActions] = useState<Action[]>([]);
   const [escalations, setEscalations] = useState<Escalation[]>([]);
+  const [history, setHistory] = useState<AuditEntry[]>([]);
   const [me, setMe] = useState<User | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [tab, setTab] = useState<Tab>('Overview'); // which tab is open: plain React state
 
-  // Loads the alert, its findings, steps, actions and escalations, all at the same time (Promise.all); if any fails, the error is
+  // Loads the alert, its findings, steps, actions, escalations and history, all at the same time (Promise.all); if any fails, the error is
   // shown. Called when the page opens and again after every change, so the page always shows the backend's state.
   function load() {
     setError(null);
@@ -43,13 +45,15 @@ export default function AlertDetailPage() {
       api<AlertStep[]>(`/alerts/${id}/steps`),
       api<Action[]>(`/alerts/${id}/actions`),
       api<Escalation[]>(`/alerts/${id}/escalations`),
+      api<AuditEntry[]>(`/alerts/${id}/audit`),
     ])
-      .then(([alertAnswer, findingsAnswer, stepsAnswer, actionsAnswer, escalationsAnswer]) => {
+      .then(([alertAnswer, findingsAnswer, stepsAnswer, actionsAnswer, escalationsAnswer, historyAnswer]) => {
         setAlert(alertAnswer);
         setFindings(findingsAnswer);
         setSteps(stepsAnswer);
         setActions(actionsAnswer);
         setEscalations(escalationsAnswer);
+        setHistory(historyAnswer);
       })
       .catch(setError);
   }
@@ -103,6 +107,7 @@ export default function AlertDetailPage() {
               <p className="muted">This alert is closed. Its saved AI suggestion is on the Overview tab.</p>
             </section>
           ))}
+          {tab === 'History' && <HistoryTimeline entries={history} me={me} />}
         </>
       )}
     </main>
