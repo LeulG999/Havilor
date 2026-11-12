@@ -40,6 +40,14 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Front-end Batch F4 (escalation, history, standup notes, manager pages)
+
+- [x] F16. New alert: "Received at" defaults to now when the AI found none
+- [ ] F17. Escalation on the alert detail page
+- [ ] F18. History tab (the alert's audit trail)
+- [ ] F19. Standup notes page
+- [ ] F20. Manager pages: team standups, audit log
+
 ## Front-end Batch F3 (layout, dashboard, new alert) ✅
 
 - [x] F12. App layout: dark sidebar, light main area, land on the dashboard
