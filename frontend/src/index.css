@@ -558,3 +558,21 @@ button.small {
   border-radius: 50%;
   background: var(--accent);
 }
+
+/* Standup notes (pages/StandupNotesPage.tsx, components/NoteCard.tsx). */
+.note-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.note-text {
+  white-space: pre-wrap; /* keep the line breaks the analyst typed */
+}
+
+.note-draft { background: #fef9c3; color: #854d0e; }
+.note-shared { background: #dcfce7; color: #166534; }
+
+.mention {
+  margin-right: 10px;
+}

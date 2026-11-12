@@ -5,6 +5,7 @@ import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import NewAlertPage from './pages/NewAlertPage';
 import QueuePage from './pages/QueuePage';
+import StandupNotesPage from './pages/StandupNotesPage';
 
 // Which page shows for which URL. Everything except /login sits inside LoggedInLayout (login check + sidebar).
 // "/alerts/new" and "/alerts/:id" don't clash: React Router prefers the exact text "new" over the ":id" placeholder.
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/alerts" element={<QueuePage />} />
         <Route path="/alerts/new" element={<NewAlertPage />} />
         <Route path="/alerts/:id" element={<AlertDetailPage />} />
+        <Route path="/standup" element={<StandupNotesPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

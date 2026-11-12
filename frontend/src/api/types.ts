@@ -178,3 +178,13 @@ export type AuditEntry = {
   newValue: string | null; // ... and after
   createdAt: string;
 };
+
+// GET /api/v1/standup/notes and /standup/team (NoteResponse): a standup note and the alerts it mentions.
+export type StandupNote = {
+  id: number;
+  authorId: number;
+  noteDate: string; // a date without time, e.g. "2026-11-12"
+  text: string;
+  status: string; // DRAFT (only the author sees it, can still change) or SHARED (the team sees it, read-only)
+  alertIds: number[];
+};

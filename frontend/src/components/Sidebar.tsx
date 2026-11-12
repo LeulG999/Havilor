@@ -32,6 +32,7 @@ export default function Sidebar() {
         <NavLink to="/dashboard" className={linkClass}><span className="icon">▦</span> Dashboard</NavLink>
         <NavLink to="/alerts" end className={linkClass}><span className="icon">☰</span> Alert queue</NavLink>
         <NavLink to="/alerts/new" className={linkClass}><span className="icon">+</span> New alert</NavLink>
+        <NavLink to="/standup" className={linkClass}><span className="icon">✎</span> Standup notes</NavLink>
       </nav>
       <div className="sidebar-user">
         {user && (
