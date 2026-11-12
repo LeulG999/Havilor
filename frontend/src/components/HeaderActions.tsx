@@ -3,11 +3,12 @@ import { api } from '../api/api';
 import type { AlertDetail, User } from '../api/types';
 import CloseAlertButton from './CloseAlertButton';
 import ErrorMessage from './ErrorMessage';
+import EscalateButton from './EscalateButton';
 
 const PRIORITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
 
 // The actions on the whole alert. "Assign to me" and the priority dropdown send PATCH /api/v1/alerts/{id} with only
-// the field that changes; "Close alert" has its own modal. After any change the page loads the alert again
+// the field that changes; "Escalate" and "Close alert" have their own modals. After any change the page loads the alert again
 // (onChanged), so every part of the page shows the new state.
 export default function HeaderActions({ alert, me, onChanged }: {
   alert: AlertDetail;
@@ -43,6 +44,7 @@ export default function HeaderActions({ alert, me, onChanged }: {
           {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
       </label>
+      <EscalateButton alertId={alert.id} onChanged={onChanged} />
       <CloseAlertButton alertId={alert.id} onChanged={onChanged} />
       <ErrorMessage error={error} />
     </div>

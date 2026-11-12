@@ -156,3 +156,13 @@ export type AlertDraft = {
   attachments: { fileName: string; fileType: string | null; sha256: string | null; verdict: string | null }[];
   clicks: unknown[];
 };
+
+// GET /api/v1/alerts/{id}/escalations (EscalationResponse): the alert was handed to another team.
+export type Escalation = {
+  id: number;
+  alertId: number;
+  team: string;
+  reason: string;
+  externalStatus: string; // OPEN, IN_PROGRESS, RESOLVED: how far the other team is
+  outcome: string | null; // CONFIRMED_MALICIOUS, NOT_MALICIOUS, INCONCLUSIVE: their answer (null = none yet)
+};
