@@ -43,6 +43,7 @@ but the analyst always makes the decision.
 ## Batch F5 (AI standup note) ✅
 
 - [x] F21. AI-drafted standup note from the day's audit log, with a live preview in the editor
+- [x] F22. The New standup note modal is AI-first (one button; write it myself as the fallback)
 
 ## Front-end Batch F4 (escalation, history, standup notes, manager pages) ✅
 
@@ -268,8 +269,8 @@ cd frontend && npm install && npm run dev
 Open http://localhost:5173 and log in as `analyst@havilor.example.com` with your `HAVILOR_DEV_PASSWORD`. A dark
 sidebar links the pages: **Dashboard** (start page: stat cards, alerts per day, recent alerts), **Alert queue**, and
 **New alert** (paste an email or upload `.eml`/`.txt`/image/PDF → the AI drafts it → check → save), and **Standup
-notes** (write a daily note or let the AI draft it from your day, with a live preview; mention alerts, edit
-while it's a draft, share it). Alert detail has a fixed header
+notes** (AI-first: "Write my standup with AI" drafts it from your day, or write it yourself; live preview,
+mentioned alerts as removable chips; edit while it's a draft, share it). Alert detail has a fixed header
 (assign to me, priority, escalate, close) and tabs:
 Overview · Investigation (work the steps) · Evidence (email, recipients, URLs, attachments, clicks, findings + add
 finding) · Actions (list + add action, escalations + the other team's status/outcome) · AI (assessment, email
