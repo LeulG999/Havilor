@@ -40,6 +40,10 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Batch F5 (AI standup note) ✅
+
+- [x] F21. AI-drafted standup note from the day's audit log, with a live preview in the editor
+
 ## Front-end Batch F4 (escalation, history, standup notes, manager pages) ✅
 
 - [x] F16. New alert: "Received at" defaults to now when the AI found none
@@ -106,7 +110,7 @@ Planned: JaCoCo, OpenAPI/Swagger, AWS.
 Havilor is a **modular monolith**: one Spring Boot application split into feature modules.
 Modules: `alert`, `playbook`, `user`, `finding`, `escalation`, `audit`, `standup`, `knowledge`, plus shared
 `common`. Dependencies go one way: `alert → playbook, user, finding, audit, knowledge`;
-`escalation → alert, audit`; `finding → audit`; `standup → alert`; `knowledge → playbook`.
+`escalation → alert, audit`; `finding → audit`; `standup → alert, audit`; `knowledge → playbook`.
 
 - Each module is layered: **Controller → Service → Repository → PostgreSQL**, with one sub-package per layer.
 - Modules have strict borders: another module may use only a module's `service` and `api.response` packages,
@@ -180,6 +184,7 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `POST` | `/api/v1/standup/notes` | Write a standup note `{noteDate, text, alertIds}` → **201** `DRAFT` |
 | `PATCH` | `/api/v1/standup/notes/{id}` | Change your own draft (**404** someone else's, **409** once shared) |
 | `POST` | `/api/v1/standup/notes/{id}/share` | Share your note with the managers → `SHARED` |
+| `POST` | `/api/v1/standup/notes/ai-draft` | `{noteDate}` → `{text, alertIds}` written by the AI from your audit entries that day (UTC); nothing saved (**400** no activity, **502** AI unavailable) |
 | `GET` | `/api/v1/standup/notes` | Your own notes, newest day first (paged) |
 | `GET` | `/api/v1/standup/team` | **MANAGER only**: everybody's shared notes (paged) |
 | `GET` | `/api/v1/playbooks` | **200** with every playbook (name, case type, version, active) |
@@ -263,7 +268,8 @@ cd frontend && npm install && npm run dev
 Open http://localhost:5173 and log in as `analyst@havilor.example.com` with your `HAVILOR_DEV_PASSWORD`. A dark
 sidebar links the pages: **Dashboard** (start page: stat cards, alerts per day, recent alerts), **Alert queue**, and
 **New alert** (paste an email or upload `.eml`/`.txt`/image/PDF → the AI drafts it → check → save), and **Standup
-notes** (write a daily note, mention alerts, edit while it's a draft, share it). Alert detail has a fixed header
+notes** (write a daily note or let the AI draft it from your day, with a live preview; mention alerts, edit
+while it's a draft, share it). Alert detail has a fixed header
 (assign to me, priority, escalate, close) and tabs:
 Overview · Investigation (work the steps) · Evidence (email, recipients, URLs, attachments, clicks, findings + add
 finding) · Actions (list + add action, escalations + the other team's status/outcome) · AI (assessment, email
