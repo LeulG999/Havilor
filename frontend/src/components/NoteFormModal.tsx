@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { api } from '../api/api';
 import type { AlertSummary, Page, StandupNote } from '../api/types';
 import ErrorMessage from './ErrorMessage';
+import DraftNoteWithAiButton from './DraftNoteWithAiButton';
 import Modal from './Modal';
 import NoteContent from './NoteContent';
 
@@ -76,6 +77,10 @@ export default function NoteFormModal({ open, note, onClose, onSaved }: {
               Date
               <input type="date" value={noteDate} onChange={(e) => setNoteDate(e.target.value)} required />
             </label>
+            <DraftNoteWithAiButton noteDate={noteDate} hasText={text.trim() !== ''} onDraft={(draftText, draftIds) => {
+              setText(draftText);
+              setAlertIds(draftIds);
+            }} />
             <label>
               What did you work on? What's next? Anything blocking you?
               <textarea value={text} onChange={(e) => setText(e.target.value)} rows={10} maxLength={10000} required

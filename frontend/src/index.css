@@ -640,3 +640,7 @@ button.small {
     padding-left: 0;
   }
 }
+
+.ai-draft {
+  margin-bottom: 12px;
+}
