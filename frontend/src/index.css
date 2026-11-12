@@ -593,3 +593,12 @@ button.small {
 .check-list label {
   font-weight: 400;
 }
+
+/* A small heading inside the sidebar ("Manager"), above the links only managers see. */
+.sidebar-section {
+  margin: 16px 12px 4px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+}

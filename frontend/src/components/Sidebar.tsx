@@ -6,6 +6,8 @@ import ErrorMessage from './ErrorMessage';
 
 // The dark bar on the left of every logged-in page: the app name, the main links, and at the bottom who is
 // logged in (GET /api/v1/users/me) with a logout button. The "icons" are plain text characters.
+// Managers also get a "Manager" section. Hiding links is only for convenience: the backend is what refuses
+// (403) when someone who isn't a manager calls those endpoints.
 export default function Sidebar() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -33,6 +35,12 @@ export default function Sidebar() {
         <NavLink to="/alerts" end className={linkClass}><span className="icon">☰</span> Alert queue</NavLink>
         <NavLink to="/alerts/new" className={linkClass}><span className="icon">+</span> New alert</NavLink>
         <NavLink to="/standup" className={linkClass}><span className="icon">✎</span> Standup notes</NavLink>
+        {user?.role === 'MANAGER' && (
+          <>
+            <div className="sidebar-section">Manager</div>
+            <NavLink to="/team-standups" className={linkClass}><span className="icon">☷</span> Team standups</NavLink>
+          </>
+        )}
       </nav>
       <div className="sidebar-user">
         {user && (
