@@ -45,7 +45,7 @@ but the analyst always makes the decision.
 - [x] F16. New alert: "Received at" defaults to now when the AI found none
 - [x] F17. Escalation on the alert detail page
 - [x] F18. History tab (the alert's audit trail)
-- [ ] F19. Standup notes page
+- [x] F19. Standup notes page
 - [ ] F20. Manager pages: team standups, audit log
 
 ## Front-end Batch F3 (layout, dashboard, new alert) ✅
