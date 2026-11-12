@@ -2,9 +2,12 @@ package com.leul.havilor.standup.api;
 
 import com.leul.havilor.common.paging.PageResponse;
 import com.leul.havilor.common.paging.Paging;
+import com.leul.havilor.standup.api.request.AiDraftNoteRequest;
 import com.leul.havilor.standup.api.request.CreateNoteRequest;
 import com.leul.havilor.standup.api.request.UpdateNoteRequest;
+import com.leul.havilor.standup.api.response.NoteDraftResponse;
 import com.leul.havilor.standup.api.response.NoteResponse;
+import com.leul.havilor.standup.service.StandupAiService;
 import com.leul.havilor.standup.service.StandupService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -25,15 +28,24 @@ import org.springframework.web.bind.annotation.RestController;
 public class StandupController {
 
     private final StandupService standupService;
+    private final StandupAiService standupAiService;
 
-    public StandupController(StandupService standupService) {
+    public StandupController(StandupService standupService, StandupAiService standupAiService) {
         this.standupService = standupService;
+        this.standupAiService = standupAiService;
     }
 
     @PostMapping("/notes")
     @ResponseStatus(HttpStatus.CREATED)
     public NoteResponse create(@Valid @RequestBody CreateNoteRequest request, @AuthenticationPrincipal Jwt token) {
         return standupService.create(request, userId(token));
+    }
+
+    // A draft written by the AI from the logged-in user's activity that day. Nothing is saved.
+    // No activity → 400; AI unavailable → 502.
+    @PostMapping("/notes/ai-draft")
+    public NoteDraftResponse aiDraft(@Valid @RequestBody AiDraftNoteRequest request, @AuthenticationPrincipal Jwt token) {
+        return standupAiService.draft(request.noteDate(), userId(token));
     }
 
     @PatchMapping("/notes/{id}")
