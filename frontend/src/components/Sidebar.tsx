@@ -39,6 +39,7 @@ export default function Sidebar() {
           <>
             <div className="sidebar-section">Manager</div>
             <NavLink to="/team-standups" className={linkClass}><span className="icon">☷</span> Team standups</NavLink>
+            <NavLink to="/audit" className={linkClass}><span className="icon">⧗</span> Audit log</NavLink>
           </>
         )}
       </nav>

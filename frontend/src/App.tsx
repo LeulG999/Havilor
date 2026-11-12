@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router';
 import LoggedInLayout from './components/LoggedInLayout';
 import AlertDetailPage from './pages/AlertDetailPage';
+import AuditLogPage from './pages/AuditLogPage';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import NewAlertPage from './pages/NewAlertPage';
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/alerts/:id" element={<AlertDetailPage />} />
         <Route path="/standup" element={<StandupNotesPage />} />
         <Route path="/team-standups" element={<TeamStandupsPage />} />
+        <Route path="/audit" element={<AuditLogPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
