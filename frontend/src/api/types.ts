@@ -166,3 +166,15 @@ export type Escalation = {
   externalStatus: string; // OPEN, IN_PROGRESS, RESOLVED: how far the other team is
   outcome: string | null; // CONFIRMED_MALICIOUS, NOT_MALICIOUS, INCONCLUSIVE: their answer (null = none yet)
 };
+
+// GET /api/v1/alerts/{id}/audit and GET /api/v1/audit (AuditEntryResponse): one change, who made it and when.
+export type AuditEntry = {
+  id: number;
+  actorId: number | null; // the user who made the change
+  action: string; // e.g. ALERT_UPDATED, STEP_UPDATED, ESCALATED, ALERT_CLOSED
+  entityType: string; // what was changed, e.g. ALERT
+  entityId: number;
+  oldValue: string | null; // a short text of the state before (null when something was added)
+  newValue: string | null; // ... and after
+  createdAt: string;
+};

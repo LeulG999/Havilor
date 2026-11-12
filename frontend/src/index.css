@@ -534,3 +534,27 @@ button.small {
   padding: 3px 10px;
   font-size: 0.85rem;
 }
+
+/* History tab (components/HistoryTimeline.tsx): a line down the left, a dot per change. */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 18px;
+  border-left: 2px solid var(--border);
+}
+
+.timeline li {
+  position: relative;
+  padding: 0 0 14px;
+}
+
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
