@@ -566,8 +566,19 @@ button.small {
   gap: 10px;
 }
 
-.note-text {
-  white-space: pre-wrap; /* keep the line breaks the analyst typed */
+.note-content p {
+  margin: 6px 0;
+}
+
+.note-content ul {
+  margin: 2px 0 8px;
+  padding-left: 20px;
+}
+
+/* "Yesterday:", "Today:", "Blockers:" */
+.note-section {
+  margin-top: 8px;
+  font-weight: 600;
 }
 
 .note-draft { background: #fef9c3; color: #854d0e; }
