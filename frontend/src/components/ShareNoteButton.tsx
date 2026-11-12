@@ -18,7 +18,7 @@ export default function ShareNoteButton({ noteId, onShared }: { noteId: number; 
       await api(`/standup/notes/${noteId}/share`, { method: 'POST' });
       onShared();
     } catch (e) {
-      setError(e); // e.g. 409 when it was already shared
+      setError(e); // e.g. 404 "Note 7 not found" (someone else's note)
       setBusy(false);
     }
   }
