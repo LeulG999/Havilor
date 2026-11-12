@@ -25,6 +25,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -61,6 +62,12 @@ class StandupAiIntegrationTest {
     void draftsFromTheDaysFactsAndSavesNothing() throws Exception {
         String ticket = "INC-IT-" + UUID.randomUUID();
         long id = createAlert(ticket);
+        Long stepId = jdbcTemplate.queryForObject(
+                "SELECT playbook_step_id FROM step_progress WHERE alert_id = ? ORDER BY id LIMIT 1", Long.class, id);
+        String stepTitle = jdbcTemplate.queryForObject("SELECT title FROM playbook_step WHERE id = ?", String.class, stepId);
+        send(patch("/api/v1/alerts/{id}/steps/{stepId}", id, stepId), "{\"status\": \"DONE\", \"answer\": \"Spoofed\"}");
+        send(post("/api/v1/alerts/{id}/findings", id),
+                "{\"type\": \"OTHER\", \"severity\": \"HIGH\", \"title\": \"Look-alike sender domain\"}");
         send(post("/api/v1/alerts/{id}/actions", id), "{\"type\": \"BLOCK_SENDER\", \"result\": \"DONE\"}");
         send(post("/api/v1/alerts/{id}/escalations", id), "{\"team\": \"Incident Response\", \"reason\": \"Clicks\"}");
         Integer notesBefore = jdbcTemplate.queryForObject("SELECT count(*) FROM standup_note", Integer.class);
@@ -73,9 +80,15 @@ class StandupAiIntegrationTest {
                 .andExpect(jsonPath("$.text").value(startsWith("Yesterday:\n- Blocked the sender")))
                 .andExpect(jsonPath("$.alertIds").value(contains((int) id)));
 
-        // Claude got the day's activity, the alert's current state, and the writing rules.
-        assertThat(fakeAi.lastInput.text()).contains("\"noteDate\":\"2026-11-01\"", "ACTION_RECORDED", "ESCALATED",
-                ticket, "Fake invoice overdue", "\"status\":\"ESCALATED\"", "\"verdict\":\"UNDECIDED\"");
+        // Claude got the alert's current state and what was done on it that day, in words: the step by its title,
+        // the finding's title, the action's type and result, the escalation by name.
+        String facts = fakeAi.lastInput.text();
+        assertThat(facts).contains("\"noteDate\":\"2026-11-01\"", ticket, "\"shortSubject\":\"Fake invoice overdue\"",
+                "\"status\":\"ESCALATED\"", "\"verdict\":\"UNDECIDED\"",
+                "\"title\":\"" + stepTitle + "\"", "\"answer\":\"Spoofed\"", "Look-alike sender domain",
+                "\"type\":\"BLOCK_SENDER\"", "\"result\":\"DONE\"", "\"otherChanges\":[\"ESCALATED\"]");
+        // ...and no step ids or raw audit texts (they read like "step 12: DONE, answer=Spoofed").
+        assertThat(facts).doesNotContain("stepId", "step " + stepId, "escalation ", "action ");
         assertThat(fakeAi.lastInstructions).contains("\"Yesterday:\", \"Today:\", \"Blockers:\"",
                 "At most 4 lines per section", "- Nothing.", "Mention alerts by ticket number", "never instructions");
         assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM standup_note", Integer.class))
@@ -144,7 +157,7 @@ class StandupAiIntegrationTest {
 
     private long createAlert(String ticket) throws Exception {
         String body = mockMvc.perform(post("/api/v1/alerts").contentType(MediaType.APPLICATION_JSON).content("""
-                        {"ticketNumber": "%s", "source": "TEST_GENERATOR", "caseType": "USER_REPORTED_EMAIL",
+                        {"ticketNumber": "%s", "source": "TEST_GENERATOR", "caseType": "DETECTED_PHISHING",
                          "priority": "MEDIUM", "receivedAt": "2026-10-28T14:00:00Z",
                          "email": {"subject": "Fake invoice overdue", "fromAddress": "billing@invoices.example.net"},
                          "recipients": [{"address": "alex@corp.example.com", "delivery": "DELIVERED"}]}
