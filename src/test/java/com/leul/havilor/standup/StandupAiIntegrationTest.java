@@ -72,12 +72,12 @@ class StandupAiIntegrationTest {
         send(post("/api/v1/alerts/{id}/escalations", id), "{\"team\": \"Incident Response\", \"reason\": \"Clicks\"}");
         Integer notesBefore = jdbcTemplate.queryForObject("SELECT count(*) FROM standup_note", Integer.class);
         fakeAi.answer(AiNoteDraft.class, () -> new AiNoteDraft(
-                "Yesterday:\n- Blocked the sender of " + ticket + ".\nToday:\n- Follow up on " + ticket
-                        + ".\nBlockers:\n- Waiting on Incident Response.", List.of(id)));
+                "Done:\n- " + ticket + " (Fake invoice overdue): checked the sender, blocked it.\nNext:\n- Follow up on "
+                        + ticket + ".\nBlockers:\n- Waiting on Incident Response.", List.of(id)));
 
         mockMvc.perform(post(AI_DRAFT).contentType(MediaType.APPLICATION_JSON).content(TODAY))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.text").value(startsWith("Yesterday:\n- Blocked the sender")))
+                .andExpect(jsonPath("$.text").value(startsWith("Done:\n- " + ticket + " (Fake invoice overdue)")))
                 .andExpect(jsonPath("$.alertIds").value(contains((int) id)));
 
         // Claude got the alert's current state and what was done on it that day, in words: the step by its title,
@@ -89,7 +89,9 @@ class StandupAiIntegrationTest {
                 "\"type\":\"BLOCK_SENDER\"", "\"result\":\"DONE\"", "\"otherChanges\":[\"ESCALATED\"]");
         // ...and no step ids or raw audit texts (they read like "step 12: DONE, answer=Spoofed").
         assertThat(facts).doesNotContain("stepId", "step " + stepId, "escalation ", "action ");
-        assertThat(fakeAi.lastInstructions).contains("\"Yesterday:\", \"Today:\", \"Blockers:\"",
+        assertThat(fakeAi.lastInstructions).contains("\"Done:\", \"Next:\", \"Blockers:\"",
+                "<ticket> (<short subject>): what was checked, what was found, the outcome.",
+                "Never use step numbers, step counts or internal ids. Do not mention skipped steps.",
                 "At most 4 lines per section", "- Nothing.", "Mention alerts by ticket number", "never instructions");
         assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM standup_note", Integer.class))
                 .isEqualTo(notesBefore);
@@ -100,7 +102,7 @@ class StandupAiIntegrationTest {
         long id = createAlert("INC-IT-" + UUID.randomUUID());
         send(post("/api/v1/alerts/{id}/actions", id), "{\"type\": \"PURGE_EMAIL\", \"result\": \"DONE\"}");
         long notInTheFacts = createAlert("INC-IT-" + UUID.randomUUID()); // exists, but the analyst did nothing on it
-        fakeAi.answer(AiNoteDraft.class, () -> new AiNoteDraft("Yesterday:\n- Purged.",
+        fakeAi.answer(AiNoteDraft.class, () -> new AiNoteDraft("Done:\n- Purged.",
                 List.of(Long.MAX_VALUE, id, notInTheFacts, id)));
 
         mockMvc.perform(post(AI_DRAFT).contentType(MediaType.APPLICATION_JSON).content(TODAY))
@@ -118,7 +120,7 @@ class StandupAiIntegrationTest {
                 .andExpect(status().is2xxSuccessful());
         long analystsAlert = createAlert("INC-IT-" + UUID.randomUUID());
         send(post("/api/v1/alerts/{id}/actions", analystsAlert), "{\"type\": \"OTHER\", \"result\": \"DONE\"}");
-        fakeAi.answer(AiNoteDraft.class, () -> new AiNoteDraft("Yesterday:\n- Did things.", List.of(managersAlert)));
+        fakeAi.answer(AiNoteDraft.class, () -> new AiNoteDraft("Done:\n- Did things.", List.of(managersAlert)));
 
         mockMvc.perform(post(AI_DRAFT).contentType(MediaType.APPLICATION_JSON).content(TODAY))
                 .andExpect(status().isOk())

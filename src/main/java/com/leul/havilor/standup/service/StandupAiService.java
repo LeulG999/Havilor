@@ -35,16 +35,20 @@ public class StandupAiService {
             subject, its current status and verdict, and what the analyst did on it that day: "stepsCompleted" \
             (playbook step titles with status and answer), "findingsAdded" (titles), "actionsRecorded" (type and \
             result) and "otherChanges" (other recorded changes, such as ESCALATED or ALERT_CLOSED).
-            - Yesterday: what the facts show the analyst did.
-            - Today: the follow-up on alerts that are not CLOSED yet.
+            - Done: what the facts show the analyst did.
+            - Next: the follow-up on alerts that are not CLOSED yet.
             - Blockers: only what the facts show, such as an alert that is ESCALATED and waiting on another team.
 
             Writing rules:
-            Three sections in this order, each starting on its own line: "Yesterday:", "Today:", "Blockers:".
+            Three sections in this order, each starting on its own line: "Done:", "Next:", "Blockers:".
             Short sentences, one idea per line, each line starting with "- ". Plain everyday English; keep needed \
             security terms (phishing, SPF, password reset) but no filler or buzzwords. Facts only, no opinions or \
             guesses. At most 4 lines per section; if a section has nothing, write "- Nothing.". Mention alerts by \
             ticket number.
+            One line per alert where possible: "<ticket> (<short subject>): what was checked, what was found, the \
+            outcome."
+            Say what was checked using the step titles in plain words (e.g. "checked the links and the attachment").
+            Never use step numbers, step counts or internal ids. Do not mention skipped steps.
 
             Answer with:
             - text: the note.
