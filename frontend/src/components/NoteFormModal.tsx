@@ -95,7 +95,7 @@ export default function NoteFormModal({ open, note, onClose, onSaved }: {
               <label>
                 What did you work on? What's next? Anything blocking you?
                 <textarea value={text} onChange={(e) => setText(e.target.value)} rows={10} maxLength={10000} required
-                          placeholder={'Yesterday:\n- …\nToday:\n- …\nBlockers:\n- Nothing.'} />
+                          placeholder={'Done:\n- INC-… (short subject): what you checked, what you found, the outcome.\nNext:\n- …\nBlockers:\n- Nothing.'} />
               </label>
               <h3>Mention alerts</h3>
               <MentionChips alertIds={alertIds} onRemove={toggle} />
