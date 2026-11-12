@@ -3,6 +3,7 @@ package com.leul.havilor.audit;
 import com.leul.havilor.FixedClockConfiguration;
 import com.leul.havilor.TestAuthConfiguration;
 import com.leul.havilor.TestcontainersConfiguration;
+import com.leul.havilor.audit.service.AuditService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.everyItem;
@@ -45,6 +49,9 @@ class AuditIntegrationTest {
 
     @Autowired
     private TestAuthConfiguration.TestUsers testUsers;
+
+    @Autowired
+    private AuditService auditService;
 
     @AfterEach
     void deleteTestAlerts() {
@@ -136,6 +143,28 @@ class AuditIntegrationTest {
                 .isInstanceOf(DataAccessException.class).hasMessageContaining("append-only");
         assertThatThrownBy(() -> jdbcTemplate.update("DELETE FROM audit_entry WHERE entity_id = ?", id))
                 .isInstanceOf(DataAccessException.class).hasMessageContaining("append-only");
+    }
+
+    @Test
+    void onePersonsEntriesInATimeRange() throws Exception {
+        long id = createAlert("USER_REPORTED_EMAIL");
+        send(post(ALERTS + "/{id}/actions", id), "{\"type\": \"PURGE_EMAIL\", \"result\": \"DONE\"}"); // by the analyst
+        Instant now = FixedClockConfiguration.NOW; // every entry in tests is written at this fixed time
+        Instant hourAgo = now.minus(Duration.ofHours(1));
+        Instant inAnHour = now.plus(Duration.ofHours(1));
+
+        assertThat(auditService.byActorBetween(testUsers.analystId(), hourAgo, inAnHour))
+                .anySatisfy(e -> {
+                    assertThat(e.entityId()).isEqualTo(id);
+                    assertThat(e.action()).isEqualTo("ACTION_RECORDED");
+                })
+                .allSatisfy(e -> assertThat(e.actorId()).isEqualTo(testUsers.analystId()));
+        // Someone else's entries and other times are not included; "to" is exclusive.
+        assertThat(auditService.byActorBetween(testUsers.managerId(), hourAgo, inAnHour))
+                .noneSatisfy(e -> assertThat(e.entityId()).isEqualTo(id));
+        assertThat(auditService.byActorBetween(testUsers.analystId(), hourAgo, now)).isEmpty();
+        assertThat(auditService.byActorBetween(testUsers.analystId(), inAnHour, inAnHour.plus(Duration.ofDays(1))))
+                .isEmpty();
     }
 
     @Test

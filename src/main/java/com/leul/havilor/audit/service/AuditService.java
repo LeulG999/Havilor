@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.util.List;
 
 // The audit log. Services that change data call record(...) explicitly, inside their own transaction:
@@ -43,6 +44,13 @@ public class AuditService {
     public List<AuditEntryResponse> forEntity(String entityType, Long entityId) {
         return auditEntryRepository.findByEntityTypeAndEntityIdOrderById(entityType, entityId).stream()
                 .map(AuditEntryResponse::from).toList();
+    }
+
+    // What one person did in a time range [from, to), oldest first (e.g. one day, for an AI-drafted standup note).
+    @Transactional(readOnly = true)
+    public List<AuditEntryResponse> byActorBetween(Long actorId, Instant from, Instant to) {
+        return auditEntryRepository.findByActorIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderById(actorId, from, to)
+                .stream().map(AuditEntryResponse::from).toList();
     }
 
     // The whole log for managers, newest first.
