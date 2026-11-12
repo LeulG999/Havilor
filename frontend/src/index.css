@@ -613,3 +613,30 @@ button.small {
   letter-spacing: 0.05em;
   color: #9ca3af;
 }
+
+/* The note editor (components/NoteFormModal.tsx): editor left, live preview right; one column on a narrow screen. */
+.modal.wide {
+  width: min(960px, 94vw);
+}
+
+.note-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.note-preview {
+  border-left: 1px solid var(--border);
+  padding-left: 20px;
+}
+
+@media (max-width: 700px) {
+  .note-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .note-preview {
+    border-left: none;
+    padding-left: 0;
+  }
+}
