@@ -44,6 +44,7 @@ but the analyst always makes the decision.
 
 - [x] F21. AI-drafted standup note from the day's audit log, with a live preview in the editor
 - [x] F22. The New standup note modal is AI-first (one button; write it myself as the fallback)
+- [x] F23. Clearer AI standup notes: Done / Next / Blockers, one line per alert from step titles, no ids
 
 ## Front-end Batch F4 (escalation, history, standup notes, manager pages) ✅
 
@@ -111,7 +112,7 @@ Planned: JaCoCo, OpenAPI/Swagger, AWS.
 Havilor is a **modular monolith**: one Spring Boot application split into feature modules.
 Modules: `alert`, `playbook`, `user`, `finding`, `escalation`, `audit`, `standup`, `knowledge`, plus shared
 `common`. Dependencies go one way: `alert → playbook, user, finding, audit, knowledge`;
-`escalation → alert, audit`; `finding → audit`; `standup → alert, audit`; `knowledge → playbook`.
+`escalation → alert, audit`; `finding → audit`; `standup → alert, audit, finding`; `knowledge → playbook`.
 
 - Each module is layered: **Controller → Service → Repository → PostgreSQL**, with one sub-package per layer.
 - Modules have strict borders: another module may use only a module's `service` and `api.response` packages,
