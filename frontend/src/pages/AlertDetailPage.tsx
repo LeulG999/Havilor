@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { api } from '../api/api';
-import type { Action, AlertDetail, AlertStep, Finding, User } from '../api/types';
+import type { Action, AlertDetail, AlertStep, Escalation, Finding, User } from '../api/types';
 import ActionList from '../components/ActionList';
 import AddActionButton from '../components/AddActionButton';
 import AddFindingButton from '../components/AddFindingButton';
@@ -9,6 +9,7 @@ import AiAssessmentPanel from '../components/AiAssessmentPanel';
 import AlertChildrenSection from '../components/AlertChildrenSection';
 import AlertHeader from '../components/AlertHeader';
 import DraftEmailButton from '../components/DraftEmailButton';
+import EscalationList from '../components/EscalationList';
 import EmailDetailsSection from '../components/EmailDetailsSection';
 import ErrorMessage from '../components/ErrorMessage';
 import FindingList from '../components/FindingList';
@@ -27,11 +28,12 @@ export default function AlertDetailPage() {
   const [findings, setFindings] = useState<Finding[]>([]);
   const [steps, setSteps] = useState<AlertStep[]>([]);
   const [actions, setActions] = useState<Action[]>([]);
+  const [escalations, setEscalations] = useState<Escalation[]>([]);
   const [me, setMe] = useState<User | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [tab, setTab] = useState<Tab>('Overview'); // which tab is open: plain React state
 
-  // Loads the alert, its findings, steps and actions, all at the same time (Promise.all); if any fails, the error is
+  // Loads the alert, its findings, steps, actions and escalations, all at the same time (Promise.all); if any fails, the error is
   // shown. Called when the page opens and again after every change, so the page always shows the backend's state.
   function load() {
     setError(null);
@@ -40,12 +42,14 @@ export default function AlertDetailPage() {
       api<Finding[]>(`/alerts/${id}/findings`),
       api<AlertStep[]>(`/alerts/${id}/steps`),
       api<Action[]>(`/alerts/${id}/actions`),
+      api<Escalation[]>(`/alerts/${id}/escalations`),
     ])
-      .then(([alertAnswer, findingsAnswer, stepsAnswer, actionsAnswer]) => {
+      .then(([alertAnswer, findingsAnswer, stepsAnswer, actionsAnswer, escalationsAnswer]) => {
         setAlert(alertAnswer);
         setFindings(findingsAnswer);
         setSteps(stepsAnswer);
         setActions(actionsAnswer);
+        setEscalations(escalationsAnswer);
       })
       .catch(setError);
   }
@@ -85,6 +89,7 @@ export default function AlertDetailPage() {
             <>
               {alertIsOpen && <p><AddActionButton alertId={alert.id} onChanged={load} /></p>}
               <ActionList actions={actions} />
+              <EscalationList escalations={escalations} editable={alertIsOpen} onChanged={load} />
             </>
           )}
           {tab === 'AI' && (alertIsOpen ? (
