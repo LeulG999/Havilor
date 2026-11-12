@@ -40,13 +40,13 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
-## Front-end Batch F4 (escalation, history, standup notes, manager pages)
+## Front-end Batch F4 (escalation, history, standup notes, manager pages) ✅
 
 - [x] F16. New alert: "Received at" defaults to now when the AI found none
 - [x] F17. Escalation on the alert detail page
 - [x] F18. History tab (the alert's audit trail)
 - [x] F19. Standup notes page
-- [ ] F20. Manager pages: team standups, audit log
+- [x] F20. Manager pages: team standups, audit log
 
 ## Front-end Batch F3 (layout, dashboard, new alert) ✅
 
@@ -262,10 +262,14 @@ cd frontend && npm install && npm run dev
 
 Open http://localhost:5173 and log in as `analyst@havilor.example.com` with your `HAVILOR_DEV_PASSWORD`. A dark
 sidebar links the pages: **Dashboard** (start page: stat cards, alerts per day, recent alerts), **Alert queue**, and
-**New alert** (paste an email or upload `.eml`/`.txt`/image/PDF → the AI drafts it → check → save). Alert detail has
-a fixed header (assign to me, priority, close) and tabs:
+**New alert** (paste an email or upload `.eml`/`.txt`/image/PDF → the AI drafts it → check → save), and **Standup
+notes** (write a daily note, mention alerts, edit while it's a draft, share it). Alert detail has a fixed header
+(assign to me, priority, escalate, close) and tabs:
 Overview · Investigation (work the steps) · Evidence (email, recipients, URLs, attachments, clicks, findings + add
-finding) · Actions (list + add action) · AI (assessment, email drafts). A closed alert shows no action buttons.
+finding) · Actions (list + add action, escalations + the other team's status/outcome) · AI (assessment, email
+drafts) · History (the alert's audit trail). A closed alert shows no action buttons.
+Log in as `manager@havilor.example.com` for the **Manager** sidebar section: **Team standups** (everyone's shared
+notes) and **Audit log** (every change, newest first). An analyst opening those URLs sees the backend's 403 message.
 No alerts yet? `POST /api/v1/dev/generate-alerts?count=20` with your token (see the curl example above).
 
 ### Everything in containers
