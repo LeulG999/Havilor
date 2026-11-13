@@ -23,7 +23,7 @@ export default function AssignToSelect({ assigneeId, disabled, onAssign }: {
       Assign to
       <select value={assigneeId ?? ''} disabled={disabled}
               onChange={(e) => e.target.value !== '' && onAssign(Number(e.target.value))}>
-        <option value="" disabled>— choose an analyst —</option>
+        <option value="" disabled>Choose…</option>
         {analysts.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
       </select>
       <ErrorMessage error={error} />
