@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from './api';
+import { alertRules } from '../alertRules';
 import type { Action, AlertDetail, AlertStep, AuditEntry, Escalation, Finding, User } from './types';
 
 // Everything a view of one alert needs: the alert, its findings, steps, actions, escalations and history, plus who
@@ -44,9 +45,8 @@ export function useAlertData(alertId: number | string | undefined) {
     api<User>('/users/me').then(setMe).catch(setError);
   }, []);
 
-  // A closed alert is final; the investigation is the analyst's work (the backend enforces both).
-  const alertIsOpen = alert !== null && alert.status !== 'CLOSED';
-  const canWork = alertIsOpen && me?.role === 'ANALYST';
+  // What may be done right now: the one shared rule (alertRules.ts).
+  const rules = alertRules(alert, me, escalations);
 
-  return { alert, findings, steps, actions, escalations, history, me, error, reload, alertIsOpen, canWork };
+  return { alert, findings, steps, actions, escalations, history, me, error, reload, rules };
 }

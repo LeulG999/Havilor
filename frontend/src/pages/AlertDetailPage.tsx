@@ -5,15 +5,13 @@ import ActionList from '../components/ActionList';
 import AddActionButton from '../components/AddActionButton';
 import AddFindingButton from '../components/AddFindingButton';
 import AiAssessmentPanel from '../components/AiAssessmentPanel';
+import AlertActionButtons from '../components/AlertActionButtons';
 import AlertCards from '../components/AlertCards';
 import AlertChildrenSection from '../components/AlertChildrenSection';
 import AssessmentCard from '../components/AssessmentCard';
-import CloseAlertButton from '../components/CloseAlertButton';
-import DraftEmailButton from '../components/DraftEmailButton';
 import EmailCard from '../components/EmailCard';
 import EmailDetailsSection from '../components/EmailDetailsSection';
 import ErrorMessage from '../components/ErrorMessage';
-import EscalateButton from '../components/EscalateButton';
 import EscalationList from '../components/EscalationList';
 import FindingList from '../components/FindingList';
 import HistoryTimeline from '../components/HistoryTimeline';
@@ -32,8 +30,7 @@ const SIDE_HISTORY = 7;
 // page opens and again after each change, so the page always shows the backend's state.
 export default function AlertDetailPage() {
   const { id } = useParams(); // the {id} in /alerts/{id}
-  const { alert, findings, steps, actions, escalations, history, me, error, reload: load, alertIsOpen, canWork } =
-    useAlertData(id);
+  const { alert, findings, steps, actions, escalations, history, me, error, reload: load, rules } = useAlertData(id);
   const [tab, setTab] = useState<Tab>('Overview'); // which tab is open: plain React state
 
   const done = steps.filter((s) => s.status !== 'PENDING').length;
@@ -70,17 +67,14 @@ export default function AlertDetailPage() {
                 </span>
               </div>
             </div>
-            {/* The investigation buttons are the analyst's, on an open alert (the backend enforces it too). */}
-            {canWork && (
-              <div className="buttons detail-actions">
-                <EscalateButton alertId={alert.id} onChanged={load} />
-                <DraftEmailButton alertId={alert.id} />
-                <CloseAlertButton alertId={alert.id} onChanged={load} />
-              </div>
-            )}
+            {/* Escalate / Draft email / Close alert: only what alertRules allows (open alert, analyst, not waiting). */}
+            <div className="detail-actions">
+              <AlertActionButtons alert={alert} rules={rules} withDraftEmail onChanged={load}
+                                  onShowActions={() => setTab('Actions')} />
+            </div>
           </div>
 
-          <AlertCards alert={alert} me={me} withPriority onChanged={load} />
+          <AlertCards alert={alert} me={me} canChange={rules.canChange} withPriority onChanged={load} />
 
           <nav className="tabs" role="tablist">
             {tabs.map((t) => (
@@ -99,7 +93,7 @@ export default function AlertDetailPage() {
                     <b>AI assessment</b>
                     <p className="muted">
                       No assessment yet.{' '}
-                      {canWork && <button type="button" className="link" onClick={() => setTab('AI')}>Ask the AI ›</button>}
+                      {rules.canWork && <button type="button" className="link" onClick={() => setTab('AI')}>Ask the AI ›</button>}
                     </p>
                   </section>
                 )}
@@ -118,10 +112,10 @@ export default function AlertDetailPage() {
               </section>
             </div>
           )}
-          {tab === 'Investigation' && <StepList alertId={alert.id} steps={steps} editable={canWork} onChanged={load} />}
+          {tab === 'Investigation' && <StepList alertId={alert.id} steps={steps} editable={rules.canWork} onChanged={load} />}
           {tab === 'Evidence' && (
             <>
-              {canWork && <p><AddFindingButton alertId={alert.id} onChanged={load} /></p>}
+              {rules.canWork && <p><AddFindingButton alertId={alert.id} onChanged={load} /></p>}
               <FindingList findings={findings} />
               <EmailDetailsSection email={alert.email} />
               <AlertChildrenSection alert={alert} />
@@ -129,17 +123,17 @@ export default function AlertDetailPage() {
           )}
           {tab === 'Actions' && (
             <>
-              {canWork && <p><AddActionButton alertId={alert.id} onChanged={load} /></p>}
+              {rules.canWork && <p><AddActionButton alertId={alert.id} onChanged={load} /></p>}
               <ActionList actions={actions} />
-              <EscalationList escalations={escalations} editable={canWork} onChanged={load} />
+              <EscalationList escalations={escalations} editable={rules.canWork} onChanged={load} />
             </>
           )}
-          {tab === 'AI' && (canWork
+          {tab === 'AI' && (rules.canWork
             ? <AiAssessmentPanel key={alert.id} alertId={alert.id} saved={alert.lastAssessment} onChanged={load} />
             : (
               <section className="panel">
                 <p className="muted">
-                  {alertIsOpen ? 'The AI assistant is for the analyst working the alert.' : 'This alert is closed.'}
+                  {rules.isOpen ? 'The AI assistant is for the analyst working the alert.' : 'This alert is closed.'}
                 </p>
                 {alert.lastAssessment ? <AssessmentCard assessment={alert.lastAssessment} />
                   : <p className="muted">No AI assessment was made.</p>}

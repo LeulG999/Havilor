@@ -12,15 +12,17 @@ const PRIORITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
 //   - Assigned to: an analyst takes the alert ("Assign to me"), a manager picks an analyst (backend rules, Flow F25);
 //   - Priority: both roles.
 // Status and verdict change through the investigation itself (assigning, escalating, closing), so they are shown.
-export default function AlertCards({ alert, me, withPriority = false, onChanged }: {
+// canChange comes from alertRules (open alert): on a CLOSED alert every card is read-only.
+export default function AlertCards({ alert, me, canChange, withPriority = false, onChanged }: {
   alert: AlertDetail;
   me: User | null;
+  canChange: boolean;
   withPriority?: boolean;
   onChanged: () => void;
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const open = alert.status !== 'CLOSED';
+  const open = canChange;
   const isManager = me?.role === 'MANAGER';
 
   async function update(change: { assigneeId?: number; priority?: string }) {

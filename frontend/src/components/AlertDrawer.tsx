@@ -7,11 +7,10 @@ import AddFindingButton from './AddFindingButton';
 import AiAssessmentPanel from './AiAssessmentPanel';
 import AlertChildrenSection from './AlertChildrenSection';
 import AssessmentCard from './AssessmentCard';
-import CloseAlertButton from './CloseAlertButton';
+import AlertActionButtons from './AlertActionButtons';
 import AlertCards from './AlertCards';
 import EmailDetailsSection from './EmailDetailsSection';
 import ErrorMessage from './ErrorMessage';
-import EscalateButton from './EscalateButton';
 import EscalationList from './EscalationList';
 import FindingList from './FindingList';
 import HistoryTimeline from './HistoryTimeline';
@@ -29,8 +28,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: {
   onClose: () => void;
   onChanged: () => void; // the queue reloads too (status, assignee, signals may have changed)
 }) {
-  const { alert, findings, steps, actions, escalations, history, me, error, reload, alertIsOpen, canWork } =
-    useAlertData(alertId);
+  const { alert, findings, steps, actions, escalations, history, me, error, reload, rules } = useAlertData(alertId);
   const [tab, setTab] = useState<Tab>('Overview');
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -94,7 +92,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: {
               </div>
             </div>
 
-            <AlertCards alert={alert} me={me} onChanged={changed} />
+            <AlertCards alert={alert} me={me} canChange={rules.canChange} onChanged={changed} />
 
             <nav className="tabs drawer-tabs" role="tablist">
               {tabs.map((t) => (
@@ -106,14 +104,14 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: {
             </nav>
 
             <div className="drawer-body">
-              {tab === 'Overview' && (canWork
+              {tab === 'Overview' && (rules.canWork
                 ? <AiAssessmentPanel key={alert.id} alertId={alert.id} saved={alert.lastAssessment} onChanged={changed} />
                 : alert.lastAssessment ? <AssessmentCard assessment={alert.lastAssessment} />
                   : <p className="muted">No AI assessment was made.</p>)}
-              {tab === 'Steps' && <StepList alertId={alert.id} steps={steps} editable={canWork} onChanged={changed} />}
+              {tab === 'Steps' && <StepList alertId={alert.id} steps={steps} editable={rules.canWork} onChanged={changed} />}
               {tab === 'Evidence' && (
                 <>
-                  {canWork && <p><AddFindingButton alertId={alert.id} onChanged={changed} /></p>}
+                  {rules.canWork && <p><AddFindingButton alertId={alert.id} onChanged={changed} /></p>}
                   <FindingList findings={findings} />
                   <EmailDetailsSection email={alert.email} />
                   <AlertChildrenSection alert={alert} />
@@ -121,9 +119,9 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: {
               )}
               {tab === 'Actions' && (
                 <>
-                  {canWork && <p><AddActionButton alertId={alert.id} onChanged={changed} /></p>}
+                  {rules.canWork && <p><AddActionButton alertId={alert.id} onChanged={changed} /></p>}
                   <ActionList actions={actions} />
-                  <EscalationList escalations={escalations} editable={canWork} onChanged={changed} />
+                  <EscalationList escalations={escalations} editable={rules.canWork} onChanged={changed} />
                 </>
               )}
               {tab === 'History' && (
@@ -134,12 +132,11 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: {
               )}
             </div>
 
-            {canWork && alertIsOpen && (
-              <div className="buttons drawer-actions">
-                <EscalateButton alertId={alert.id} onChanged={changed} />
-                <CloseAlertButton alertId={alert.id} onChanged={changed} />
-              </div>
-            )}
+            {/* The same buttons and rules as the full page (alertRules), without Draft email. */}
+            <div className="drawer-actions">
+              <AlertActionButtons alert={alert} rules={rules} withDraftEmail={false} onChanged={changed}
+                                  onShowActions={() => setTab('Actions')} />
+            </div>
           </>
         )}
       </aside>
