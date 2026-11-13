@@ -1,8 +1,9 @@
 // A bar chart drawn with plain SVG (no chart library): one bar per day, its count above it, the date below.
-// SVG draws in its own coordinates (the viewBox, here 700 × 220); the browser scales it to the card's width.
+// SVG draws in its own coordinates (the viewBox, here 1200 × 200: wide and low, like the page it sits in); the
+// browser scales it to the card's width.
 
-const WIDTH = 700;
-const HEIGHT = 220;
+const WIDTH = 1200;
+const HEIGHT = 200;
 const TOP = 20;      // room for the count above the tallest bar
 const BOTTOM = 30;   // room for the date labels
 const CHART_HEIGHT = HEIGHT - TOP - BOTTOM;
@@ -16,7 +17,7 @@ function dayLabel(date: string): string {
 export default function BarChart({ days }: { days: { date: string; count: number }[] }) {
   const max = Math.max(1, ...days.map((d) => d.count)); // at least 1, so an all-zero chart doesn't divide by 0
   const slot = WIDTH / days.length; // the horizontal space each day gets
-  const barWidth = slot * 0.6;
+  const barWidth = Math.min(slot * 0.5, 36);
 
   return (
     <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="bar-chart" role="img"
@@ -31,7 +32,10 @@ export default function BarChart({ days }: { days: { date: string; count: number
         return (
           <g key={day.date}>
             <rect x={x} y={y} width={barWidth} height={barHeight} rx={3} className="bar-chart-bar" />
-            <text x={centre} y={y - 5} textAnchor="middle" className="bar-chart-count">{day.count}</text>
+            {/* No "0" over empty days: the base line already says it, and the chart stays calm. */}
+            {day.count > 0 && (
+              <text x={centre} y={y - 6} textAnchor="middle" className="bar-chart-count">{day.count}</text>
+            )}
             <text x={centre} y={HEIGHT - 10} textAnchor="middle" className="bar-chart-label">{dayLabel(day.date)}</text>
           </g>
         );

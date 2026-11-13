@@ -4,6 +4,7 @@ import { api } from '../api/api';
 import type { TeamDashboard as TeamDashboardData } from '../api/types';
 import { formatAge } from '../format';
 import ErrorMessage from './ErrorMessage';
+import { AssigneeCell } from './QueueBits';
 import StatCard from './StatCard';
 
 // The manager's start page: GET /api/v1/alerts/team-dashboard (managers only). What needs attention (unassigned,
@@ -32,26 +33,25 @@ export default function TeamDashboard() {
             <StatCard label="Unassigned open" value={dashboard.unassignedOpen} tone="danger" />
             <StatCard label="Critical open" value={dashboard.criticalOpen} tone="danger" />
             <StatCard label="Standups shared today" value={dashboard.standupsSharedToday} />
-            <div className="panel stat-card">
-              {dashboard.oldestOpen === null ? <div className="stat-value">—</div> : (
-                <>
-                  <div className="stat-value">{formatAge(dashboard.oldestOpen.ageHours)}</div>
-                  <Link to={`/alerts/${dashboard.oldestOpen.alertId}`}>{dashboard.oldestOpen.ticketNumber}</Link>
-                </>
+            <StatCard label="Oldest open alert"
+                      value={dashboard.oldestOpen === null ? '—' : formatAge(dashboard.oldestOpen.ageHours)}>
+              {dashboard.oldestOpen && (
+                <Link to={`/alerts/${dashboard.oldestOpen.alertId}`} className="mono">
+                  {dashboard.oldestOpen.ticketNumber}
+                </Link>
               )}
-              <div className="muted">Oldest open alert</div>
-            </div>
+            </StatCard>
           </div>
-          <section className="panel">
-            <h2>Analysts</h2>
-            <table>
+          <section className="sec dash-section">
+            <div className="sec-head"><b>Analysts</b><span className="muted">open now and closed in the last 7 days</span></div>
+            <table className="queue-table">
               <thead><tr><th>Analyst</th><th>Open now</th><th>Closed in the last 7 days</th></tr></thead>
               <tbody>
                 {dashboard.analysts.map((a) => (
                   <tr key={a.analystId}>
-                    <td>{a.name}</td>
-                    <td>{a.openAlerts}</td>
-                    <td>{a.closedLast7Days}</td>
+                    <td><AssigneeCell name={a.name} /></td>
+                    <td className="mono">{a.openAlerts}</td>
+                    <td className="mono">{a.closedLast7Days}</td>
                   </tr>
                 ))}
                 {dashboard.analysts.length === 0 && <tr><td colSpan={3} className="muted">No active analysts.</td></tr>}

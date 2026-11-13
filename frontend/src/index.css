@@ -1863,3 +1863,31 @@ button.link.quiet {
 .props dd {
   margin: 0;
 }
+
+/* ---------- Dashboards (components/AnalystDashboard.tsx, TeamDashboard.tsx, StatCard.tsx) ---------- */
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+}
+
+.stat-label {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.dash-section {
+  margin-bottom: 16px;
+}
+
+.chart-box {
+  padding: 12px 16px 6px;
+}
+
+.quiet-link {
+  color: var(--muted);
+  font-size: 12px;
+}

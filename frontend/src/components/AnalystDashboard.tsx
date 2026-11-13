@@ -35,12 +35,15 @@ export default function AnalystDashboard() {
             <StatCard label="Critical open" value={dashboard.criticalOpen} tone="danger" />
             <StatCard label="Closed last 7 days" value={dashboard.closedLast7Days} />
           </div>
-          <section className="panel">
-            <h2>Alerts per day (last 14 days, UTC)</h2>
-            <BarChart days={dashboard.alertsPerDay} />
+          <section className="sec dash-section">
+            <div className="sec-head"><b>Alerts per day</b><span className="muted">last 14 days, UTC</span></div>
+            <div className="chart-box"><BarChart days={dashboard.alertsPerDay} /></div>
           </section>
-          <section className="panel">
-            <h2>Recent alerts</h2>
+          <section className="sec dash-section">
+            <div className="sec-head">
+              <b>Recent alerts</b>
+              <Link to="/alerts" className="quiet-link">Open the queue ›</Link>
+            </div>
             <RecentAlerts alerts={dashboard.recent} />
           </section>
         </>
