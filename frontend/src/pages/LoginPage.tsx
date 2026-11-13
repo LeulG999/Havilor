@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router';
 import { api, saveToken } from '../api/api';
 import type { LoginResponse } from '../api/types';
 import ErrorMessage from '../components/ErrorMessage';
+import LoginBrandPanel from '../components/LoginBrandPanel';
 
-// POST /api/v1/auth/login → keep the token → go to the dashboard.
+// The login page (docs/design/mockups/login-white.png): the dark brand panel on the left, a white sign-in panel on
+// the right. POST /api/v1/auth/login → keep the token → go to the dashboard.
 export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
 
@@ -28,20 +31,37 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="page login">
-      <h1>Havilor</h1>
-      <form className="panel" onSubmit={handleSubmit}>
-        <label>
-          Email
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
-        </label>
-        <label>
-          Password
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </label>
-        <ErrorMessage error={error} />
-        <button type="submit" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</button>
-      </form>
-    </main>
+    <div className="login-page">
+      <LoginBrandPanel />
+      <main className="login-side">
+        <form className="login-card" onSubmit={handleSubmit}>
+          <h2>Sign in</h2>
+          <p className="login-sub">Welcome back. Use your Havilor work account.</p>
+          <label>
+            Email
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus
+                   autoComplete="username" />
+          </label>
+          <label>
+            Password
+            {/* "Show" switches the input between hidden dots and plain text. */}
+            <span className="password-field">
+              <input type={showPassword ? 'text' : 'password'} value={password}
+                     onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" />
+              <button type="button" className="show-password" onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide the password' : 'Show the password'}>
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </span>
+          </label>
+          <ErrorMessage error={error} />
+          <button type="submit" className="login-button" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+          <div className="login-note">
+            <span className="login-note-icon" aria-hidden="true">ⓘ</span>
+            <span><b>Accounts are created by your admin.</b> Ask your SOC lead if you can't sign in.</span>
+          </div>
+        </form>
+      </main>
+    </div>
   );
 }
