@@ -40,6 +40,10 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Batch F9 (accounts) ✅
+
+- [x] F30. Account management: managers add people (temporary password, shown once), deactivate, change roles; first-login password; change password
+
 ## Batch F7 (manual intake) ✅
 
 - [x] F28. Clearer manual intake: source cards, several files in one AI call, what's missing
@@ -189,7 +193,10 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 |---|---|---|
 | `POST` | `/api/v1/auth/login` | `{email, password}` → **200** `{accessToken, tokenType: "Bearer", expiresIn}` (8 hours); **401** `Invalid email or password`. The only call without a token |
 | `GET` | `/api/v1/users/me` | **200** with the logged-in user (id, name, email, role, active) |
-| `GET` | `/api/v1/users?role=ANALYST` | **MANAGER only**: active users with that role (the "Assign to" list) |
+| `GET` | `/api/v1/users?role=ANALYST` | **MANAGER only**: active users with that role (the "Assign to" list); without `role`: everybody, also deactivated accounts |
+| `POST` | `/api/v1/users` | **MANAGER only**: `{name, email, role}` → **201** `{user, temporaryPassword}` (shown once, stored only as a hash); **409** email taken |
+| `PATCH` | `/api/v1/users/{id}` | **MANAGER only**: `{active?, role?}`; **409** deactivating yourself |
+| `POST` | `/api/v1/users/me/password` | `{currentPassword, newPassword (12+)}` → a new token. While `mustChangePassword` is true, every other call except `/users/me` answers **403** "Set a new password first" |
 | `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps. New alerts get their automatic findings; a click on a bad-list URL makes the priority **CRITICAL** |
 | `POST` | `/api/v1/alerts/manual/extract` | multipart: `text` and/or up to 5 `files` (.eml, image, PDF; 10 MB each), read together in one AI call → **200** a draft alert (nothing saved). **400** nothing sent, more than 5 files or an unreadable file type; **502** AI unavailable |
 | `GET` | `/api/v1/alerts/dashboard` | **200** `{openAlerts, assignedToMe, criticalOpen, closedLast7Days, alertsPerDay (14 UTC days), recent (5 newest)}` |
