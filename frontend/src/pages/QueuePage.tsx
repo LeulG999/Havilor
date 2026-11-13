@@ -2,6 +2,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { api } from '../api/api';
 import type { AlertSummary, Page, QueueCounts } from '../api/types';
+import AlertDrawer from '../components/AlertDrawer';
 import ErrorMessage from '../components/ErrorMessage';
 import Pager from '../components/Pager';
 import { AssigneeCell, PriorityTag, SignalTags, StatusChip } from '../components/QueueBits';
@@ -14,7 +15,8 @@ const COLUMNS = 9;
 
 // The alert queue (docs/design/mockups/s1-queue.png): GET /api/v1/alerts with the chosen filters, newest first,
 // one page at a time, plus GET /api/v1/alerts/counts for the numbers. The backend does the filtering, so the counts
-// and pages are right however many alerts there are. Click a row to see its key facts under it.
+// and pages are right however many alerts there are. Click a row to open the alert in the slide-over panel
+// (AlertDrawer); click its › to see its key facts under the row.
 export default function QueuePage() {
   const [priority, setPriority] = useState<PriorityFilter>(null);
   const [status, setStatus] = useState('OPEN');
@@ -22,7 +24,9 @@ export default function QueuePage() {
   const [pageNumber, setPageNumber] = useState(0);
   const [page, setPage] = useState<Page<AlertSummary> | null>(null);
   const [counts, setCounts] = useState<QueueCounts | null>(null);
-  const [expanded, setExpanded] = useState<number | null>(null); // the open row's alert id
+  const [expanded, setExpanded] = useState<number | null>(null); // the row whose details show under it
+  const [selected, setSelected] = useState<number | null>(null); // the alert open in the slide-over panel
+  const [refresh, setRefresh] = useState(0); // +1 after a change in the panel: load the list and counts again
   const [error, setError] = useState<unknown>(null);
 
   // The query string for the current filters, e.g. "status=OPEN&priority=CRITICAL&assignedToMe=true".
@@ -33,13 +37,13 @@ export default function QueuePage() {
   useEffect(() => {
     setError(null);
     api<Page<AlertSummary>>(`/alerts?page=${pageNumber}&size=${PAGE_SIZE}&${filterKey}`).then(setPage).catch(setError);
-  }, [filterKey, pageNumber]);
+  }, [filterKey, pageNumber, refresh]);
 
   // The counts don't depend on the priority filter (the buttons show every priority's count).
   useEffect(() => {
     const countFilters = new URLSearchParams({ status, ...(mine ? { assignedToMe: 'true' } : {}) });
     api<QueueCounts>(`/alerts/counts?${countFilters}`).then(setCounts).catch(setError);
-  }, [status, mine]);
+  }, [status, mine, refresh]);
 
   // A new filter starts at the first page with every row closed.
   function changeFilter(change: () => void) {
@@ -91,8 +95,8 @@ export default function QueuePage() {
                 return (
                   // Fragment: one alert = its row, plus the details row when it is open.
                   <Fragment key={alert.id}>
-                    <tr className={open ? 'clickable open' : 'clickable'}
-                        onClick={() => setExpanded(open ? null : alert.id)}>
+                    <tr className={open || selected === alert.id ? 'clickable open' : 'clickable'}
+                        onClick={() => setSelected(alert.id)}>
                       <td className="chev">
                         {/* A real button, so the row also opens from the keyboard; stopPropagation: the row's own
                             click would toggle it straight back. */}
@@ -123,6 +127,9 @@ export default function QueuePage() {
         </div>
       )}
       {page && page.totalPages > 1 && <Pager page={page} noun="alerts" onPage={setPageNumber} />}
+      {selected !== null && (
+        <AlertDrawer alertId={selected} onClose={() => setSelected(null)} onChanged={() => setRefresh((r) => r + 1)} />
+      )}
     </main>
   );
 }

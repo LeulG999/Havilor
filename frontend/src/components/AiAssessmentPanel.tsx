@@ -29,14 +29,24 @@ export default function AiAssessmentPanel({ alertId, saved, onChanged }: {
     }
   }
 
+  const label = loading ? 'Asking the AI… (this can take a little while)' : saved ? 'Assess again' : 'Get AI assessment';
+
   return (
-    <section className="panel">
-      <h2>AI assessment</h2>
-      <button type="button" disabled={loading} onClick={assess}>
-        {loading ? 'Asking the AI… (this can take a little while)' : saved ? 'Assess again' : 'Get AI assessment'}
-      </button>
+    <div className="ai-panel">
+      {saved ? <AssessmentCard assessment={saved} /> : (
+        <section className="panel">
+          <h2>AI assessment</h2>
+          <p className="muted">
+            The AI reads this alert, its findings and similar past cases, and suggests a verdict with the evidence
+            behind it. You make the call.
+          </p>
+        </section>
+      )}
+      <div className="buttons ai-panel-actions">
+        {/* Once there is an assessment, asking again is a secondary action. */}
+        <button type="button" className={saved ? 'secondary' : ''} disabled={loading} onClick={assess}>{label}</button>
+      </div>
       <ErrorMessage error={error} />
-      {saved && <AssessmentCard assessment={saved} />}
-    </section>
+    </div>
   );
 }
