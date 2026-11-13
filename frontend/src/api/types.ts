@@ -190,3 +190,12 @@ export type StandupNote = {
   status: string; // DRAFT (only the author sees it, can still change) or SHARED (the team sees it, read-only)
   alertIds: number[];
 };
+
+// GET /api/v1/alerts/team-dashboard (managers only)
+export type TeamDashboard = {
+  unassignedOpen: number;
+  criticalOpen: number;
+  oldestOpen: { alertId: number; ticketNumber: string; receivedAt: string; ageHours: number } | null;
+  analysts: { analystId: number; name: string; openAlerts: number; closedLast7Days: number }[];
+  standupsSharedToday: number;
+};
