@@ -16,6 +16,7 @@ export default function RecentAlerts({ alerts }: { alerts: AlertSummary[] }) {
             <td><span className={`badge priority-${alert.priority.toLowerCase()}`}>{alert.priority}</span></td>
             <td>{alert.subject}</td>
             <td className="muted">{alert.status}</td>
+            <td className="muted">{alert.assigneeName ?? 'Unassigned'}</td>
             <td className="muted">{formatDateTime(alert.receivedAt)}</td>
           </tr>
         ))}

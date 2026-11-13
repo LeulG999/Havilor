@@ -33,6 +33,7 @@ export default function QueuePage() {
                 <th>Subject</th>
                 <th>Priority</th>
                 <th>Status</th>
+                <th>Assignee</th>
                 <th>Received</th>
               </tr>
             </thead>
@@ -44,11 +45,12 @@ export default function QueuePage() {
                   <td>{alert.subject}</td>
                   <td><span className={`badge priority-${alert.priority.toLowerCase()}`}>{alert.priority}</span></td>
                   <td>{alert.status}</td>
+                  <td>{alert.assigneeName ?? <span className="muted">Unassigned</span>}</td>
                   <td>{formatDateTime(alert.receivedAt)}</td>
                 </tr>
               ))}
               {page.content.length === 0 && (
-                <tr><td colSpan={5} className="muted">No alerts.</td></tr>
+                <tr><td colSpan={6} className="muted">No alerts.</td></tr>
               )}
             </tbody>
           </table>

@@ -60,7 +60,7 @@ export default function AlertDetailPage() {
 
   useEffect(load, [id]);
 
-  // Who is logged in: needed for "Assign to me" and to show "You" as the assignee.
+  // Who is logged in: needed for "Assign to me" and to mark the assignee with "(you)".
   useEffect(() => {
     api<User>('/users/me').then(setMe).catch(setError);
   }, []);

@@ -9,8 +9,9 @@ export default function AlertHeader({ alert, me, onChanged }: {
   onChanged: () => void;
 }) {
   const closed = alert.status === 'CLOSED';
+  // The backend sends the assignee's name; "(you)" when it's the logged-in user.
   const assignee = alert.assigneeId === null ? 'Unassigned'
-    : alert.assigneeId === me?.id ? 'You' : `User #${alert.assigneeId}`;
+    : `${alert.assigneeName ?? `User #${alert.assigneeId}`}${alert.assigneeId === me?.id ? ' (you)' : ''}`;
 
   return (
     <header className="alert-header">

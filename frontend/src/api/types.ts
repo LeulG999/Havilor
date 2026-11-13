@@ -29,6 +29,7 @@ export type AlertSummary = {
   ticketNumber: string;
   priority: string;
   status: string;
+  assigneeName: string | null; // null = unassigned
   subject: string;
   receivedAt: string; // an ISO date-time, e.g. "2026-10-28T14:00:00Z"
 };
@@ -43,6 +44,7 @@ export type AlertDetail = {
   status: string;
   verdict: string;
   assigneeId: number | null;
+  assigneeName: string | null; // the assignee's name, from the backend (null = unassigned)
   suggestedVerdict: string | null;
   suggestionReason: string | null;
   receivedAt: string;
