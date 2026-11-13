@@ -44,7 +44,7 @@ but the analyst always makes the decision.
 
 - [x] D6. Design pack committed (`docs/design/`)
 - [x] D7. Alert detail page like the mockup
-- [ ] D8. History timeline
+- [x] D8. History timeline
 - [ ] D9. Remaining pages restyled
 
 ## Design batch D1 (Midnight Signal) ✅
