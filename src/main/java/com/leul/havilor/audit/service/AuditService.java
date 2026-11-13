@@ -22,6 +22,9 @@ public class AuditService {
     // alert, so one query gives the alert's whole history.
     public static final String ALERT = "ALERT";
 
+    // Account changes (Flow F30): created, deactivated / reactivated, role changed. entityId = the user's id.
+    public static final String USER = "USER";
+
     private static final Sort NEWEST_FIRST = Sort.by(Sort.Order.desc("id"));
 
     private final AuditEntryRepository auditEntryRepository;

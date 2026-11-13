@@ -1,6 +1,9 @@
 package com.leul.havilor.user.service;
 
 import com.leul.havilor.common.error.UnauthorizedException;
+import com.leul.havilor.common.error.BadRequestException;
+import com.leul.havilor.common.error.NotFoundException;
+import com.leul.havilor.user.api.request.ChangePasswordRequest;
 import com.leul.havilor.user.api.request.LoginRequest;
 import com.leul.havilor.user.api.response.LoginResponse;
 import com.leul.havilor.user.domain.User;
@@ -46,6 +49,18 @@ public class AuthService {
                 .filter(u -> passwordEncoder.matches(request.password(), u.getPasswordHash()))
                 .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
 
+        return tokenFor(user);
+    }
+
+    // The person's own password (Flow F30). Wrong current password → 400. The answer is a NEW token (without the
+    // mustChangePassword claim), so after a first login the person can use Havilor right away.
+    @Transactional
+    public LoginResponse changePassword(Long userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId).orElseThrow(() -> NotFoundException.of("User", userId));
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            throw new BadRequestException("currentPassword", "is not correct");
+        }
+        user.changePassword(passwordEncoder.encode(request.newPassword()));
         return tokenFor(user);
     }
 
