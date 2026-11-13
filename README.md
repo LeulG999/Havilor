@@ -40,6 +40,13 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Design batch D2 (detail page, history, all pages)
+
+- [x] D6. Design pack committed (`docs/design/`)
+- [ ] D7. Alert detail page like the mockup
+- [ ] D8. History timeline
+- [ ] D9. Remaining pages restyled
+
 ## Design batch D1 (Midnight Signal) ✅
 
 - [x] D1. Brand base: tokens, fonts, favicon, restyled controls
