@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
@@ -54,6 +55,9 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/v1/audit").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/standup/team").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/users").hasRole("MANAGER")
+                        // Account management (Flow F30): the manager acts as admin. /users/me/password is for everyone.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/alerts/team-dashboard").hasRole("MANAGER")
                         // The investigation itself is the analyst's work (Flow F25): steps, findings, actions, the AI
                         // assistant, escalations and closing. Managers read everything and may change priority and
@@ -70,6 +74,8 @@ public class SecurityConfiguration {
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(rolesFromTokenClaim()))
                         .authenticationEntryPoint(unauthenticated)
                         .accessDeniedHandler(forbidden))
+                // Flow F30: with a temporary password, only /users/me and /users/me/password (after the token check).
+                .addFilterAfter(new PasswordChangeFilter(resolver), BearerTokenAuthenticationFilter.class)
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint(unauthenticated)
                         .accessDeniedHandler(forbidden));

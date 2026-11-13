@@ -104,6 +104,12 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.FORBIDDEN, "Your role is not allowed to do this", request, List.of());
     }
 
+    // 403 with its own message: the person must set a new password first (Flow F30).
+    @ExceptionHandler(PasswordChangeRequiredException.class)
+    ResponseEntity<ApiError> passwordChangeRequired(PasswordChangeRequiredException e, HttpServletRequest request) {
+        return build(HttpStatus.FORBIDDEN, e.getMessage(), request, List.of());
+    }
+
     @ExceptionHandler(NotFoundException.class)
     ResponseEntity<ApiError> notFound(NotFoundException e, HttpServletRequest request) {
         return build(HttpStatus.NOT_FOUND, e.getMessage(), request, List.of());
