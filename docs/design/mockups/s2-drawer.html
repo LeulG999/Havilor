@@ -1,0 +1,150 @@
+<!doctype html><html><head><meta charset="utf-8"><style>@font-face{font-family:'Space Grotesk';font-weight:400;src:url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.1.0/files/space-grotesk-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-weight:500;src:url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.1.0/files/space-grotesk-latin-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-weight:600;src:url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.1.0/files/space-grotesk-latin-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-weight:700;src:url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.1.0/files/space-grotesk-latin-700-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-weight:400;src:url('https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.1.0/files/jetbrains-mono-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-weight:500;src:url('https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.1.0/files/jetbrains-mono-latin-500-normal.woff2') format('woff2');}
+:root{--bg:#0A1120;--side:#070C17;--surface:#101A2C;--surface2:#0D1626;--raise:#14213A;--border:#1C2940;--border2:#253553;
+--text:#E6EDF7;--muted:#8494AD;--faint:#5E6C84;--accent:#22D3EE;--accentSoft:rgba(34,211,238,.12);--accentText:#04202A;
+--crit:#F0525A;--high:#F97316;--med:#EAB308;--low:#38BDF8;--ok:#34D399;
+--display:'Space Grotesk',Inter,sans-serif;--body:Inter,sans-serif;--mono:'JetBrains Mono',monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:13.5px;display:flex;overflow:hidden;position:relative}
+.rail{width:64px;background:var(--side);display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:6px;border-right:1px solid var(--border)}
+.rail .logo{margin-bottom:14px}
+.rail a{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:var(--faint)}
+.rail a.on{background:var(--accentSoft);color:var(--accent);box-shadow:inset 0 0 0 1px rgba(34,211,238,.35)}
+.rail svg{width:18px;height:18px}
+.rail .bottom{margin-top:auto}
+.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#1E3A5F,#0E7490);color:#DFF7FC;display:grid;place-items:center;font-weight:600;font-size:11px;flex:none}
+.wrap{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 24px}
+.crumb{color:var(--muted);font-size:13px}.crumb b{color:var(--text);font-weight:500}
+.search{margin-left:auto;width:340px;height:34px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);color:var(--faint);display:flex;align-items:center;padding:0 12px;gap:8px;font-size:12.5px}
+.search kbd{margin-left:auto;font-family:var(--mono);font-size:10.5px;border:1px solid var(--border2);border-radius:4px;padding:1px 5px;color:var(--muted)}
+.bell{width:34px;height:34px;border-radius:9px;border:1px solid var(--border);display:grid;place-items:center;color:var(--muted);position:relative}
+.bell i{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--crit)}
+main{padding:22px 24px;display:flex;flex-direction:column;gap:16px;min-height:0;flex:1}
+h1{font-family:var(--display);font-weight:600;font-size:24px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);margin-top:3px}
+.sub b{color:var(--text);font-weight:500}
+.row{display:flex;align-items:center;gap:10px}
+.seg{display:flex;border:1px solid var(--border);border-radius:9px;overflow:hidden;background:var(--surface2)}
+.seg span{padding:7px 12px;font-size:12px;font-weight:500;color:var(--muted);border-right:1px solid var(--border);display:flex;gap:6px;align-items:center}
+.seg span:last-child{border:0}
+.seg span.on{background:var(--raise);color:var(--text);box-shadow:inset 0 -2px 0 var(--accent)}
+.seg em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.toggle{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;margin-left:auto}
+.sw{width:30px;height:17px;border-radius:9px;background:var(--border2);position:relative}.sw::after{content:"";position:absolute;width:13px;height:13px;border-radius:50%;background:#9FB0C8;top:2px;left:2px}
+.btn{height:34px;padding:0 14px;border-radius:9px;border:1px solid var(--border2);background:var(--surface);color:var(--text);font-weight:500;font-size:12.5px;display:inline-flex;align-items:center;gap:7px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accentText);font-weight:600}
+.btn.danger{border-color:rgba(240,82,90,.5);color:#FF8A90}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px}
+table{width:100%;border-collapse:collapse}
+th{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:500;text-align:left;padding:11px 10px;border-bottom:1px solid var(--border)}
+td{padding:11px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+tr.hl td{background:var(--raise)}
+.mono{font-family:var(--mono);font-size:12px}
+.muted{color:var(--muted)}.faint{color:var(--faint)}
+.chev{color:var(--faint);width:18px}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;padding:2px 7px;border-radius:4px;border:1px solid;font-weight:500}
+.tag.crit{color:var(--crit);border-color:rgba(240,82,90,.45);background:rgba(240,82,90,.08)}
+.tag.high{color:var(--high);border-color:rgba(249,115,22,.45);background:rgba(249,115,22,.08)}
+.tag.med{color:var(--med);border-color:rgba(234,179,8,.45);background:rgba(234,179,8,.07)}
+.tag.low{color:var(--low);border-color:rgba(56,189,248,.45);background:rgba(56,189,248,.07)}
+.st{font-size:11.5px;padding:3px 9px;border-radius:999px;border:1px solid var(--border2);color:var(--muted);font-weight:500;display:inline-flex;gap:6px;align-items:center}
+.st.inv{color:var(--accent);border-color:rgba(34,211,238,.45);background:var(--accentSoft)}
+.st.esc{color:var(--high);border-color:rgba(249,115,22,.45)}
+.st.new{color:var(--text)}
+.fx{display:flex;gap:4px}
+.fx span{font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--muted)}
+.fx span.r{color:#FF8A90;border-color:rgba(240,82,90,.35)}
+.who{display:flex;align-items:center;gap:7px}.who .av{width:22px;height:22px;font-size:9px}
+.exp td{background:var(--surface2);padding:14px 18px 16px 40px}
+.kv{display:grid;grid-template-columns:repeat(5,auto);gap:22px;justify-content:start}
+.kv div span{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:5px}
+.auth{display:flex;gap:5px}.auth b{font-family:var(--mono);font-size:10.5px;font-weight:500;padding:2px 6px;border-radius:4px}
+.auth .f{color:#FF8A90;background:rgba(240,82,90,.1)}.auth .p{color:var(--ok);background:rgba(52,211,153,.1)}.auth .n{color:var(--muted);background:var(--raise)}
+.link{color:var(--accent);font-weight:500}
+/* drawer */
+.scrim{position:absolute;inset:0;background:rgba(3,7,15,.55)}
+.drawer{position:absolute;top:0;right:0;bottom:0;width:500px;background:var(--surface);border-left:1px solid var(--border2);box-shadow:-30px 0 60px rgba(0,0,0,.45);padding:20px 22px;display:flex;flex-direction:column;gap:14px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:12px;align-items:center}
+.meta .sep{width:1px;height:12px;background:var(--border2)}
+.cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pick{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface2)}
+.pick span{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.pick b{font-weight:500;display:flex;justify-content:space-between;align-items:center;color:var(--text)}
+.pick b.acc{color:var(--accent)}
+.pick small{display:block;margin-top:5px;color:var(--muted);font-size:11px}
+.tabs{display:flex;gap:18px;border-bottom:1px solid var(--border);font-size:13px}
+.tabs span{padding:0 0 10px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.tabs span em{font-style:normal;font-family:var(--mono);font-size:10.5px;background:var(--raise);padding:1px 6px;border-radius:999px;color:var(--muted)}
+.tabs span.on{color:var(--text);box-shadow:inset 0 -2px 0 var(--accent)}
+/* AI card */
+.ai{border:1px solid rgba(34,211,238,.35);border-radius:12px;background:linear-gradient(180deg,rgba(34,211,238,.07),rgba(34,211,238,0) 120px),var(--surface)}
+.ai .hd{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)}
+.ai .hd .t{font-family:var(--display);font-weight:600;font-size:14px;display:flex;gap:8px;align-items:center}
+.verdict{font-family:var(--mono);font-size:11px;letter-spacing:.06em;padding:4px 9px;border-radius:6px;color:#fff;background:var(--crit);font-weight:500}
+.conf{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px;margin-left:auto}
+.conf i{width:9px;height:14px;border-radius:2px;background:var(--accent);display:inline-block}.conf i.off{background:var(--border2)}
+.ai .one{padding:12px 16px 4px;font-size:14px;line-height:1.5}
+.ai h4{margin:0;padding:12px 16px 6px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);font-weight:500}
+.ev{list-style:none;margin:0;padding:0 16px}
+.ev li{display:flex;gap:10px;align-items:flex-start;padding:5px 0;line-height:1.45}
+.ev li .dot{margin-top:6px;flex:none}
+.steps{list-style:none;margin:0;padding:0 16px}
+.steps li{display:flex;gap:10px;align-items:center;padding:5px 0}
+.box{width:15px;height:15px;border:1.5px solid var(--border2);border-radius:4px;flex:none}
+.ai .ft{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--border);margin-top:10px;color:var(--muted);font-size:12px}
+.thumbs{margin-left:auto;display:flex;gap:6px;align-items:center}
+.thumbs b{width:28px;height:26px;border:1px solid var(--border2);border-radius:7px;display:grid;place-items:center;font-weight:400}
+/* timeline */
+.tl{list-style:none;margin:0;padding:4px 16px 14px}
+.tl li{display:grid;grid-template-columns:28px 1fr auto;gap:10px;padding:9px 0;position:relative}
+.tl li::before{content:"";position:absolute;left:13px;top:34px;bottom:-9px;width:1px;background:var(--border2)}
+.tl li:last-child::before{display:none}
+.ic{width:28px;height:28px;border-radius:50%;border:1px solid var(--border2);background:var(--surface2);display:grid;place-items:center;color:var(--accent)}
+.ic svg{width:13px;height:13px}
+.tl b{font-weight:500;display:block}.tl small{color:var(--faint);font-size:11.5px}
+.sec{border:1px solid var(--border);border-radius:12px;background:var(--surface)}
+.sec .hd{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border)}
+.sec .hd b{font-family:var(--display);font-weight:600;font-size:14px}
+.sec .hd span{color:var(--muted);font-size:12px}
+.props{display:grid;grid-template-columns:160px 1fr;gap:10px 16px;padding:14px 16px}
+.props dt{color:var(--muted)}.props dd{margin:0}
+body{width:1440px;height:860px}</style></head><body><nav class="rail"><svg class="logo" width="30" height="30" viewBox="0 0 26 26"><path d="M13 2 L23 7.5 L23 18.5 L13 24 L3 18.5 L3 7.5 Z" fill="none" stroke="#22D3EE" stroke-width="2"/><circle cx="13" cy="13" r="3.5" fill="#22D3EE"/></svg><a class=""><svg viewBox="0 0 18 18"><rect x="2" y="2" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="10" y="2" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"/><rect x="2" y="10" width="6" height="6" rx="1.5" fill="currentColor" opacity=".55"/><rect x="10" y="10" width="6" height="6" rx="1.5" fill="currentColor"/></svg></a><a class="on"><svg viewBox="0 0 18 18"><path d="M3 4.5h12M3 9h12M3 13.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a><a class=""><svg viewBox="0 0 18 18"><path d="M9 3v12M3 9h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></a><a class=""><svg viewBox="0 0 18 18"><rect x="3" y="2.5" width="12" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 7h6M6 10.5h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></a><a class="bottom"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9 1.8v2.4M9 13.8v2.4M1.8 9h2.4M13.8 9h2.4M3.9 3.9l1.7 1.7M12.4 12.4l1.7 1.7M3.9 14.1l1.7-1.7M12.4 5.6l1.7-1.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a><div class="av">DA</div></nav><div class="wrap"><div class="topbar"><div class="crumb">Alerts / <b>Queue</b></div><div class="search">⌕ Search tickets, senders, URLs…<kbd>/</kbd></div><div class="bell"><svg width="15" height="15" viewBox="0 0 14 14"><path d="M7 1.5a4 4 0 0 0-4 4v3l-1 1.5h10L11 8.5v-3a4 4 0 0 0-4-4zM5.5 12h3" fill="none" stroke="currentColor" stroke-width="1.3"/></svg><i></i></div></div><main><div class="row" style="align-items:flex-end"><div><h1>Alert queue</h1><div class="sub"><b>22</b> open · <b style="color:var(--crit)">5</b> critical · <b style="color:var(--high)">7</b> unassigned</div></div><div style="margin-left:auto;display:flex;gap:10px"><span class="btn">Export</span><span class="btn pri">+ New alert</span></div></div><div class="row"><div class="seg"><span class="on">All <em>22</em></span><span><i class="dot" style="background:var(--crit)"></i>Critical <em>5</em></span><span><i class="dot" style="background:var(--high)"></i>High <em>8</em></span><span><i class="dot" style="background:var(--med)"></i>Medium <em>6</em></span><span><i class="dot" style="background:var(--low)"></i>Low <em>3</em></span></div><div class="seg"><span class="on">Open</span><span>New</span><span>Investigating</span><span>Escalated</span><span>Closed</span></div><div class="toggle">Assigned to me <div class="sw"></div></div></div><div class="panel"><table><tr><th></th><th>Priority</th><th>Ticket</th><th>Subject</th><th>Sender</th><th>Signals</th><th>Assignee</th><th>Status</th><th style="text-align:right">Received</th></tr><tr><td class="chev">›</td><td><span class="tag crit">CRITICAL</span></td><td class="mono">INC-GEN-7218</td><td style="width:100%;font-weight:500">Shared document: Q4 bonus plan</td><td class="mono muted">no-reply@docs-share.example.org</td><td><div class="fx"><span class="r">URL</span><span class="r">FILE</span><span class="r">CLICK</span></div></td><td><div class="who"><div class="av">DA</div>Dana A.</div></td><td><span class="st inv">Investigating</span></td><td class="mono muted" style="text-align:right">10:07</td></tr><tr><td class="chev">›</td><td><span class="tag crit">CRITICAL</span></td><td class="mono">INC-GEN-7051</td><td style="width:100%;font-weight:500">Action required: verify your account</td><td class="mono muted">security@acc0unt-verify.example.net</td><td><div class="fx"><span class="r">URL</span><span class="r">SPF</span></div></td><td><div class="who"><div class="av">DA</div>Dana A.</div></td><td><span class="st esc">Escalated</span></td><td class="mono muted" style="text-align:right">Nov 10</td></tr><tr><td class="chev">›</td><td><span class="tag high">HIGH</span></td><td class="mono">INC-GEN-b9bb</td><td style="width:100%;font-weight:500">Your mailbox is almost full</td><td class="mono muted">it-support@mailbox-quota.example.com</td><td><div class="fx"><span class="r">URL</span><span class="r">DMARC</span></div></td><td><span class="faint">Unassigned</span></td><td><span class="st new">New</span></td><td class="mono muted" style="text-align:right">01:20</td></tr><tr><td class="chev">›</td><td><span class="tag med">MEDIUM</span></td><td class="mono">INC-GEN-30cb</td><td style="width:100%;font-weight:500">Unusual sign-in activity detected</td><td class="mono muted">alerts@signin-review.example.net</td><td><div class="fx"><span class="">DKIM</span></div></td><td><span class="faint">Unassigned</span></td><td><span class="st new">New</span></td><td class="mono muted" style="text-align:right">Nov 10</td></tr><tr><td class="chev">›</td><td><span class="tag high">HIGH</span></td><td class="mono">INC-GEN-1d3c</td><td style="width:100%;font-weight:500">DocuSign: please review and sign</td><td class="mono muted">dse@docusign-review.example.org</td><td><div class="fx"><span class="r">FILE</span></div></td><td><div class="who"><div class="av">MR</div>Marco R.</div></td><td><span class="st inv">Investigating</span></td><td class="mono muted" style="text-align:right">Nov 9</td></tr><tr><td class="chev">›</td><td><span class="tag low">LOW</span></td><td class="mono">INC-GEN-6eb5</td><td style="width:100%;font-weight:500">Your password expires today</td><td class="mono muted">helpdesk@corp-it.example.com</td><td><div class="fx"><span class="faint" style="border:0;background:none">—</span></div></td><td><span class="faint">Unassigned</span></td><td><span class="st new">New</span></td><td class="mono muted" style="text-align:right">Nov 9</td></tr><tr><td class="chev">›</td><td><span class="tag med">MEDIUM</span></td><td class="mono">INC-GEN-3b06</td><td style="width:100%;font-weight:500">Voicemail received (0:7387)</td><td class="mono muted">voicemail@vm-notify.example.net</td><td><div class="fx"><span class="">URL</span></div></td><td><div class="who"><div class="av">DA</div>Dana A.</div></td><td><span class="st inv">Investigating</span></td><td class="mono muted" style="text-align:right">Nov 8</td></tr><tr><td class="chev">›</td><td><span class="tag high">HIGH</span></td><td class="mono">INC-GEN-f7c7</td><td style="width:100%;font-weight:500">Payment confirmation #2453</td><td class="mono muted">billing@pay-confirm.example.com</td><td><div class="fx"><span class="r">FILE</span><span class="r">URL</span></div></td><td><span class="faint">Unassigned</span></td><td><span class="st new">New</span></td><td class="mono muted" style="text-align:right">Nov 2</td></tr></table></div></main></div><div class="scrim"></div>
+<aside class="drawer">
+  <div class="row"><span class="mono muted">INC-GEN-7218</span><span style="margin-left:auto" class="btn">Open full page ↗</span><span class="btn">✕</span></div>
+  <div><h1 style="font-size:21px">Shared document: Q4 bonus plan</h1>
+    <div class="meta" style="margin-top:8px"><span class="st inv">Investigating</span><span class="tag crit">CRITICAL</span><span class="sep"></span><span>Phishing</span><span class="sep"></span><span class="mono">Nov 11, 10:07</span></div></div>
+  <div class="cards3">
+    <div class="pick"><span>Status</span><b class="acc">Investigating ▾</b></div>
+    <div class="pick"><span>Assigned to</span><b>Dana Analyst ▾</b></div>
+    <div class="pick"><span>Verdict</span><b>Undecided ▾</b><small>AI suggests <span style="color:#FF8A90">Malicious</span></small></div>
+  </div>
+  <div class="tabs"><span class="on">Overview</span><span>Steps <em>3/8</em></span><span>Evidence <em>4</em></span><span>Actions <em>1</em></span><span>History <em>7</em></span></div>
+  
+<div class="ai">
+  <div class="hd"><span class="t"><span style="color:var(--accent)">✦</span> AI assessment</span><span class="verdict">MALICIOUS</span>
+    <span class="conf">Confidence <i></i><i></i><i></i> High</span></div>
+  <div class="one">Credential-phishing lure with a malicious attachment. One user clicked the bad link and it was allowed.</div>
+  <h4>Key evidence</h4>
+  <ul class="ev">
+    <li><i class="dot" style="background:var(--crit)"></i><span>Link <span class="mono">docs-share.example.org/verify</span> is on a bad list</span></li>
+    <li><i class="dot" style="background:var(--crit)"></i><span>Attachment <span class="mono">meeting_notes_1130.txt</span> judged malicious</span></li>
+    <li><i class="dot" style="background:var(--crit)"></i><span>jordan0 clicked the link 2 minutes after delivery (allowed)</span></li>
+    <li><i class="dot" style="background:var(--high)"></i><span>DKIM failed and SPF returned none</span></li>
+  </ul>
+  <h4>Next steps</h4>
+  <ul class="steps">
+    <li><i class="box"></i>Reset jordan0's password and review recent sign-ins</li>
+    <li><i class="box"></i>Purge the email from all mailboxes</li>
+    <li><i class="box"></i>Block docs-share.example.org at the proxy</li>
+  </ul>
+  <div class="ft"><span>Would change my mind if the bad-list entry is stale</span>
+    <span class="thumbs">Useful? <b>👍</b><b>👎</b></span></div>
+</div>
+  <div class="row"><span class="btn">Escalate</span><span class="btn danger">Close alert</span></div>
+</aside></body></html>

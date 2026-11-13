@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset="utf-8"><style>@font-face{font-family:'Space Grotesk';font-weight:400;src:url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.1.0/files/space-grotesk-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-weight:500;src:url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.1.0/files/space-grotesk-latin-500-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-weight:600;src:url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.1.0/files/space-grotesk-latin-600-normal.woff2') format('woff2');}
+@font-face{font-family:'Space Grotesk';font-weight:700;src:url('https://cdn.jsdelivr.net/npm/@fontsource/space-grotesk@5.1.0/files/space-grotesk-latin-700-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-weight:400;src:url('https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.1.0/files/jetbrains-mono-latin-400-normal.woff2') format('woff2');}
+@font-face{font-family:'JetBrains Mono';font-weight:500;src:url('https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.1.0/files/jetbrains-mono-latin-500-normal.woff2') format('woff2');}
+*{box-sizing:border-box}
+body{margin:0;width:1440px;height:880px;display:grid;grid-template-columns:1.15fr 1fr;font-family:Inter,sans-serif;background:#070C17;color:#E6EDF7;overflow:hidden}
+.brand{position:relative;padding:48px 64px;display:flex;flex-direction:column;overflow:hidden;
+ background:radial-gradient(900px 600px at 15% 110%,rgba(34,211,238,.16),transparent 60%),radial-gradient(700px 500px at 110% -10%,rgba(8,145,178,.18),transparent 60%),#070C17}
+.brand canvas,.brand svg.bg{position:absolute;inset:0;width:100%;height:100%}
+.lock{display:flex;align-items:center;gap:14px;position:relative} .lock span{width:44px;height:44px} .lock b{font-family:'Space Grotesk';font-weight:600;letter-spacing:.24em;font-size:20px}
+.copy{position:relative;margin-top:auto;margin-bottom:auto;max-width:520px}
+.eyebrow{font-family:'JetBrains Mono';font-size:12px;letter-spacing:.14em;color:#22D3EE;text-transform:uppercase}
+h1{font-family:'Space Grotesk';font-weight:600;font-size:44px;line-height:1.08;letter-spacing:-.02em;margin:14px 0 18px}
+h1 em{font-style:normal;color:#22D3EE}
+.copy p{color:#9FB0C8;font-size:16px;line-height:1.6;margin:0 0 30px}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px}
+li{display:flex;gap:14px} li b{display:block;font-weight:600;margin-bottom:2px} li span{color:#8494AD;font-size:14px;line-height:1.5}
+.tick{width:28px;height:28px;border-radius:8px;border:1px solid rgba(34,211,238,.35);background:rgba(34,211,238,.08);display:grid;place-items:center;flex:none}
+.tick svg{width:14px;height:14px}
+.foot{position:relative;color:#5E6C84;font-size:12.5px;display:flex;gap:18px}
+.side{background:#0A1120;border-left:1px solid #1C2940;display:grid;place-items:center;padding:40px}
+.card{width:400px}
+.card h2{font-family:'Space Grotesk';font-weight:600;font-size:26px;margin:0 0 6px}
+.card .sub{color:#8494AD;margin:0 0 28px}
+label{display:block;font-size:13px;font-weight:500;color:#B8C4D6;margin:0 0 7px}
+.in{height:44px;border:1px solid #253553;background:#0D1626;border-radius:10px;padding:0 14px;display:flex;align-items:center;color:#E6EDF7;margin-bottom:18px;font-size:14px}
+.in.focus{border-color:#22D3EE;box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+.in .ph{color:#5E6C84} .in .eye{margin-left:auto;color:#5E6C84;font-size:12px}
+.btn{height:46px;border-radius:10px;background:#22D3EE;color:#04202A;font-weight:600;display:grid;place-items:center;font-size:15px;margin-top:6px}
+.note{margin-top:22px;padding:12px 14px;border:1px solid #1C2940;border-radius:10px;color:#8494AD;font-size:12.5px;line-height:1.5;display:flex;gap:10px}
+.note b{color:#B8C4D6;font-weight:500}
+.ver{margin-top:26px;color:#5E6C84;font-size:12px;font-family:'JetBrains Mono'}
+.side{background:#FFFFFF;display:grid;place-items:center;padding:40px}
+.card h2{color:#0B1220} .card .sub{color:#5B6B82}
+label{color:#334155 !important}
+.in{border:1px solid #D5DDE8 !important;background:#F8FAFC !important;color:#0F172A !important}
+.in.focus{border-color:#0891B2 !important;box-shadow:0 0 0 3px rgba(8,145,178,.15) !important}
+.in .ph,.in .eye{color:#94A3B8 !important}
+.btn{background:#0A1120 !important;color:#FFFFFF !important}
+.note{border-color:#E2E8F0 !important;color:#64748B !important;background:#F8FAFC}
+.note b{color:#334155 !important}
+.ver{color:#94A3B8 !important}
+</style></head><body>
+<section class="brand">
+<svg class="bg" viewBox="0 0 800 880" preserveAspectRatio="xMidYMid slice"><defs><pattern id="h" width="56" height="48.5" patternUnits="userSpaceOnUse" patternTransform="translate(0 0)">
+<path d="M14 0 L42 0 L56 24.25 L42 48.5 L14 48.5 L0 24.25 Z" fill="none" stroke="rgba(34,211,238,.06)" stroke-width="1"/></pattern>
+<radialGradient id="fade" cx=".75" cy=".45" r=".6"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<mask id="m"><rect width="800" height="880" fill="url(#fade)"/></mask></defs>
+<rect width="800" height="880" fill="url(#h)" mask="url(#m)"/>
+<g fill="none" stroke="rgba(34,211,238,.18)"><circle cx="620" cy="380" r="120"/><circle cx="620" cy="380" r="200" stroke-opacity=".6"/><circle cx="620" cy="380" r="290" stroke-opacity=".35"/></g>
+<path d="M620 380 L620 90 A290 290 0 0 1 870 235 Z" fill="rgba(34,211,238,.05)"/>
+<circle cx="700" cy="300" r="4" fill="#22D3EE"/><circle cx="700" cy="300" r="10" fill="none" stroke="#22D3EE" stroke-opacity=".4"/>
+<circle cx="540" cy="470" r="3" fill="#F0525A"/><circle cx="540" cy="470" r="9" fill="none" stroke="#F0525A" stroke-opacity=".35"/>
+</svg>
+<div class="lock"><span><svg viewBox="0 0 48 48"><path d="M24 3 L42.2 13.5 L42.2 34.5 L24 45 L5.8 34.5 L5.8 13.5 Z" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/><path d="M17 15.5 V32.5 M31 15.5 V32.5" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round"/><path d="M17 24 H31" stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" opacity=".5"/><circle cx="24" cy="24" r="3.6" fill="#22D3EE"/><circle cx="24" cy="24" r="6.6" fill="none" stroke="#22D3EE" stroke-width="1.2" opacity=".5"/></svg></span><b>HAVILOR</b></div>
+<div class="copy"><div class="eyebrow">Phishing investigation · SOC</div>
+<h1>Investigate faster.<br><em>Learn</em> as you go.</h1>
+<p>Havilor guides each phishing case from first signal to final verdict, and explains every step along the way.</p>
+<ul><li><span class="tick"><svg viewBox="0 0 14 14"><path d="M3 7.5l2.5 2.5L11 4" fill="none" stroke="#22D3EE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Guided playbooks</b><span>Every phishing case follows the same checks, and each step explains why it matters.</span></div></li><li><span class="tick"><svg viewBox="0 0 14 14"><path d="M3 7.5l2.5 2.5L11 4" fill="none" stroke="#22D3EE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>AI that explains itself</b><span>A suggested verdict with the evidence behind it. You make the call.</span></div></li><li><span class="tick"><svg viewBox="0 0 14 14"><path d="M3 7.5l2.5 2.5L11 4" fill="none" stroke="#22D3EE" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>Every action on the record</b><span>Each change is written to an audit trail your team can trust.</span></div></li></ul></div>
+<div class="foot"><span>© 2026 Havilor</span><span>Privacy</span><span>Terms</span></div>
+</section>
+<section class="side"><div class="card">
+<h2>Sign in</h2><p class="sub">Welcome back. Use your Havilor work account.</p>
+<label>Email</label><div class="in focus">analyst@havilor.example.com</div>
+<label>Password</label><div class="in"><span class="ph">••••••••••••</span><span class="eye">Show</span></div>
+<div class="btn">Sign in</div>
+<div class="note"><span style="color:#22D3EE">ⓘ</span><span><b>Accounts are created by your admin.</b> Ask your SOC lead if you can't sign in.</span></div>
+<div class="ver">v0.9 · local</div>
+</div></section></body></html>
