@@ -40,6 +40,10 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Fix batch (escalation rules) ✅
+
+- [x] F31. One escalation at a time, no closing while escalated; one shared UI rule for what can be done with an alert
+
 ## Batch F9 (accounts) ✅
 
 - [x] F30. Account management: managers add people (temporary password, shown once), deactivate, change roles; first-login password; change password
