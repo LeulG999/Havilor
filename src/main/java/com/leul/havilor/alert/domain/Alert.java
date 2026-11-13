@@ -78,6 +78,10 @@ public class Alert {
     @Column(name = "suggestion_reason", columnDefinition = "TEXT")
     private String suggestionReason;
 
+    // The whole last AI assessment as JSON text (Flow F27); shown again on the detail page.
+    @Column(name = "last_assessment", columnDefinition = "TEXT")
+    private String lastAssessment;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private Verdict verdict;
@@ -203,10 +207,11 @@ public class Alert {
     }
 
     // The AI assistant's suggestion (Flow 18). Only a suggestion: `verdict` is still set by close().
-    public void recordSuggestion(Verdict suggested, String reason) {
+    public void recordSuggestion(Verdict suggested, String reason, String assessmentJson) {
         ensureOpen();
         this.suggestedVerdict = suggested;
         this.suggestionReason = reason;
+        this.lastAssessment = assessmentJson;
     }
 
     // Handed to another team (escalation module). An escalated alert can be escalated again.

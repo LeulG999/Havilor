@@ -1,5 +1,6 @@
 package com.leul.havilor.alert.api.response;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.domain.ClickEvent;
 import com.leul.havilor.alert.domain.enums.AlertStatus;
@@ -22,6 +23,8 @@ public record AlertDetailResponse(
         Verdict verdict,
         Verdict suggestedVerdict,
         String suggestionReason,
+        // The last AI assessment, sent as the JSON object it was saved as (not as a string). null = never assessed.
+        @JsonRawValue String lastAssessment,
         Long assigneeId,
         String assigneeName,
         String waitingOn,
@@ -54,6 +57,7 @@ public record AlertDetailResponse(
                 alert.getVerdict(),
                 alert.getSuggestedVerdict(),
                 alert.getSuggestionReason(),
+                alert.getLastAssessment(),
                 alert.getAssigneeId(),
                 assigneeName,
                 alert.getWaitingOn(),

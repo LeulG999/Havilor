@@ -186,10 +186,10 @@ public class AlertService {
 
     // Saves the AI assistant's suggested verdict (AlertAiService). 404 / 409 like every change.
     @Transactional
-    public void recordSuggestion(Long id, Verdict suggested, String reason, Long actorId) {
+    public void recordSuggestion(Long id, Verdict suggested, String reason, String assessmentJson, Long actorId) {
         Alert alert = load(id);
         String before = "suggestedVerdict=" + alert.getSuggestedVerdict();
-        alert.recordSuggestion(suggested, reason);
+        alert.recordSuggestion(suggested, reason, assessmentJson);
         auditService.record(actorId, "AI_SUGGESTION", AuditService.ALERT, id, before,
                 "suggestedVerdict=" + suggested + ", reason=" + reason);
     }

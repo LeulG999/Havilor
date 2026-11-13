@@ -94,7 +94,7 @@ public class AlertAiService {
                 Map.of("alert", alert, "findings", findings, "referenceKnowledge", knowledge));
 
         AiAssessment answer = aiClient.structured(ASSESS_INSTRUCTIONS, AiInput.text(caseJson), AiAssessment.class);
-        alertService.recordSuggestion(alertId, answer.suggestedVerdict(), answer.suggestionReason(), actorId);
+        alertService.recordSuggestion(alertId, answer.suggestedVerdict(), answer.suggestionReason(), null, actorId);
         return new AiAssessmentResponse(answer.summary(), answer.suggestedVerdict(), answer.suggestionReason(),
                 knowledge.stream().map(k -> new AiAssessmentResponse.Reference(k.sourceType(), k.sourceId())).toList());
     }
