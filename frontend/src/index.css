@@ -1951,3 +1951,201 @@ input[type='file']::file-selector-button {
   font-size: 11.5px;
   overflow-wrap: anywhere;
 }
+
+/* ---------- New alert, step 1 (components/ExtractStep.tsx, SourceCards.tsx, DropZone.tsx) ---------- */
+.intake-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+}
+
+.intake-body label {
+  margin: 0;
+}
+
+.intake-body textarea {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+/* Four source cards side by side (two on narrow screens). */
+.source-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 1000px) {
+  .source-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.source-card {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface2);
+}
+
+/* The best source gets the accent border. */
+.source-card.best {
+  border-color: rgba(34, 211, 238, 0.45);
+  background: linear-gradient(180deg, rgba(34, 211, 238, 0.06), rgba(34, 211, 238, 0) 80px), var(--surface2);
+}
+
+.source-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.source-head b {
+  font-weight: 500;
+}
+
+.best-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--accent-text);
+  background: var(--accent);
+}
+
+/* Quality: three dots, cyan up to the level. */
+.quality {
+  margin-left: auto;
+  display: flex;
+  gap: 3px;
+}
+
+.quality i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border2);
+}
+
+.quality i.on {
+  background: var(--accent);
+}
+
+.source-card p {
+  margin: 8px 0 6px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.source-card summary {
+  color: var(--accent);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.how {
+  margin: 6px 0 0;
+  padding-left: 16px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+/* The drop zone: dashed border, cyan while a file is dragged over it. */
+.drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 22px;
+  border: 1.5px dashed var(--border2);
+  border-radius: var(--radius);
+  background: var(--surface2);
+  cursor: pointer;
+  text-align: center;
+}
+
+.drop-zone:hover,
+.drop-zone:focus-visible,
+.drop-zone.dragging {
+  outline: none;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.drop-zone b {
+  font-weight: 500;
+}
+
+.drop-zone .muted {
+  font-size: 12px;
+}
+
+.file-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.file-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.file-list li .faint {
+  margin-left: auto;
+  font-size: 12px;
+}
+
+.checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.checklist-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 6px;
+  color: var(--high);
+  border: 1px solid rgba(249, 115, 22, 0.45);
+}
+
+.checklist-label.helpful {
+  color: var(--accent);
+  border-color: rgba(34, 211, 238, 0.45);
+}
+
+/* ---------- New alert, step 2: what's missing (components/MissingHints.tsx) ---------- */
+.missing {
+  margin-bottom: 16px;
+  border-color: rgba(234, 179, 8, 0.4);
+}
+
+.missing.complete {
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+.missing-list {
+  margin: 0;
+  padding: 12px 16px 14px 34px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.intake-body > button[type='submit'] {
+  align-self: flex-start;
+}
