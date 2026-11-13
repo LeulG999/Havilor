@@ -682,3 +682,19 @@ button.link {
   background: none;
   color: var(--muted);
 }
+
+/* The AI assessment card (components/AssessmentCard.tsx). */
+.assessment-card {
+  margin-top: 12px;
+}
+
+.assessment-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1rem;
+}
+
+.level-high { background: #fde2e2; color: var(--danger); }
+.level-medium { background: #ffedd5; color: #9a3412; }
+.level-low { background: #e0f2fe; color: #075985; }

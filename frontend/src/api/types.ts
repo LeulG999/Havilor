@@ -47,6 +47,7 @@ export type AlertDetail = {
   assigneeName: string | null; // the assignee's name, from the backend (null = unassigned)
   suggestedVerdict: string | null;
   suggestionReason: string | null;
+  lastAssessment: AiAssessment | null; // the last AI assessment, saved on the alert (null = never assessed)
   receivedAt: string;
   closedAt: string | null;
   email: EmailDetails;
@@ -106,9 +107,12 @@ export type Action = {
 
 // POST /api/v1/alerts/{id}/ai/assessment
 export type AiAssessment = {
-  summary: string;
   suggestedVerdict: string;
-  suggestionReason: string;
+  confidence: 'LOW' | 'MEDIUM' | 'HIGH';
+  oneLineSummary: string;
+  keyEvidence: { text: string; severity: 'LOW' | 'MEDIUM' | 'HIGH' }[]; // at most 6, most important first
+  nextSteps: string[]; // at most 5
+  wouldChangeMyMindIf: string;
   // The knowledge Claude was given: a past closed alert (sourceId = alert id) or a playbook step (step id).
   references: { sourceType: 'CLOSED_ALERT' | 'PLAYBOOK_STEP'; sourceId: number }[];
 };

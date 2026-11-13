@@ -8,6 +8,7 @@ import AddFindingButton from '../components/AddFindingButton';
 import AiAssessmentPanel from '../components/AiAssessmentPanel';
 import AlertChildrenSection from '../components/AlertChildrenSection';
 import AlertHeader from '../components/AlertHeader';
+import AssessmentCard from '../components/AssessmentCard';
 import DraftEmailButton from '../components/DraftEmailButton';
 import EscalationList from '../components/EscalationList';
 import EmailDetailsSection from '../components/EmailDetailsSection';
@@ -102,15 +103,16 @@ export default function AlertDetailPage() {
           {tab === 'AI' && (canWork ? (
             <>
               {/* key: a new alert (e.g. after clicking a reference) starts with an empty panel */}
-              <AiAssessmentPanel key={alert.id} alertId={alert.id} onChanged={load} />
+              <AiAssessmentPanel key={alert.id} alertId={alert.id} saved={alert.lastAssessment} onChanged={load} />
               <p><DraftEmailButton alertId={alert.id} /></p>
             </>
           ) : (
             <section className="panel">
               <p className="muted">
                 {alertIsOpen ? 'The AI assistant is for the analyst working the alert.' : 'This alert is closed.'}
-                {' '}Its saved AI suggestion is on the Overview tab.
               </p>
+              {alert.lastAssessment ? <AssessmentCard assessment={alert.lastAssessment} />
+                : <p className="muted">No AI assessment was made.</p>}
             </section>
           ))}
           {tab === 'History' && <HistoryTimeline entries={history} me={me} />}
