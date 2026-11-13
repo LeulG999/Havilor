@@ -2215,3 +2215,15 @@ tr.inactive td {
   color: var(--med);
   font-size: 12.5px;
 }
+
+/* On the white first-login panel the main button is navy, like "Sign in". */
+.login-card .password-form button[type='submit'] {
+  width: 100%;
+  height: 46px;
+  justify-content: center;
+  border-radius: 10px;
+  border-color: var(--bg);
+  background: var(--bg);
+  color: #ffffff;
+  font-size: 15px;
+}
