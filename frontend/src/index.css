@@ -729,15 +729,145 @@ textarea.draft {
 }
 
 /* ---------- AI assessment card (components/AssessmentCard.tsx) ---------- */
-.assessment-card {
+/* Cyan border and a faint cyan glow at the top: the AI's voice in the app. */
+.ai-card {
   margin-top: 12px;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(34, 211, 238, 0.07), rgba(34, 211, 238, 0) 120px), var(--surface);
 }
 
-.assessment-head {
+.ai-card-head {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.1rem;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ai-card-title {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.ai-spark {
+  color: var(--accent);
+}
+
+.verdict {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--raise);
+}
+
+.verdict-malicious { color: #ffffff; background: var(--crit); }
+.verdict-benign { color: var(--accent-text); background: var(--ok); }
+.verdict-false_positive { color: var(--accent-text); background: var(--low); }
+
+/* Confidence meter: three small bars, cyan up to the level. */
+.confidence {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.confidence i {
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--border2);
+  display: inline-block;
+}
+
+.confidence i.on {
+  background: var(--accent);
+}
+
+.ai-card-one {
+  padding: 12px 16px 4px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ai-card h4 {
+  margin: 0;
+  padding: 12px 16px 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 500;
+}
+
+.ai-card-none {
+  margin: 0;
+  padding: 0 16px;
+  color: var(--muted);
+}
+
+.evidence,
+.next-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0 16px;
+}
+
+.evidence li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 5px 0;
+  line-height: 1.45;
+}
+
+.evidence .dot {
+  margin-top: 6px;
+}
+
+.level-dot-high { background: var(--crit); }
+.level-dot-medium { background: var(--high); }
+.level-dot-low { background: var(--low); }
+
+.next-steps li {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
+}
+
+/* An empty checkbox, drawn: the steps are suggestions to read, not a form. */
+.box {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  border: 1.5px solid var(--border2);
+  border-radius: 4px;
+}
+
+.ai-card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding: 12px 16px;
+  margin-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ai-card-refs {
+  margin-left: auto;
 }
 
 /* ---------- Login page (pages/LoginPage.tsx, components/LoginBrandPanel.tsx) ---------- */

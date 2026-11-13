@@ -1,42 +1,66 @@
 import { Link } from 'react-router';
 import type { AiAssessment } from '../api/types';
 
-// The AI assessment as a simple card (Flow F27; the full design comes later): the suggested verdict and how sure
-// the AI is, one line on what happened, the key evidence (most important first, each with how strongly it points to
-// a threat), what to do next, what would change its mind, and the reference knowledge it was given.
-export default function AssessmentCard({ assessment }: { assessment: AiAssessment }) {
-  return (
-    <div className="assessment-card">
-      <div className="assessment-head">
-        <strong>{assessment.suggestedVerdict}</strong>
-        <span className={`badge level-${assessment.confidence.toLowerCase()}`}>{assessment.confidence} confidence</span>
-      </div>
-      <p>{assessment.oneLineSummary}</p>
+const LEVELS = ['LOW', 'MEDIUM', 'HIGH'];
 
-      <h3>Key evidence</h3>
-      {assessment.keyEvidence.length === 0 ? <p className="muted">None given.</p> : (
-        <ul className="plain">
+// The AI assessment card (docs/design/mockups/s2-drawer.png): cyan border with a faint glow at the top, the
+// suggested verdict as a badge, a 3-step confidence meter, one line on what happened, the key evidence (a dot per
+// item, coloured by how strongly it points to a threat), the next steps as a checklist (display only), what would
+// change the AI's mind, and the reference knowledge it was given. A suggestion only: the analyst decides.
+export default function AssessmentCard({ assessment }: { assessment: AiAssessment }) {
+  const filled = LEVELS.indexOf(assessment.confidence) + 1; // LOW = 1 bar, MEDIUM = 2, HIGH = 3
+
+  return (
+    <div className="ai-card">
+      <div className="ai-card-head">
+        <span className="ai-card-title"><span className="ai-spark" aria-hidden="true">✦</span> AI assessment</span>
+        <span className={`verdict verdict-${assessment.suggestedVerdict.toLowerCase()}`}>
+          {assessment.suggestedVerdict.replace('_', ' ')}
+        </span>
+        <span className="confidence" aria-label={`Confidence: ${assessment.confidence}`}>
+          Confidence
+          {LEVELS.map((level, i) => <i key={level} className={i < filled ? 'on' : ''} aria-hidden="true" />)}
+          {assessment.confidence.charAt(0) + assessment.confidence.slice(1).toLowerCase()}
+        </span>
+      </div>
+
+      <p className="ai-card-one">{assessment.oneLineSummary}</p>
+
+      <h4>Key evidence</h4>
+      {assessment.keyEvidence.length === 0 ? <p className="ai-card-none">None given.</p> : (
+        <ul className="evidence">
           {assessment.keyEvidence.map((e, i) => (
-            <li key={i}><span className={`badge level-${e.severity.toLowerCase()}`}>{e.severity}</span> {e.text}</li>
+            <li key={i}>
+              <i className={`dot level-dot-${e.severity.toLowerCase()}`} aria-label={`${e.severity} severity`} />
+              <span>{e.text}</span>
+            </li>
           ))}
         </ul>
       )}
 
-      <h3>Next steps</h3>
-      {assessment.nextSteps.length === 0 ? <p className="muted">None given.</p> : (
-        <ol>{assessment.nextSteps.map((step, i) => <li key={i}>{step}</li>)}</ol>
+      <h4>Next steps</h4>
+      {assessment.nextSteps.length === 0 ? <p className="ai-card-none">None given.</p> : (
+        <ul className="next-steps">
+          {assessment.nextSteps.map((step, i) => <li key={i}><i className="box" aria-hidden="true" />{step}</li>)}
+        </ul>
       )}
 
-      <p className="muted">Would change my mind: {assessment.wouldChangeMyMindIf}</p>
-      {assessment.references.length > 0 && (
-        <p className="muted">
-          Compared with:{' '}
-          {assessment.references.map((r) => r.sourceType === 'CLOSED_ALERT'
-            ? <Link key={`a-${r.sourceId}`} to={`/alerts/${r.sourceId}`} className="mention">past alert #{r.sourceId}</Link>
-            : <span key={`s-${r.sourceId}`} className="mention">playbook step #{r.sourceId}</span>)}
-        </p>
-      )}
-      <p className="muted">A suggestion only: the verdict is yours when you close the alert.</p>
+      <div className="ai-card-foot">
+        <span>Would change my mind if {lowerFirst(assessment.wouldChangeMyMindIf)}</span>
+        {assessment.references.length > 0 && (
+          <span className="ai-card-refs">
+            Compared with:{' '}
+            {assessment.references.map((r) => r.sourceType === 'CLOSED_ALERT'
+              ? <Link key={`a-${r.sourceId}`} to={`/alerts/${r.sourceId}`} className="mention">alert #{r.sourceId}</Link>
+              : <span key={`s-${r.sourceId}`} className="mention">playbook step #{r.sourceId}</span>)}
+          </span>
+        )}
+      </div>
     </div>
   );
+}
+
+// "The vendor confirms…" → "the vendor confirms…", to read on after "Would change my mind if".
+function lowerFirst(text: string): string {
+  return text.charAt(0).toLowerCase() + text.slice(1);
 }
