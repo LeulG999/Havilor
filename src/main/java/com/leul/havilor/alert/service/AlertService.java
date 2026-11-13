@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,8 +114,10 @@ public class AlertService {
      * @Version: if another request commits between our read and our write, Hibernate's
      * "UPDATE ... WHERE version = ?" matches no row and throws (409, in GlobalExceptionHandler).
      */
+    // Assigning (Flow F25): an ANALYST may only assign the alert to herself (else 403); a MANAGER may assign it to
+    // any active ANALYST (else 400). Both roles may change the other fields.
     @Transactional
-    public AlertDetailResponse update(Long id, UpdateAlertRequest request, Long actorId) {
+    public AlertDetailResponse update(Long id, UpdateAlertRequest request, Long actorId, boolean actorIsManager) {
         Alert alert = load(id);
         alert.ensureOpen();
         String before = snapshot(alert);
@@ -123,9 +126,12 @@ public class AlertService {
             alert.changePriority(request.priority());
         }
         if (request.assigneeId() != null) {
-            // The assignee is a real user: asked through the user module's service, never its repository.
-            if (!userService.exists(request.assigneeId())) {
-                throw new BadRequestException("assigneeId", "no user with id " + request.assigneeId());
+            if (!actorIsManager && !request.assigneeId().equals(actorId)) {
+                throw new AccessDeniedException("Analysts can only assign alerts to themselves");
+            }
+            // The assignee is checked through the user module's service, never its repository.
+            if (actorIsManager && !userService.isActiveAnalyst(request.assigneeId())) {
+                throw new BadRequestException("assigneeId", "must be an active analyst");
             }
             alert.assignTo(request.assigneeId());
         }

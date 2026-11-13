@@ -29,6 +29,7 @@ import com.leul.havilor.playbook.service.PlaybookService;
 import com.leul.havilor.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.access.AccessDeniedException;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -210,10 +211,10 @@ class AlertServiceTest {
     void updateChangesOnlyTheFieldsThatWereSent() {
         Alert alert = withId(TestAlerts.alert(TICKET, "Fake", RECEIVED_AT), 11L);
         stubDetailLoad(alert);
-        when(userService.exists(7L)).thenReturn(true);
+        when(userService.isActiveAnalyst(7L)).thenReturn(true);
 
         AlertDetailResponse updated = alertService.update(11L,
-                new UpdateAlertRequest(null, 7L, null, null, null), 1L);
+                new UpdateAlertRequest(null, 7L, null, null, null), 1L, true); // a manager assigns analyst 7
 
         assertThat(updated.assigneeId()).isEqualTo(7L);
         assertThat(updated.status()).isEqualTo(AlertStatus.INVESTIGATING);
@@ -226,15 +227,28 @@ class AlertServiceTest {
     }
 
     @Test
-    void updateRefusesAnAssigneeWhoIsNotAUser() {
+    void aManagerCanOnlyAssignAnActiveAnalyst() {
         Alert alert = withId(TestAlerts.alert(TICKET, "Fake", RECEIVED_AT), 12L);
         when(alertRepository.findById(12L)).thenReturn(Optional.of(alert));
-        when(userService.exists(99L)).thenReturn(false);
+        when(userService.isActiveAnalyst(99L)).thenReturn(false); // unknown, inactive or a manager
 
-        assertThatThrownBy(() -> alertService.update(12L, new UpdateAlertRequest(null, 99L, null, null, null), 1L))
+        assertThatThrownBy(() -> alertService.update(12L, new UpdateAlertRequest(null, 99L, null, null, null), 1L, true))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("no user with id 99");
+                .hasMessage("must be an active analyst");
         assertThat(alert.getAssigneeId()).isNull();
+    }
+
+    @Test
+    void anAnalystCanOnlyAssignHerself() {
+        Alert alert = withId(TestAlerts.alert(TICKET, "Fake", RECEIVED_AT), 13L);
+        when(alertRepository.findById(13L)).thenReturn(Optional.of(alert));
+
+        assertThatThrownBy(() -> alertService.update(13L, new UpdateAlertRequest(null, 7L, null, null, null), 1L, false))
+                .isInstanceOf(AccessDeniedException.class);
+        assertThat(alert.getAssigneeId()).isNull();
+
+        alertService.update(13L, new UpdateAlertRequest(null, 1L, null, null, null), 1L, false);
+        assertThat(alert.getAssigneeId()).isEqualTo(1L);
     }
 
     private void stubDetailLoad(Alert alert) {

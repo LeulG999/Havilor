@@ -81,9 +81,11 @@ public class AlertController {
     }
 
     // Partial update: only the fields that are sent change. Closed alert or a concurrent change → 409.
+    // The role comes from the token's "role" claim: who may assign to whom is checked in AlertService.
     @PatchMapping("/{id}")
     public AlertDetailResponse update(@PathVariable Long id, @Valid @RequestBody UpdateAlertRequest request,
                                       @AuthenticationPrincipal Jwt token) {
-        return alertService.update(id, request, Long.valueOf(token.getSubject()));
+        boolean manager = "MANAGER".equals(token.getClaimAsString("role"));
+        return alertService.update(id, request, Long.valueOf(token.getSubject()), manager);
     }
 }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -139,12 +140,13 @@ class AlertUpdateIntegrationTest {
                         .content("{\"assigneeId\": -1}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("assigneeId"));
-        // A positive id, but nobody has it: checked through UserService.
+        // A positive id, but nobody has it: checked through UserService (a manager assigning; Flow F25).
         mockMvc.perform(patch(ALERTS + "/{id}", id).contentType(MediaType.APPLICATION_JSON)
+                        .header(HttpHeaders.AUTHORIZATION, testUsers.managerBearer())
                         .content("{\"assigneeId\": %d}".formatted(Long.MAX_VALUE)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("assigneeId"))
-                .andExpect(jsonPath("$.fieldErrors[0].message").value("no user with id " + Long.MAX_VALUE));
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("must be an active analyst"));
     }
 
     private org.springframework.test.web.servlet.ResultActions patchPriority(long id, String priority)

@@ -93,6 +93,31 @@ class RoleRulesIntegrationTest {
     }
 
     @Test
+    void anAnalystAssignsOnlyHerselfAManagerAssignsAnyActiveAnalyst() throws Exception {
+        long id = createAlert();
+        String toAnalyst = "{\"assigneeId\": %d}".formatted(testUsers.analystId());
+        String toManager = "{\"assigneeId\": %d}".formatted(testUsers.managerId());
+
+        // Analyst: someone else → 403, herself → fine.
+        json(patch(ALERTS + "/{id}", id), toManager)
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value(FORBIDDEN));
+        mockMvc.perform(get(ALERTS + "/{id}", id)).andExpect(jsonPath("$.assigneeId").doesNotExist());
+        json(patch(ALERTS + "/{id}", id), toAnalyst)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assigneeId").value(testUsers.analystId()));
+
+        // Manager: an active analyst → fine; a manager (himself) → 400.
+        long other = createAlert();
+        json(patch(ALERTS + "/{id}", other).header(HttpHeaders.AUTHORIZATION, testUsers.managerBearer()), toAnalyst)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assigneeName").value("Test Analyst"));
+        json(patch(ALERTS + "/{id}", other).header(HttpHeaders.AUTHORIZATION, testUsers.managerBearer()), toManager)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("must be an active analyst"));
+    }
+
+    @Test
     void onlyAManagerListsTheAnalysts() throws Exception {
         mockMvc.perform(get("/api/v1/users").param("role", "ANALYST")
                         .header(HttpHeaders.AUTHORIZATION, testUsers.managerBearer()))

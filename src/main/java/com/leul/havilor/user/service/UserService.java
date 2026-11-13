@@ -47,6 +47,12 @@ public class UserService {
         return userRepository.findByRoleAndActiveTrueOrderByName(role).stream().map(UserResponse::from).toList();
     }
 
+    // Can alerts be assigned to this user? Only an active ANALYST (Flow F25).
+    @Transactional(readOnly = true)
+    public boolean isActiveAnalyst(Long id) {
+        return userRepository.findById(id).map(user -> user.isActive() && user.getRole() == Role.ANALYST).orElse(false);
+    }
+
     @Transactional(readOnly = true)
     public boolean exists(Long id) {
         return userRepository.existsById(id);
