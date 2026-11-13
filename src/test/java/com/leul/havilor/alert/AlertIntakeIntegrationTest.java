@@ -98,7 +98,7 @@ class AlertIntakeIntegrationTest {
 
     @Test
     void anEmlFileIsReadAsText() throws Exception {
-        MockMultipartFile eml = new MockMultipartFile("file", "reported.EML", "application/octet-stream",
+        MockMultipartFile eml = new MockMultipartFile("files", "reported.EML", "application/octet-stream",
                 "Subject: Invoice overdue\r\nFrom: billing@invoices.example.net\r\n\r\nPay now".getBytes(StandardCharsets.UTF_8));
 
         mockMvc.perform(multipart(EXTRACT).file(eml)).andExpect(status().isOk());
@@ -109,14 +109,35 @@ class AlertIntakeIntegrationTest {
 
     @Test
     void anImageOrAPdfGoesToClaudesVision() throws Exception {
-        mockMvc.perform(multipart(EXTRACT).file(new MockMultipartFile("file", "shot.png", "image/png", new byte[]{1, 2})))
+        mockMvc.perform(multipart(EXTRACT).file(new MockMultipartFile("files", "shot.png", "image/png", new byte[]{1, 2})))
                 .andExpect(status().isOk());
         assertThat(fakeAi.lastInput.files().getFirst().mediaType()).isEqualTo("image/png");
         assertThat(fakeAi.lastInput.files().getFirst().data()).containsExactly(1, 2);
 
-        mockMvc.perform(multipart(EXTRACT).file(new MockMultipartFile("file", "mail.pdf", "application/pdf", new byte[]{3})))
+        mockMvc.perform(multipart(EXTRACT).file(new MockMultipartFile("files", "mail.pdf", "application/pdf", new byte[]{3})))
                 .andExpect(status().isOk());
         assertThat(fakeAi.lastInput.files().getFirst().mediaType()).isEqualTo("application/pdf");
+    }
+
+    // Flow F28: text and several files together, in ONE call to Claude.
+    @Test
+    void textAndSeveralFilesGoToClaudeTogether() throws Exception {
+        int callsBefore = fakeAi.calls;
+        mockMvc.perform(multipart(EXTRACT)
+                        .file(new MockMultipartFile("files", "reported.eml", "message/rfc822",
+                                "Subject: Invoice overdue\r\n\r\nPay now".getBytes(StandardCharsets.UTF_8)))
+                        .file(new MockMultipartFile("files", "shot.png", "image/png", new byte[]{1}))
+                        .file(new MockMultipartFile("files", "mail.pdf", "application/pdf", new byte[]{2}))
+                        .param("text", "Authentication-Results: spf=fail"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email.subject").value("Invoice overdue"));
+
+        assertThat(fakeAi.calls - callsBefore).isEqualTo(1);
+        assertThat(fakeAi.lastInput.text()).contains("one reported email", "pasted", "Authentication-Results: spf=fail",
+                "\"reported.eml\", an .eml file", "Pay now", "Attached file 1 (\"shot.png\")",
+                "Attached file 2 (\"mail.pdf\")");
+        assertThat(fakeAi.lastInput.files()).extracting(f -> f.mediaType()).containsExactly("image/png", "application/pdf");
+        assertThat(fakeAi.lastInstructions).contains("SAME email");
     }
 
     @Test
@@ -124,13 +145,23 @@ class AlertIntakeIntegrationTest {
         mockMvc.perform(multipart(EXTRACT))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors[0].field").value("input"));
-        mockMvc.perform(multipart(EXTRACT).file(new MockMultipartFile("file", "a.png", "image/png", new byte[]{1}))
-                        .param("text", "and some text"))
+        var tooMany = multipart(EXTRACT);
+        for (int i = 0; i < 6; i++) {
+            tooMany.file(new MockMultipartFile("files", "s" + i + ".png", "image/png", new byte[]{1}));
+        }
+        mockMvc.perform(tooMany)
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.fieldErrors[0].message").value("send exactly one: a 'text' part or a 'file' part"));
-        mockMvc.perform(multipart(EXTRACT).file(new MockMultipartFile("file", "a.zip", "application/zip", new byte[]{1})))
+                .andExpect(jsonPath("$.fieldErrors[0].message").value("send at most 5 files"));
+        // One bad file among good ones: the whole request is refused, before any AI call.
+        int callsBefore = fakeAi.calls;
+        mockMvc.perform(multipart(EXTRACT)
+                        .file(new MockMultipartFile("files", "a.png", "image/png", new byte[]{1}))
+                        .file(new MockMultipartFile("files", "a.zip", "application/zip", new byte[]{1})))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.fieldErrors[0].field").value("file"));
+                .andExpect(jsonPath("$.fieldErrors[0].field").value("files"))
+                .andExpect(jsonPath("$.fieldErrors[0].message")
+                        .value("a.zip: must be an .eml file, an image (PNG, JPEG, GIF, WebP) or a PDF"));
+        assertThat(fakeAi.calls).isEqualTo(callsBefore);
     }
 
     @Test

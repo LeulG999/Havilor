@@ -27,6 +27,7 @@ public class FakeAiConfiguration {
         private Supplier<String> textAnswer = () -> "fake draft";
         public String lastInstructions;
         public AiInput lastInput;
+        public int calls; // how many times Claude was asked
 
         public <T> void answer(Class<T> type, Supplier<T> answer) {
             answers.put(type, answer);
@@ -53,6 +54,7 @@ public class FakeAiConfiguration {
         }
 
         private void remember(String instructions, AiInput input) {
+            this.calls++;
             this.lastInstructions = instructions;
             this.lastInput = input;
         }

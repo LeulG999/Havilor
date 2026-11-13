@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-// Manual intake (multipart/form-data): send ONE part, "text" (pasted email or raw headers) or "file" (.eml, image,
-// PDF). The answer is a draft for POST /api/v1/alerts; nothing is saved.
+import java.util.List;
+
+// Manual intake (multipart/form-data): "text" (pasted email or raw headers) and/or up to 5 "files" parts (.eml,
+// image, PDF), all read together in one AI call. The answer is a draft for POST /api/v1/alerts; nothing is saved.
 @RestController
 public class AlertIntakeController {
 
@@ -21,7 +23,7 @@ public class AlertIntakeController {
 
     @PostMapping(path = "/api/v1/alerts/manual/extract", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public CreateAlertRequest extract(@RequestParam(required = false) String text,
-                                      @RequestParam(required = false) MultipartFile file) {
-        return alertIntakeService.extract(text, file);
+                                      @RequestParam(name = "files", required = false) List<MultipartFile> files) {
+        return alertIntakeService.extract(text, files);
     }
 }

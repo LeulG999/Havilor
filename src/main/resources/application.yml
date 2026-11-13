@@ -31,7 +31,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 10MB
-      max-request-size: 10MB
+      max-request-size: 20MB # up to 5 files in one request (each still at most 10MB)
 
 # Actuator (Flow 23): every endpoint off except health, and health shows only {"status": "UP"/"DOWN"}.
 # It still checks the database, Redis and disk space; the details stay hidden.
