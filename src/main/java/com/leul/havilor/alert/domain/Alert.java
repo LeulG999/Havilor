@@ -219,9 +219,13 @@ public class Alert {
         this.lastAssessment = assessmentJson;
     }
 
-    // Handed to another team (escalation module). An escalated alert can be escalated again.
+    // Handed to another team (escalation module). One escalation at a time (Flow F31): while the alert waits for a
+    // team's answer it can't be escalated again → 409. After the answer (back to INVESTIGATING) it can.
     public void escalate() {
         ensureOpen();
+        if (status == AlertStatus.ESCALATED) {
+            throw new ConflictException("This alert is already escalated; record the team's answer first");
+        }
         this.status = AlertStatus.ESCALATED;
     }
 
@@ -265,7 +269,8 @@ public class Alert {
     }
 
     // Closing is final. The rules, in the order they are checked:
-    // no real verdict → 400; already closed → 409; any step still PENDING → 409.
+    // no real verdict → 400; already closed → 409; waiting on an escalation → 409 (Flow F31: the other team's answer
+    // is part of the decision); any step still PENDING → 409.
     public void close(Verdict finalVerdict, Clock clock) {
         if (finalVerdict == null || finalVerdict == Verdict.UNDECIDED) {
             throw new BadRequestException("verdict",
@@ -273,6 +278,9 @@ public class Alert {
         }
         if (status == AlertStatus.CLOSED) {
             throw new ConflictException("Alert " + id + " is already closed");
+        }
+        if (status == AlertStatus.ESCALATED) {
+            throw new ConflictException("Waiting on an escalation; record the team's answer before closing");
         }
         long pending = pendingStepCount();
         if (pending > 0) {

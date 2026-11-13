@@ -95,6 +95,24 @@ class AlertTest {
         assertThat(alert.getStatus()).isEqualTo(AlertStatus.INVESTIGATING);
     }
 
+    // Flow F31: one escalation at a time, and no closing while waiting on one; after the answer both work again.
+    @Test
+    void anEscalatedAlertWaitsForTheAnswerBeforeEscalatingAgainOrClosing() {
+        alert.escalate();
+
+        assertThatThrownBy(alert::escalate).isInstanceOf(ConflictException.class)
+                .hasMessage("This alert is already escalated; record the team's answer first");
+        assertThatThrownBy(() -> alert.close(Verdict.MALICIOUS, CLOCK)).isInstanceOf(ConflictException.class)
+                .hasMessage("Waiting on an escalation; record the team's answer before closing");
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.ESCALATED);
+
+        alert.endEscalation(); // the team answered
+        alert.escalate();      // a second escalation is fine now
+        alert.endEscalation();
+        alert.close(Verdict.MALICIOUS, CLOCK);
+        assertThat(alert.getStatus()).isEqualTo(AlertStatus.CLOSED);
+    }
+
     @Test
     void aClosedAlertCannotBeEscalatedAndALateAnswerLeavesItClosed() {
         alert.close(Verdict.BENIGN, CLOCK);

@@ -55,7 +55,12 @@ class QueryCountIntegrationTest {
         for (int i = 0; i < ROWS; i++) {
             send(post("/api/v1/alerts/{id}/findings", alertId), "{\"type\": \"OTHER\", \"severity\": \"LOW\", \"title\": \"f%d\"}".formatted(i));
             send(post("/api/v1/alerts/{id}/actions", alertId), "{\"type\": \"OTHER\", \"result\": \"DONE\"}");
-            send(post("/api/v1/alerts/{id}/escalations", alertId), "{\"team\": \"Legal\", \"reason\": \"r%d\"}".formatted(i));
+            // One escalation at a time (Flow F31): record each team's answer before the next one.
+            String escalation = mockMvc.perform(post("/api/v1/alerts/{id}/escalations", alertId)
+                            .contentType(MediaType.APPLICATION_JSON).content("{\"team\": \"Legal\", \"reason\": \"r%d\"}".formatted(i)))
+                    .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+            send(patch("/api/v1/escalations/{id}", Long.parseLong(escalation.replaceAll("(?s).*?\"id\"\\s*:\\s*(\\d+).*", "$1"))),
+                    "{\"outcome\": \"NOT_MALICIOUS\"}");
             send(post("/api/v1/standup/notes"), "{\"noteDate\": \"2026-11-0%d\", \"text\": \"QC-NOTE %d\", \"alertIds\": [%d]}"
                     .formatted(i + 1, i, alertId));
         }

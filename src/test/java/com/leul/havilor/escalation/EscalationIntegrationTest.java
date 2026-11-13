@@ -75,6 +75,39 @@ class EscalationIntegrationTest {
                 .andExpect(jsonPath("$[0].outcome").value("CONFIRMED_MALICIOUS"));
     }
 
+    // Flow F31: one escalation at a time; no closing while waiting; after the answer both work again.
+    @Test
+    void oneEscalationAtATimeAndNoClosingWhileWaiting() throws Exception {
+        long alertId = createAlert();
+        String body = escalate(alertId, "{\"team\": \"Legal\", \"reason\": \"Review\"}")
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long escalationId = Long.parseLong(body.replaceAll("(?s).*?\"id\"\\s*:\\s*(\\d+).*", "$1"));
+
+        escalate(alertId, "{\"team\": \"IR\", \"reason\": \"Again\"}")
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("This alert is already escalated; record the team's answer first"));
+        close(alertId)
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Waiting on an escalation; record the team's answer before closing"));
+        alertStatusIs(alertId, "ESCALATED");
+        mockMvc.perform(get(ALERTS + "/{id}/escalations", alertId)).andExpect(jsonPath("$", hasSize(1)));
+
+        // The team answers: escalating again and closing both work.
+        update(escalationId, "{\"outcome\": \"NOT_MALICIOUS\"}").andExpect(status().isOk());
+        String second = escalate(alertId, "{\"team\": \"IR\", \"reason\": \"A second look\"}")
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        update(Long.parseLong(second.replaceAll("(?s).*?\"id\"\\s*:\\s*(\\d+).*", "$1")), "{\"outcome\": \"INCONCLUSIVE\"}")
+                .andExpect(status().isOk());
+        close(alertId).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("CLOSED"));
+    }
+
+    private ResultActions close(long alertId) throws Exception {
+        return mockMvc.perform(post(ALERTS + "/{id}/close", alertId).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"verdict\": \"BENIGN\"}"));
+    }
+
     @Test
     void aClosedAlertCannotBeEscalated() throws Exception {
         long alertId = createAlert();
