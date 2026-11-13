@@ -46,7 +46,7 @@ export default function StandupNotesPage() {
       {page && (
         <section className="panel">
           {page.content.length === 0 && <p className="muted">No notes yet.</p>}
-          <ul className="cards">
+          <ul className="cards notes-list">
             {page.content.map((note) => (
               <NoteCard key={note.id} note={note}>
                 {/* Only a DRAFT can change; a SHARED note shows no buttons (read-only). */}

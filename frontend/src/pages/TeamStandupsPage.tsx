@@ -27,7 +27,7 @@ export default function TeamStandupsPage() {
       {page && (
         <section className="panel">
           {page.content.length === 0 && <p className="muted">No shared notes yet.</p>}
-          <ul className="cards">
+          <ul className="cards notes-list">
             {page.content.map((note) => <NoteCard key={note.id} note={note} author={`User #${note.authorId}`} />)}
           </ul>
           <Pager page={page} noun="notes" onPage={setPageNumber} />

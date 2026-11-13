@@ -172,6 +172,7 @@ input,
 select,
 textarea {
   font: inherit;
+  font-weight: 400; /* inside a <label> they would otherwise inherit its 500 */
   color: var(--text);
   background: var(--surface2);
   border: 1px solid var(--border2);
@@ -709,8 +710,26 @@ textarea.draft {
 }
 
 .note-content ul {
+  list-style: none; /* no browser bullets (they showed as stray hollow circles); our own dot below */
   margin: 2px 0 8px;
-  padding-left: 20px;
+  padding-left: 0;
+}
+
+.note-content li {
+  position: relative;
+  padding: 2px 0 2px 16px;
+}
+
+.note-content li::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0.75em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.7;
 }
 
 /* "Done:", "Next:", "Blockers:" */
@@ -1890,4 +1909,45 @@ button.link.quiet {
 .quiet-link {
   color: var(--muted);
   font-size: 12px;
+}
+
+/* ---------- New alert (components/ExtractStep.tsx): the file picker's button in the design ---------- */
+input[type='file'] {
+  padding: 6px;
+  color: var(--muted);
+}
+
+input[type='file']::file-selector-button {
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  height: 28px;
+  padding: 0 12px;
+  margin-right: 12px;
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* ---------- Standup notes list (pages/StandupNotesPage.tsx, TeamStandupsPage.tsx) ---------- */
+.notes-list > li {
+  padding: 16px 0;
+}
+
+.notes-list .buttons {
+  margin-top: 10px;
+}
+
+/* ---------- Audit log (pages/AuditLogPage.tsx) ---------- */
+.audit-event b {
+  font-weight: 500;
+  display: block;
+}
+
+.audit-event small {
+  color: var(--faint);
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
 }
