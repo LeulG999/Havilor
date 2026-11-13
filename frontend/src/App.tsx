@@ -9,7 +9,7 @@ import QueuePage from './pages/QueuePage';
 import StandupNotesPage from './pages/StandupNotesPage';
 import TeamStandupsPage from './pages/TeamStandupsPage';
 
-// Which page shows for which URL. Everything except /login sits inside LoggedInLayout (login check + sidebar).
+// Which page shows for which URL. Everything except /login sits inside LoggedInLayout (login check + icon rail + top bar).
 // "/alerts/new" and "/alerts/:id" don't clash: React Router prefers the exact text "new" over the ":id" placeholder.
 export default function App() {
   return (

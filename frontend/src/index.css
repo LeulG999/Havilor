@@ -119,9 +119,7 @@ h3 {
 
 /* ---------- Page and panels ---------- */
 .page {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 22px 24px;
+  padding: 22px 24px; /* the page uses the whole width next to the rail, like the mockups */
 }
 
 /* Panels: surface colour, 1px border, 12px radius. */
@@ -989,8 +987,8 @@ textarea.draft {
   }
 }
 
-/* ---------- App layout (restyled in Flow D3) ---------- */
-
+/* ---------- App shell (components/LoggedInLayout.tsx, Sidebar.tsx, TopBar.tsx) ---------- */
+/* The 64px icon rail on the left, the top bar and the page on the right. */
 .app-layout {
   display: flex;
   min-height: 100vh;
@@ -999,83 +997,167 @@ textarea.draft {
 .app-main {
   flex: 1;
   min-width: 0; /* lets wide tables shrink instead of pushing the page wider */
-}
-
-.sidebar {
-  width: 220px;
-  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  background: var(--side);
-  border-right: 1px solid var(--border);
-  padding: 20px 12px;
-  position: sticky;
+}
+
+.rail {
+  width: 64px;
+  flex-shrink: 0;
+  position: sticky; /* stays in place while the page scrolls */
   top: 0;
   height: 100vh;
-}
-
-.sidebar-brand {
-  font-family: var(--display);
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  padding: 0 10px 20px;
-}
-
-.sidebar-nav {
+  z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-}
-
-.nav-link {
-  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  border-radius: 10px;
-  color: var(--muted);
-  text-decoration: none;
+  gap: 6px;
+  padding: 16px 0;
+  background: var(--side);
+  border-right: 1px solid var(--border);
 }
 
-.nav-link:hover {
+.rail-logo {
+  margin-bottom: 14px;
+}
+
+.rail-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.rail-link {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: var(--faint);
+}
+
+.rail-link:hover {
+  color: var(--text);
   background: var(--raise);
   text-decoration: none;
 }
 
-.nav-link.active {
+/* The page you are on: cyan soft background + cyan icon. */
+.rail-link.active {
   background: var(--accent-soft);
   color: var(--accent);
   box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.35);
 }
 
-.icon {
-  width: 18px;
-  text-align: center;
+/* Tooltip: the link's name (data-tip) to the right of the icon, on hover or keyboard focus. */
+.rail-link::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: 52px;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--border2);
+  background: var(--raise);
+  color: var(--text);
+  font-size: 12px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
 }
 
-.sidebar-section {
-  margin: 16px 12px 4px;
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--faint);
+.rail-link:hover::after,
+.rail-link:focus-visible::after {
+  opacity: 1;
 }
 
-.sidebar-user {
+.rail-divider {
+  width: 24px;
+  height: 1px;
+  margin: 6px 0;
+  background: var(--border2);
+}
+
+.rail-bottom {
   margin-top: auto;
-  border-top: 1px solid var(--border);
-  padding: 14px 10px 0;
+  position: relative;
 }
 
-.sidebar-role {
+.rail-avatar {
+  height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+/* The account menu opens to the right of the avatar. */
+.rail-menu {
+  position: absolute;
+  left: 46px;
+  bottom: 0;
+  min-width: 180px;
+  padding: 12px;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+}
+
+.rail-menu-name {
+  font-weight: 500;
+}
+
+.rail-menu-role {
+  font-family: var(--mono);
   font-size: 11px;
   color: var(--faint);
-  margin-bottom: 10px;
+  margin: 2px 0 10px;
 }
 
-.sidebar-logout {
-  width: 100%;
-  background: transparent;
-  border-color: var(--border2);
+/* Avatars: initials on a navy-to-teal gradient. */
+.avatar {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #dff7fc;
+  background: linear-gradient(135deg, #1e3a5f, #0e7490);
+}
+
+.avatar.small {
+  width: 22px;
+  height: 22px;
+  font-size: 9px;
+}
+
+.topbar {
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.crumb {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.crumb a {
+  color: var(--muted);
+}
+
+.crumb b {
   color: var(--text);
+  font-weight: 500;
 }
