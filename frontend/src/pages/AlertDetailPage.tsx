@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { api } from '../api/api';
-import type { Action, AlertDetail, AlertStep, AuditEntry, Escalation, Finding, User } from '../api/types';
+import { useAlertData } from '../api/useAlertData';
 import ActionList from '../components/ActionList';
 import AddActionButton from '../components/AddActionButton';
 import AddFindingButton from '../components/AddFindingButton';
@@ -22,55 +21,13 @@ import Tabs from '../components/Tabs';
 const TABS = ['Overview', 'Investigation', 'Evidence', 'Actions', 'AI', 'History'] as const;
 type Tab = (typeof TABS)[number];
 
-// One alert: a fixed header, then one tab at a time. Tabs only change what is shown; the data is loaded when the
-// page opens and again after each change.
+// One alert: a fixed header, then one tab at a time. Tabs only change what is shown; the data (useAlertData) is
+// loaded when the page opens and again after each change (load), so the page always shows the backend's state.
 export default function AlertDetailPage() {
   const { id } = useParams(); // the {id} in /alerts/{id}
-  const [alert, setAlert] = useState<AlertDetail | null>(null);
-  const [findings, setFindings] = useState<Finding[]>([]);
-  const [steps, setSteps] = useState<AlertStep[]>([]);
-  const [actions, setActions] = useState<Action[]>([]);
-  const [escalations, setEscalations] = useState<Escalation[]>([]);
-  const [history, setHistory] = useState<AuditEntry[]>([]);
-  const [me, setMe] = useState<User | null>(null);
-  const [error, setError] = useState<unknown>(null);
+  const { alert, findings, steps, actions, escalations, history, me, error, reload: load, alertIsOpen, canWork } =
+    useAlertData(id);
   const [tab, setTab] = useState<Tab>('Overview'); // which tab is open: plain React state
-
-  // Loads the alert, its findings, steps, actions, escalations and history, all at the same time (Promise.all); if any fails, the error is
-  // shown. Called when the page opens and again after every change, so the page always shows the backend's state.
-  function load() {
-    setError(null);
-    Promise.all([
-      api<AlertDetail>(`/alerts/${id}`),
-      api<Finding[]>(`/alerts/${id}/findings`),
-      api<AlertStep[]>(`/alerts/${id}/steps`),
-      api<Action[]>(`/alerts/${id}/actions`),
-      api<Escalation[]>(`/alerts/${id}/escalations`),
-      api<AuditEntry[]>(`/alerts/${id}/audit`),
-    ])
-      .then(([alertAnswer, findingsAnswer, stepsAnswer, actionsAnswer, escalationsAnswer, historyAnswer]) => {
-        setAlert(alertAnswer);
-        setFindings(findingsAnswer);
-        setSteps(stepsAnswer);
-        setActions(actionsAnswer);
-        setEscalations(escalationsAnswer);
-        setHistory(historyAnswer);
-      })
-      .catch(setError);
-  }
-
-  useEffect(load, [id]);
-
-  // Who is logged in: needed for "Assign to me" and to mark the assignee with "(you)".
-  useEffect(() => {
-    api<User>('/users/me').then(setMe).catch(setError);
-  }, []);
-
-  // A closed alert is final: no buttons or forms that would change it.
-  const alertIsOpen = alert !== null && alert.status !== 'CLOSED';
-  // The investigation (steps, findings, actions, escalations, AI) is the analyst's work; a manager reads it.
-  // The backend refuses it for managers anyway (403); hiding the buttons just keeps the page honest.
-  const canWork = alertIsOpen && me?.role === 'ANALYST';
 
   return (
     <main className="page">
