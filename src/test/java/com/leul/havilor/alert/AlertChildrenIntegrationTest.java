@@ -170,16 +170,18 @@ class AlertChildrenIntegrationTest {
     }
 
     @Test
-    void listPageRunsTwoQueries() throws Exception {
+    void listPageRunsAFixedNumberOfQueries() throws Exception {
         for (int i = 0; i < 3; i++) {
             create(alertWithChildren(5));
         }
 
-        // One SELECT for the page, plus one COUNT for the totals. Spring Data skips the COUNT when the
-        // first page already holds every row, so it is 1 or 2, never more. No child table is touched.
+        // One SELECT for the page, plus one COUNT for the totals (Spring Data skips the COUNT when the first page
+        // already holds every row). Since Flow D4 the Signals column adds one query each for the clicks, URLs and
+        // attachments of the whole page (and one for assignee names when someone is assigned): 4 to 6, never one
+        // per row. QueryCountIntegrationTest pins the exact number.
         assertThat(statementsFor(() -> mockMvc.perform(get(ALERTS).param("size", "20"))
                 .andExpect(status().isOk())))
-                .isBetween(1L, 2L);
+                .isBetween(4L, 6L);
     }
 
     @Test
