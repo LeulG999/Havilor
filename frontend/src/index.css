@@ -1,81 +1,245 @@
-/* The one stylesheet for the whole app. Plain CSS: a few colours as variables, then simple rules. */
+/* The one stylesheet for the whole app: plain CSS, no UI library.
+   "Midnight Signal" (docs/design/README.md): the design tokens are CSS variables below, every rule uses them.
+   Colours carry meaning (severity, status, the cyan accent for "active / AI"), never decoration. */
 
+/* ---------- Design tokens ---------- */
 :root {
-  --text: #1f2933;
-  --muted: #616e7c;
-  --border: #d9e2ec;
-  --background: #f5f7fa;
-  --panel: #ffffff;
-  --accent: #2563eb;
-  --danger: #b91c1c;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Surfaces, from darkest to lightest */
+  --side: #070c17;      /* icon rail */
+  --bg: #0a1120;        /* page */
+  --surface2: #0d1626;  /* inputs, inner areas */
+  --surface: #101a2c;   /* panels */
+  --raise: #14213a;     /* hover, selected row */
+  --border: #1c2940;
+  --border2: #253553;
+
+  /* Text */
+  --text: #e6edf7;
+  --muted: #8494ad;
+  --faint: #5e6c84;
+
+  /* Accent: cyan = active, AI, primary action */
+  --accent: #22d3ee;
+  --accent-soft: rgba(34, 211, 238, 0.12);
+  --accent-text: #04202a;  /* text on a cyan button */
+
+  /* Meaning */
+  --crit: #f0525a;
+  --high: #f97316;
+  --med: #eab308;
+  --low: #38bdf8;
+  --ok: #34d399;
+  --danger-text: #ff8a90;  /* readable red text on dark */
+
+  /* Type: Space Grotesk for headings, Inter for the UI, JetBrains Mono for data (tickets, emails, times) */
+  --display: 'Space Grotesk', Inter, sans-serif;
+  --body: Inter, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+
+  --radius: 12px;
+  --radius-sm: 9px;
+
+  font-family: var(--body);
+  font-size: 13.5px;
   color: var(--text);
-  background: var(--background);
+  background: var(--bg);
+  color-scheme: dark; /* native date pickers, scrollbars and checkboxes in dark */
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
+  background: var(--bg);
 }
 
-.page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 16px;
+a {
+  color: var(--accent);
+  text-decoration: none;
 }
 
+a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Text ---------- */
 h1 {
-  font-size: 1.5rem;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.01em;
   margin: 0 0 16px;
+}
+
+h2 {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 15px;
+  margin: 16px 0 10px;
+}
+
+h3 {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 16px 0 6px;
 }
 
 .muted {
   color: var(--muted);
 }
 
-/* The white "card" every section sits in. */
-.panel {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px 20px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+.faint {
+  color: var(--faint);
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.danger-text {
+  color: var(--crit);
 }
 
 /* Errors from the backend: red, and never hidden. */
 .error {
-  color: var(--danger);
+  color: var(--danger-text);
   margin: 8px 0;
 }
 
-/* Forms: one field under the other. */
+/* Long URLs and hashes break instead of stretching the table. */
+.wrap {
+  word-break: break-all;
+}
+
+/* ---------- Page and panels ---------- */
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 22px 24px;
+}
+
+/* Panels: surface colour, 1px border, 12px radius. */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+}
+
+section.panel {
+  margin-bottom: 16px;
+}
+
+section.panel > h2:first-child {
+  margin-top: 0;
+}
+
+.page-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.page-title h1 {
+  margin: 0;
+}
+
+/* ---------- Forms ---------- */
 label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #b8c4d6;
+}
+
+label.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+}
+
+input[type='checkbox'] {
+  accent-color: var(--accent);
+  padding: 0;
+}
+
+/* ---------- Buttons ---------- */
+/* Primary: cyan. */
+button,
+a.button {
+  font: inherit;
+  font-size: 12.5px;
   font-weight: 600;
-}
-
-input {
-  font: inherit;
-  padding: 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-}
-
-button {
-  font: inherit;
-  padding: 8px 14px;
+  height: 34px;
+  padding: 0 14px;
   border: 1px solid var(--accent);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--accent);
-  color: white;
+  color: var(--accent-text);
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
 }
 
-button.secondary {
-  background: transparent;
-  color: var(--accent);
+/* Secondary: outlined, on the surface colour. */
+button.secondary,
+a.button.secondary {
+  background: var(--surface);
+  border-color: var(--border2);
+  color: var(--text);
+  font-weight: 500;
+}
+
+button.secondary:hover,
+a.button.secondary:hover {
+  background: var(--raise);
+}
+
+/* A final, serious step (closing an alert): red outline, red text. */
+button.danger {
+  background: var(--surface);
+  border-color: rgba(240, 82, 90, 0.5);
+  color: var(--danger-text);
+  font-weight: 500;
+}
+
+button.small {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 12px;
 }
 
 button:disabled {
@@ -83,136 +247,56 @@ button:disabled {
   cursor: default;
 }
 
-.login {
-  max-width: 360px;
-  margin-top: 10vh;
+/* A button that looks like a small text link ("Write it myself instead", "Add an alert"). */
+button.link {
+  height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font-weight: 500;
 }
 
-/* App layout (components/LoggedInLayout.tsx): a dark sidebar on the left, the light main area on the right. */
-.app-layout {
+.buttons {
   display: flex;
-  min-height: 100vh;
-}
-
-.sidebar {
-  width: 220px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  background: #111827;
-  color: #e5e7eb;
-  padding: 20px 12px;
-  position: sticky; /* stays in place while the main area scrolls */
-  top: 0;
-  height: 100vh;
-  box-sizing: border-box;
-}
-
-.sidebar-brand {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: white;
-  padding: 0 10px 20px;
-}
-
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.nav-link {
-  display: flex;
+  gap: 8px;
   align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  border-radius: 8px;
-  color: #d1d5db;
-  text-decoration: none;
 }
 
-.nav-link:hover {
-  background: #1f2937;
-}
-
-/* The link of the page you are on. */
-.nav-link.active {
-  background: var(--accent);
-  color: white;
-}
-
-.icon {
-  width: 18px;
-  text-align: center;
-}
-
-.sidebar-user {
-  margin-top: auto; /* pushes the user and the logout button to the bottom */
-  border-top: 1px solid #374151;
-  padding: 14px 10px 0;
-}
-
-.sidebar-role {
-  font-size: 0.8rem;
-  color: #9ca3af;
-  margin-bottom: 10px;
-}
-
-.sidebar-logout {
-  width: 100%;
-  background: transparent;
-  border-color: #4b5563;
-  color: #e5e7eb;
-}
-
-.app-main {
-  flex: 1;
-  min-width: 0; /* lets wide tables shrink instead of pushing the page wider */
-}
-
-
-/* Tables (the alert queue, lists on the detail page). */
+/* ---------- Tables ---------- */
 table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--panel);
-  border: 1px solid var(--border);
-}
-
-th,
-td {
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
 }
 
 th {
-  font-size: 0.85rem;
-  color: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 500;
+  text-align: left;
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+tr:last-child td {
+  border-bottom: none;
 }
 
 tr.clickable {
   cursor: pointer;
 }
 
-tr.clickable:hover {
-  background: #eef4ff;
+tr.clickable:hover td {
+  background: var(--raise);
 }
-
-/* A small coloured label, e.g. for priority. */
-.badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  background: var(--border);
-}
-
-.priority-critical { background: #fde2e2; color: var(--danger); }
-.priority-high { background: #ffedd5; color: #9a3412; }
-.priority-medium { background: #fef9c3; color: #854d0e; }
-.priority-low { background: #e0f2fe; color: #075985; }
 
 .pager {
   display: flex;
@@ -221,25 +305,97 @@ tr.clickable:hover {
   margin-top: 12px;
 }
 
-/* The alert detail page: sections stacked with space between them. */
-section.panel {
-  margin-bottom: 16px;
+/* ---------- Tags, chips, badges ---------- */
+/* Base badge: small pill. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+  white-space: nowrap;
 }
 
-h2 {
-  font-size: 1.1rem;
-  margin: 16px 0 8px;
+/* Severity tags: small mono uppercase, outlined and tinted. */
+.priority-critical,
+.priority-high,
+.priority-medium,
+.priority-low,
+.level-high,
+.level-medium,
+.level-low {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
 }
 
-section.panel > h2:first-child {
-  margin-top: 0;
+.priority-critical { color: var(--crit); border-color: rgba(240, 82, 90, 0.45); background: rgba(240, 82, 90, 0.08); }
+.priority-high, .level-high { color: var(--high); border-color: rgba(249, 115, 22, 0.45); background: rgba(249, 115, 22, 0.08); }
+.priority-medium, .level-medium { color: var(--med); border-color: rgba(234, 179, 8, 0.45); background: rgba(234, 179, 8, 0.07); }
+.priority-low, .level-low { color: var(--low); border-color: rgba(56, 189, 248, 0.45); background: rgba(56, 189, 248, 0.07); }
+.level-high { color: var(--crit); border-color: rgba(240, 82, 90, 0.45); background: rgba(240, 82, 90, 0.08); }
+
+/* Status chips (rounded pills): Investigating = cyan, Escalated = orange, New = neutral, Closed = muted. */
+.status-investigating { color: var(--accent); border-color: rgba(34, 211, 238, 0.45); background: var(--accent-soft); }
+.status-escalated { color: var(--high); border-color: rgba(249, 115, 22, 0.45); }
+.status-waiting_on_external { color: var(--med); border-color: rgba(234, 179, 8, 0.45); }
+.status-new { color: var(--text); }
+.status-closed { color: var(--faint); }
+
+/* Step and note states. */
+.step-done, .note-shared { color: var(--ok); border-color: rgba(52, 211, 153, 0.45); background: rgba(52, 211, 153, 0.08); }
+.step-skipped { color: var(--faint); }
+.step-pending, .note-draft { color: var(--med); border-color: rgba(234, 179, 8, 0.45); }
+
+/* Chips: removable items (mentioned alerts in the note editor). */
+.chips {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  margin: 0 0 6px;
 }
 
-/* Label / value pairs in two columns. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 4px 2px 10px;
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  background: var(--surface2);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.chip-remove {
+  height: auto;
+  padding: 0 6px;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.mention {
+  margin-right: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+/* ---------- Key / value lists, cards ---------- */
 .fields {
   display: grid;
   grid-template-columns: 180px 1fr;
-  gap: 6px 16px;
+  gap: 10px 16px;
   margin: 0;
 }
 
@@ -251,21 +407,19 @@ section.panel > h2:first-child {
   margin: 0;
 }
 
-/* Long URLs and hashes break instead of stretching the table. */
-.wrap {
-  word-break: break-all;
-}
-
-/* Findings and steps as a list of small cards. */
 .cards {
-  list-style-position: inside;
+  list-style: none;
   padding: 0;
   margin: 0;
 }
 
 .cards li {
   border-top: 1px solid var(--border);
-  padding: 10px 0;
+  padding: 12px 0;
+}
+
+.cards li:first-child {
+  border-top: none;
 }
 
 .cards li p {
@@ -274,33 +428,46 @@ section.panel > h2:first-child {
 
 .why {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 12.5px;
 }
 
-/* Modal (components/Modal.tsx): the browser draws the <dialog>; we only style it. */
+ul.plain {
+  margin: 0;
+  padding-left: 18px;
+}
+
+/* ---------- Modal (components/Modal.tsx): the browser draws the <dialog>; we only style it. ---------- */
 .modal {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 20px 22px;
   width: min(520px, 90vw);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.45);
+}
+
+.modal.wide {
+  width: min(960px, 94vw);
 }
 
 .modal::backdrop {
-  background: rgba(15, 23, 42, 0.4); /* dims the page behind the modal */
+  background: rgba(3, 7, 15, 0.6); /* dims the page behind the modal */
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .modal-header h2 {
   margin: 0;
 }
 
-/* Detail page header: stays at the top while the tab content scrolls (position: sticky). */
+/* ---------- Alert detail page ---------- */
+/* The header stays at the top while the tab content scrolls (position: sticky). */
 .alert-header {
   position: sticky;
   top: 0;
@@ -310,151 +477,113 @@ section.panel > h2:first-child {
   align-items: flex-start;
   gap: 16px;
   flex-wrap: wrap;
-  background: var(--panel);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 12px;
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 14px;
 }
 
 .alert-header h1 {
+  font-size: 21px;
   margin: 4px 0 0;
 }
 
 .header-facts {
   display: flex;
-  gap: 20px;
+  gap: 22px;
   margin: 0;
 }
 
 .header-facts dt {
-  font-size: 0.8rem;
-  color: var(--muted);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--faint);
 }
 
 .header-facts dd {
-  margin: 2px 0 0;
-  font-weight: 600;
+  margin: 4px 0 0;
+  font-weight: 500;
 }
 
-/* Tabs: buttons that look like tabs; the active one is underlined. */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* Tabs: the active one has a cyan underline. */
 .tabs {
   display: flex;
-  gap: 4px;
+  gap: 18px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 16px;
 }
 
 .tab {
+  height: auto;
+  padding: 0 0 10px;
   background: transparent;
-  color: var(--muted);
   border: none;
-  border-bottom: 3px solid transparent;
   border-radius: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .tab.active {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--text);
+  box-shadow: inset 0 -2px 0 var(--accent);
 }
 
-/* Actions in the detail header (assign, priority; close comes in F11). */
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  width: 100%;
-}
-
-label.inline {
-  flex-direction: row;
-  align-items: center;
-  gap: 6px;
-  margin: 0;
-}
-
-select,
-textarea {
-  font: inherit;
-  padding: 6px 8px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: white;
-}
-
-/* Investigation tab: the answer form under a pending step, and step status colours. */
 .step-form {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 10px;
   max-width: 520px;
 }
 
-.buttons {
-  display: flex;
-  gap: 8px;
-}
-
-.step-done { background: #dcfce7; color: #166534; }
-.step-skipped { background: var(--border); color: var(--muted); }
-.step-pending { background: #fef9c3; color: #854d0e; }
-
-/* AI tab. */
 .ai-result {
   margin-top: 12px;
 }
 
-ul.plain {
-  margin: 0;
-  padding-left: 18px;
-}
-
 textarea.draft {
   width: 100%;
-  box-sizing: border-box;
   margin: 12px 0 8px;
-  font-family: ui-monospace, Consolas, monospace;
-  font-size: 0.9rem;
+  font-family: var(--mono);
+  font-size: 12.5px;
 }
 
-/* A button for a final, serious step (closing an alert). */
-button.danger {
-  background: var(--danger);
-  border-color: var(--danger);
-  color: white;
-}
-
-/* Dashboard (pages/DashboardPage.tsx). */
-.page-title {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.page-title h1 {
+/* ---------- History timeline (components/HistoryTimeline.tsx) ---------- */
+.timeline {
+  list-style: none;
   margin: 0;
+  padding: 0 0 0 18px;
+  border-left: 1px solid var(--border2);
 }
 
-/* A link that looks like a button (same look as <button>). */
-a.button {
-  display: inline-block;
-  padding: 8px 14px;
+.timeline li {
+  position: relative;
+  padding: 0 0 16px;
+}
+
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 3px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
   border: 1px solid var(--accent);
-  border-radius: 6px;
-  background: var(--accent);
-  color: white;
-  text-decoration: none;
+  background: var(--surface2);
 }
 
-a.button.secondary {
-  background: transparent;
-  color: var(--accent);
-}
-
-/* Four stat cards side by side. */
+/* ---------- Dashboard ---------- */
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -463,12 +592,9 @@ a.button.secondary {
 }
 
 .stat-value {
-  font-size: 2rem;
-  font-weight: 700;
-}
-
-.danger-text {
-  color: var(--danger);
+  font-family: var(--display);
+  font-size: 30px;
+  font-weight: 600;
 }
 
 /* The SVG bar chart (components/BarChart.tsx). */
@@ -482,20 +608,22 @@ a.button.secondary {
 }
 
 .bar-chart-axis {
-  stroke: var(--border);
+  stroke: var(--border2);
 }
 
 .bar-chart-count {
-  font-size: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
   fill: var(--text);
 }
 
 .bar-chart-label {
-  font-size: 11px;
-  fill: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  fill: var(--faint);
 }
 
-/* New alert (pages/NewAlertPage.tsx): the draft's fields in two columns. */
+/* ---------- New alert ---------- */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -504,15 +632,6 @@ a.button.secondary {
 
 .form-grid .wide {
   grid-column: 1 / -1; /* the subject takes the whole row */
-}
-
-textarea {
-  font: inherit;
-}
-
-h3 {
-  font-size: 1rem;
-  margin: 16px 0 6px;
 }
 
 .draft-list {
@@ -526,44 +645,26 @@ h3 {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 6px 0;
+  padding: 7px 0;
   border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 12px;
 }
 
-button.small {
-  padding: 3px 10px;
-  font-size: 0.85rem;
+.ai-start {
+  max-width: 460px;
 }
 
-/* History tab (components/HistoryTimeline.tsx): a line down the left, a dot per change. */
-.timeline {
-  list-style: none;
-  margin: 0;
-  padding: 0 0 0 18px;
-  border-left: 2px solid var(--border);
-}
-
-.timeline li {
-  position: relative;
-  padding: 0 0 14px;
-}
-
-.timeline li::before {
-  content: '';
-  position: absolute;
-  left: -24px;
-  top: 4px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-/* Standup notes (pages/StandupNotesPage.tsx, components/NoteCard.tsx). */
+/* ---------- Standup notes ---------- */
 .note-head {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.note-head strong {
+  font-family: var(--mono);
+  font-weight: 500;
 }
 
 .note-content p {
@@ -575,20 +676,16 @@ button.small {
   padding-left: 20px;
 }
 
-/* "Yesterday:", "Today:", "Blockers:" */
+/* "Done:", "Next:", "Blockers:" */
 .note-section {
-  margin-top: 8px;
-  font-weight: 600;
+  margin-top: 10px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
 }
 
-.note-draft { background: #fef9c3; color: #854d0e; }
-.note-shared { background: #dcfce7; color: #166534; }
-
-.mention {
-  margin-right: 10px;
-}
-
-/* The alerts to tick in the note modal: a short scrolling list. */
 .check-list {
   list-style: none;
   padding: 0;
@@ -603,26 +700,18 @@ button.small {
 
 .check-list label {
   font-weight: 400;
+  color: var(--text);
 }
 
-/* A small heading inside the sidebar ("Manager"), above the links only managers see. */
-.sidebar-section {
-  margin: 16px 12px 4px;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #9ca3af;
-}
-
-/* The note editor (components/NoteFormModal.tsx): editor left, live preview right; one column on a narrow screen. */
-.modal.wide {
-  width: min(960px, 94vw);
-}
-
+/* The note editor: editor left, live preview right; one column on a narrow screen. */
 .note-editor {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
+}
+
+.note-editor textarea {
+  width: 100%;
 }
 
 .note-preview {
@@ -641,49 +730,7 @@ button.small {
   }
 }
 
-/* Step 1 of a new note: AI first (components/AiNoteStart.tsx). */
-.ai-start {
-  max-width: 460px;
-}
-
-/* A button that looks like a small text link ("Write it myself instead", "Add an alert"). */
-button.link {
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--accent);
-  text-decoration: underline;
-  font-size: 0.9rem;
-}
-
-/* Mentioned alerts in the note editor (components/MentionChips.tsx). */
-.chips {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 0;
-  margin: 0 0 6px;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 4px 2px 10px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 0.85rem;
-}
-
-.chip-remove {
-  padding: 0 6px;
-  border: none;
-  background: none;
-  color: var(--muted);
-}
-
-/* The AI assessment card (components/AssessmentCard.tsx). */
+/* ---------- AI assessment card (components/AssessmentCard.tsx) ---------- */
 .assessment-card {
   margin-top: 12px;
 }
@@ -695,6 +742,97 @@ button.link {
   font-size: 1.1rem;
 }
 
-.level-high { background: #fde2e2; color: var(--danger); }
-.level-medium { background: #ffedd5; color: #9a3412; }
-.level-low { background: #e0f2fe; color: #075985; }
+/* ---------- Login and app layout (restyled in Flows D2 and D3) ---------- */
+.login {
+  max-width: 360px;
+  margin-top: 10vh;
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0; /* lets wide tables shrink instead of pushing the page wider */
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--side);
+  border-right: 1px solid var(--border);
+  padding: 20px 12px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar-brand {
+  font-family: var(--display);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  padding: 0 10px 20px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  background: var(--raise);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(34, 211, 238, 0.35);
+}
+
+.icon {
+  width: 18px;
+  text-align: center;
+}
+
+.sidebar-section {
+  margin: 16px 12px 4px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--faint);
+}
+
+.sidebar-user {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding: 14px 10px 0;
+}
+
+.sidebar-role {
+  font-size: 11px;
+  color: var(--faint);
+  margin-bottom: 10px;
+}
+
+.sidebar-logout {
+  width: 100%;
+  background: transparent;
+  border-color: var(--border2);
+  color: var(--text);
+}
