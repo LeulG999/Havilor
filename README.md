@@ -44,7 +44,7 @@ but the analyst always makes the decision.
 
 - [x] D1. Brand base: tokens, fonts, favicon, restyled controls
 - [x] D2. Login page
-- [ ] D3. App shell: icon rail + top bar
+- [x] D3. App shell: icon rail + top bar
 - [ ] D4. Alert queue: filters, signals, expandable rows
 - [ ] D5. Slide-over alert panel
 
