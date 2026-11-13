@@ -47,6 +47,12 @@ public class UserService {
         return userRepository.findByRoleAndActiveTrueOrderByName(role).stream().map(UserResponse::from).toList();
     }
 
+    // The people alerts can be assigned to, by name.
+    @Transactional(readOnly = true)
+    public List<UserResponse> activeAnalysts() {
+        return activeByRole(Role.ANALYST);
+    }
+
     // Can alerts be assigned to this user? Only an active ANALYST (Flow F25).
     @Transactional(readOnly = true)
     public boolean isActiveAnalyst(Long id) {

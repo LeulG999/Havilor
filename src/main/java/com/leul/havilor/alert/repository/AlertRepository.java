@@ -30,6 +30,13 @@ public interface AlertRepository extends JpaRepository<Alert, Long> {
 
     long countByClosedAtGreaterThanEqual(Instant from);
 
+    // Team dashboard (Flow F26).
+    long countByStatusNotAndAssigneeIdIsNull(AlertStatus status);
+
+    long countByClosedAtGreaterThanEqualAndAssigneeId(Instant from, Long assigneeId);
+
+    Optional<Alert> findFirstByStatusNotOrderByReceivedAtAscIdAsc(AlertStatus status);
+
     // Alerts received in [from, to): one day of the "alerts per day" chart.
     long countByReceivedAtGreaterThanEqualAndReceivedAtLessThan(Instant from, Instant to);
 

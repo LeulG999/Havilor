@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 // Standup notes. Everyone works on their own notes only; managers read the SHARED notes of the whole team.
@@ -74,6 +75,12 @@ public class StandupService {
     public PageResponse<NoteResponse> team(int page, int size) {
         return PageResponse.from(noteRepository.findByStatus(NoteStatus.SHARED,
                 Paging.pageRequest(page, size, NEWEST_DAY_FIRST)).map(NoteResponse::from));
+    }
+
+    // For the team dashboard: how many notes for this day have been shared.
+    @Transactional(readOnly = true)
+    public long countSharedOn(LocalDate noteDate) {
+        return noteRepository.countByStatusAndNoteDate(NoteStatus.SHARED, noteDate);
     }
 
     private StandupNote loadOwn(Long id, Long authorId) {

@@ -3,6 +3,7 @@ package com.leul.havilor.alert.service;
 import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
 import com.leul.havilor.alert.api.response.DashboardResponse;
+import com.leul.havilor.alert.api.response.TeamAlertsResponse;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.domain.enums.AlertStatus;
 import com.leul.havilor.alert.domain.enums.Priority;
@@ -56,6 +57,27 @@ public class AlertQueryService {
     List<AlertSummaryResponse> summaries(List<Alert> alerts) {
         Map<Long, String> names = userService.namesByIds(alerts.stream().map(Alert::getAssigneeId).toList());
         return alerts.stream().map(alert -> AlertSummaryResponse.from(alert, names.get(alert.getAssigneeId()))).toList();
+    }
+
+    // The manager's view (Flow F26): simple counts, one pair of counts per active analyst, and the oldest open alert.
+    @Transactional(readOnly = true)
+    public TeamAlertsResponse teamAlerts() {
+        Instant now = clock.instant();
+        Instant weekAgo = now.minus(Duration.ofDays(7));
+        List<TeamAlertsResponse.AnalystLoad> analysts = userService.activeAnalysts().stream()
+                .map(analyst -> new TeamAlertsResponse.AnalystLoad(analyst.id(), analyst.name(),
+                        alertRepository.countByStatusNotAndAssigneeId(AlertStatus.CLOSED, analyst.id()),
+                        alertRepository.countByClosedAtGreaterThanEqualAndAssigneeId(weekAgo, analyst.id())))
+                .toList();
+        TeamAlertsResponse.OldestOpen oldest = alertRepository.findFirstByStatusNotOrderByReceivedAtAscIdAsc(AlertStatus.CLOSED)
+                .map(alert -> new TeamAlertsResponse.OldestOpen(alert.getId(), alert.getTicketNumber(),
+                        alert.getReceivedAt(), Duration.between(alert.getReceivedAt(), now).toHours()))
+                .orElse(null);
+        return new TeamAlertsResponse(
+                alertRepository.countByStatusNotAndAssigneeIdIsNull(AlertStatus.CLOSED),
+                alertRepository.countByStatusNotAndPriority(AlertStatus.CLOSED, Priority.CRITICAL),
+                oldest,
+                analysts);
     }
 
     // The last 14 UTC days ending today, oldest first: one count query per day, so days without alerts are 0.

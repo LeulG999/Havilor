@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 public interface StandupNoteRepository extends JpaRepository<StandupNote, Long> {
@@ -13,6 +14,8 @@ public interface StandupNoteRepository extends JpaRepository<StandupNote, Long> 
     Page<StandupNote> findByAuthorId(Long authorId, Pageable pageable);
 
     Page<StandupNote> findByStatus(NoteStatus status, Pageable pageable);
+
+    long countByStatusAndNoteDate(NoteStatus status, LocalDate noteDate);
 
     // Someone else's note is "not found" for you: its existence is not revealed.
     Optional<StandupNote> findByIdAndAuthorId(Long id, Long authorId);
