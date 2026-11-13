@@ -54,6 +54,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/api/v1/audit").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/standup/team").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/users").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/alerts/team-dashboard").hasRole("MANAGER")
                         // The investigation itself is the analyst's work (Flow F25): steps, findings, actions, the AI
                         // assistant, escalations and closing. Managers read everything and may change priority and
                         // assignment (the assignment rules are in AlertService.update).
