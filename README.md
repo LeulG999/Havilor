@@ -43,7 +43,7 @@ but the analyst always makes the decision.
 ## Design batch D2 (detail page, history, all pages)
 
 - [x] D6. Design pack committed (`docs/design/`)
-- [ ] D7. Alert detail page like the mockup
+- [x] D7. Alert detail page like the mockup
 - [ ] D8. History timeline
 - [ ] D9. Remaining pages restyled
 
