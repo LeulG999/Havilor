@@ -67,6 +67,9 @@ export default function AlertDetailPage() {
 
   // A closed alert is final: no buttons or forms that would change it.
   const alertIsOpen = alert !== null && alert.status !== 'CLOSED';
+  // The investigation (steps, findings, actions, escalations, AI) is the analyst's work; a manager reads it.
+  // The backend refuses it for managers anyway (403); hiding the buttons just keeps the page honest.
+  const canWork = alertIsOpen && me?.role === 'ANALYST';
 
   return (
     <main className="page">
@@ -79,24 +82,24 @@ export default function AlertDetailPage() {
 
           {tab === 'Overview' && <OverviewSection alert={alert} />}
           {tab === 'Investigation' && (
-            <StepList alertId={alert.id} steps={steps} editable={alertIsOpen} onChanged={load} />
+            <StepList alertId={alert.id} steps={steps} editable={canWork} onChanged={load} />
           )}
           {tab === 'Evidence' && (
             <>
               <EmailDetailsSection email={alert.email} />
               <AlertChildrenSection alert={alert} />
-              {alertIsOpen && <p><AddFindingButton alertId={alert.id} onChanged={load} /></p>}
+              {canWork && <p><AddFindingButton alertId={alert.id} onChanged={load} /></p>}
               <FindingList findings={findings} />
             </>
           )}
           {tab === 'Actions' && (
             <>
-              {alertIsOpen && <p><AddActionButton alertId={alert.id} onChanged={load} /></p>}
+              {canWork && <p><AddActionButton alertId={alert.id} onChanged={load} /></p>}
               <ActionList actions={actions} />
-              <EscalationList escalations={escalations} editable={alertIsOpen} onChanged={load} />
+              <EscalationList escalations={escalations} editable={canWork} onChanged={load} />
             </>
           )}
-          {tab === 'AI' && (alertIsOpen ? (
+          {tab === 'AI' && (canWork ? (
             <>
               {/* key: a new alert (e.g. after clicking a reference) starts with an empty panel */}
               <AiAssessmentPanel key={alert.id} alertId={alert.id} onChanged={load} />
@@ -104,7 +107,10 @@ export default function AlertDetailPage() {
             </>
           ) : (
             <section className="panel">
-              <p className="muted">This alert is closed. Its saved AI suggestion is on the Overview tab.</p>
+              <p className="muted">
+                {alertIsOpen ? 'The AI assistant is for the analyst working the alert.' : 'This alert is closed.'}
+                {' '}Its saved AI suggestion is on the Overview tab.
+              </p>
             </section>
           ))}
           {tab === 'History' && <HistoryTimeline entries={history} me={me} />}

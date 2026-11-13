@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { api } from '../api/api';
 import type { AlertDetail, User } from '../api/types';
+import AssignToSelect from './AssignToSelect';
 import CloseAlertButton from './CloseAlertButton';
 import ErrorMessage from './ErrorMessage';
 import EscalateButton from './EscalateButton';
@@ -10,6 +11,8 @@ const PRIORITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
 // The actions on the whole alert. "Assign to me" and the priority dropdown send PATCH /api/v1/alerts/{id} with only
 // the field that changes; "Escalate" and "Close alert" have their own modals. After any change the page loads the alert again
 // (onChanged), so every part of the page shows the new state.
+// By role (the backend enforces the same rules, Flow F25): an analyst gets "Assign to me", Escalate and Close;
+// a manager gets "Assign to…" (any active analyst) and the priority, but not the investigation buttons.
 export default function HeaderActions({ alert, me, onChanged }: {
   alert: AlertDetail;
   me: User | null;
@@ -32,10 +35,14 @@ export default function HeaderActions({ alert, me, onChanged }: {
   }
 
   const assignedToMe = me !== null && alert.assigneeId === me.id;
+  const isManager = me?.role === 'MANAGER';
 
   return (
     <div className="header-actions">
-      {me && !assignedToMe && (
+      {isManager && (
+        <AssignToSelect assigneeId={alert.assigneeId} disabled={busy} onAssign={(id) => update({ assigneeId: id })} />
+      )}
+      {me && !isManager && !assignedToMe && (
         <button type="button" disabled={busy} onClick={() => update({ assigneeId: me.id })}>Assign to me</button>
       )}
       <label className="inline">
@@ -44,8 +51,12 @@ export default function HeaderActions({ alert, me, onChanged }: {
           {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
       </label>
-      <EscalateButton alertId={alert.id} onChanged={onChanged} />
-      <CloseAlertButton alertId={alert.id} onChanged={onChanged} />
+      {me && !isManager && (
+        <>
+          <EscalateButton alertId={alert.id} onChanged={onChanged} />
+          <CloseAlertButton alertId={alert.id} onChanged={onChanged} />
+        </>
+      )}
       <ErrorMessage error={error} />
     </div>
   );
