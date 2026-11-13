@@ -43,7 +43,7 @@ but the analyst always makes the decision.
 ## Design batch D1 (Midnight Signal)
 
 - [x] D1. Brand base: tokens, fonts, favicon, restyled controls
-- [ ] D2. Login page
+- [x] D2. Login page
 - [ ] D3. App shell: icon rail + top bar
 - [ ] D4. Alert queue: filters, signals, expandable rows
 - [ ] D5. Slide-over alert panel
