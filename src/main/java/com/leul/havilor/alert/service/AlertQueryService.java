@@ -8,6 +8,7 @@ import com.leul.havilor.alert.domain.enums.AlertStatus;
 import com.leul.havilor.alert.domain.enums.Priority;
 import com.leul.havilor.alert.repository.AlertRepository;
 import com.leul.havilor.common.error.NotFoundException;
+import com.leul.havilor.user.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +18,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 // The read side of alerts: one alert as the detail DTO, and the dashboard numbers.
 // The transaction keeps the session open while the lazy child lists load.
@@ -27,10 +30,12 @@ public class AlertQueryService {
     static final int CHART_DAYS = 14;
 
     private final AlertRepository alertRepository;
+    private final UserService userService;
     private final Clock clock;
 
-    public AlertQueryService(AlertRepository alertRepository, Clock clock) {
+    public AlertQueryService(AlertRepository alertRepository, UserService userService, Clock clock) {
         this.alertRepository = alertRepository;
+        this.userService = userService;
         this.clock = clock;
     }
 
@@ -44,7 +49,13 @@ public class AlertQueryService {
                 alertRepository.countByStatusNotAndPriority(AlertStatus.CLOSED, Priority.CRITICAL),
                 alertRepository.countByClosedAtGreaterThanEqual(now.minus(Duration.ofDays(7))),
                 alertsPerDay(LocalDate.ofInstant(now, ZoneOffset.UTC)),
-                alertRepository.findTop5ByOrderByReceivedAtDescIdDesc().stream().map(AlertSummaryResponse::from).toList());
+                summaries(alertRepository.findTop5ByOrderByReceivedAtDescIdDesc()));
+    }
+
+    // Alerts as queue rows, with the assignees' names (one user query for the whole list).
+    List<AlertSummaryResponse> summaries(List<Alert> alerts) {
+        Map<Long, String> names = userService.namesByIds(alerts.stream().map(Alert::getAssigneeId).toList());
+        return alerts.stream().map(alert -> AlertSummaryResponse.from(alert, names.get(alert.getAssigneeId()))).toList();
     }
 
     // The last 14 UTC days ending today, oldest first: one count query per day, so days without alerts are 0.
@@ -76,6 +87,8 @@ public class AlertQueryService {
     @Transactional(readOnly = true)
     public AlertDetailResponse getById(Long id) {
         Alert alert = alertRepository.findById(id).orElseThrow(() -> NotFoundException.of("Alert", id));
-        return AlertDetailResponse.from(alert, alertRepository.findClicksByAlertId(id));
+        String assigneeName = userService.namesByIds(Collections.singletonList(alert.getAssigneeId()))
+                .get(alert.getAssigneeId());
+        return AlertDetailResponse.from(alert, alertRepository.findClicksByAlertId(id), assigneeName);
     }
 }

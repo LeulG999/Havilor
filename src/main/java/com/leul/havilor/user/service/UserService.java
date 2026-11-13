@@ -6,6 +6,12 @@ import com.leul.havilor.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 // What other modules may ask about users (the border rule: they never touch UserRepository).
 @Service
 public class UserService {
@@ -20,6 +26,18 @@ public class UserService {
     public UserResponse getById(Long id) {
         return userRepository.findById(id).map(UserResponse::from)
                 .orElseThrow(() -> NotFoundException.of("User", id));
+    }
+
+    // Names for a list of user ids (e.g. the assignees on one page of alerts), in ONE query.
+    // Nulls are ignored; an unknown id is simply missing from the map.
+    @Transactional(readOnly = true)
+    public Map<Long, String> namesByIds(Collection<Long> ids) {
+        Map<Long, String> names = new HashMap<>();
+        List<Long> known = ids.stream().filter(Objects::nonNull).distinct().toList();
+        if (!known.isEmpty()) {
+            userRepository.findAllById(known).forEach(user -> names.put(user.getId(), user.getName()));
+        }
+        return names;
     }
 
     @Transactional(readOnly = true)

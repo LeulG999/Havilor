@@ -19,12 +19,14 @@ public record AlertSummaryResponse(
         AlertStatus status,
         Verdict verdict,
         Long assigneeId,
+        String assigneeName,
         String subject,
         String fromAddress,
         Instant receivedAt
 ) {
 
-    public static AlertSummaryResponse from(Alert alert) {
+    // assigneeName comes from the user module (UserService), so the caller passes it in.
+    public static AlertSummaryResponse from(Alert alert, String assigneeName) {
         return new AlertSummaryResponse(
                 alert.getId(),
                 alert.getTicketNumber(),
@@ -34,6 +36,7 @@ public record AlertSummaryResponse(
                 alert.getStatus(),
                 alert.getVerdict(),
                 alert.getAssigneeId(),
+                assigneeName,
                 alert.getEmail().getSubject(),
                 alert.getEmail().getFromAddress(),
                 alert.getReceivedAt());

@@ -102,10 +102,10 @@ public class AlertService {
     // Summaries only: the list never touches the child tables.
     @Transactional(readOnly = true)
     public PageResponse<AlertSummaryResponse> list(int page, int size) {
-        Page<AlertSummaryResponse> alerts = alertRepository
-                .findAll(Paging.pageRequest(page, size, NEWEST_FIRST))
-                .map(AlertSummaryResponse::from);
-        return PageResponse.from(alerts);
+        Page<Alert> alerts = alertRepository.findAll(Paging.pageRequest(page, size, NEWEST_FIRST));
+        List<AlertSummaryResponse> rows = alertQueryService.summaries(alerts.getContent()); // + the assignees' names
+        return new PageResponse<>(rows, alerts.getNumber(), alerts.getSize(), alerts.getTotalElements(),
+                alerts.getTotalPages());
     }
 
     /**

@@ -23,6 +23,7 @@ public record AlertDetailResponse(
         Verdict suggestedVerdict,
         String suggestionReason,
         Long assigneeId,
+        String assigneeName,
         String waitingOn,
         String externalCaseNumber,
         LocalDate followUpOn,
@@ -41,7 +42,8 @@ public record AlertDetailResponse(
         long version
 ) {
 
-    public static AlertDetailResponse from(Alert alert, List<ClickEvent> clicks) {
+    // assigneeName comes from the user module (UserService), so the caller passes it in.
+    public static AlertDetailResponse from(Alert alert, List<ClickEvent> clicks, String assigneeName) {
         return new AlertDetailResponse(
                 alert.getId(),
                 alert.getTicketNumber(),
@@ -53,6 +55,7 @@ public record AlertDetailResponse(
                 alert.getSuggestedVerdict(),
                 alert.getSuggestionReason(),
                 alert.getAssigneeId(),
+                assigneeName,
                 alert.getWaitingOn(),
                 alert.getExternalCaseNumber(),
                 alert.getFollowUpOn(),
