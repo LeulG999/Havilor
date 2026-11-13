@@ -9,6 +9,7 @@ import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.domain.enums.AlertStatus;
 import com.leul.havilor.alert.domain.enums.Priority;
 import com.leul.havilor.alert.repository.AlertRepository;
+import com.leul.havilor.alert.repository.ClickFlag;
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.user.service.UserService;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 // The read side of alerts: one alert as the detail DTO, and the dashboard numbers.
 // The transaction keeps the session open while the lazy child lists load.
@@ -55,10 +57,20 @@ public class AlertQueryService {
                 summaries(alertRepository.findTop5ByOrderByReceivedAtDescIdDesc()));
     }
 
-    // Alerts as queue rows, with the assignees' names (one user query for the whole list).
+    // Alerts as queue rows, with the assignees' names and the signals. A fixed number of queries for the whole list:
+    // one for the names, one for the clicks, one each (@BatchSize) for the URLs and attachments.
     List<AlertSummaryResponse> summaries(List<Alert> alerts) {
+        if (alerts.isEmpty()) {
+            return List.of();
+        }
         Map<Long, String> names = userService.namesByIds(alerts.stream().map(Alert::getAssigneeId).toList());
-        return alerts.stream().map(alert -> AlertSummaryResponse.from(alert, names.get(alert.getAssigneeId()))).toList();
+        Map<Long, List<ClickFlag>> clicks = alertRepository
+                .findClickFlagsByAlertIds(alerts.stream().map(Alert::getId).toList()).stream()
+                .collect(Collectors.groupingBy(ClickFlag::alertId));
+        return alerts.stream()
+                .map(alert -> AlertSummaryResponse.from(alert, names.get(alert.getAssigneeId()),
+                        Signals.of(alert, clicks.getOrDefault(alert.getId(), List.of()))))
+                .toList();
     }
 
     // The numbers above the queue (Flow D4): three for the whole queue, and one per priority with the queue's

@@ -20,6 +20,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import org.hibernate.annotations.BatchSize;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
@@ -119,12 +120,16 @@ public class Alert {
     @OrderBy("id")
     private List<Recipient> recipients = new ArrayList<>();
 
+    // @BatchSize: when a page of the queue reads every alert's URLs / attachments (the Signals column), they load
+    // for up to 100 alerts in ONE query, not one query per alert.
     @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id")
+    @BatchSize(size = 100)
     private List<Url> urls = new ArrayList<>();
 
     @OneToMany(mappedBy = "alert", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id")
+    @BatchSize(size = 100)
     private List<Attachment> attachments = new ArrayList<>();
 
     // The playbook chosen when the alert arrived, by id + version only (it lives in another module).

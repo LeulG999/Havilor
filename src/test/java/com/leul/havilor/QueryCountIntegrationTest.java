@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -95,6 +96,32 @@ class QueryCountIntegrationTest {
         assertThat(statements(get("/api/v1/standup/notes").param("size", "" + ROWS))).isEqualTo(3);
         assertThat(statements(get("/api/v1/standup/team").param("size", "" + ROWS)
                 .header(HttpHeaders.AUTHORIZATION, testUsers.managerBearer()))).isEqualTo(3);
+    }
+
+    // Flow D4: a page of the queue with names and signals. ROWS alerts, each with a URL, a file and a click, all
+    // assigned: page + count + names + clicks + URLs (@BatchSize) + attachments (@BatchSize) = 6, whatever the rows.
+    @Test
+    void aPageOfTheQueueWithSignals() throws Exception {
+        for (int i = 0; i < ROWS; i++) {
+            long id = idOf(mockMvc.perform(post("/api/v1/alerts").contentType(MediaType.APPLICATION_JSON).content("""
+                            {"ticketNumber": "INC-QC-%s", "source": "TEST_GENERATOR", "caseType": "USER_REPORTED_EMAIL",
+                             "priority": "MEDIUM", "receivedAt": "2099-03-0%dT00:00:00Z",
+                             "email": {"subject": "Fake", "fromAddress": "billing@invoices.example.net"},
+                             "recipients": [{"address": "alex@corp.example.com", "delivery": "DELIVERED"}],
+                             "urls": [{"address": "https://pay.example.org/x"}],
+                             "attachments": [{"fileName": "notes.txt"}],
+                             "clicks": [{"recipientAddress": "alex@corp.example.com", "urlAddress": "https://pay.example.org/x",
+                                         "clickedAt": "2099-03-01T00:02:00Z", "permitted": false}]}
+                            """.formatted(UUID.randomUUID(), i + 1))));
+            send(patch("/api/v1/alerts/{id}", id), "{\"assigneeId\": %d}".formatted(testUsers.analystId()));
+        }
+
+        assertThat(statements(get("/api/v1/alerts").param("size", "" + ROWS))).isEqualTo(6);
+    }
+
+    private static long idOf(org.springframework.test.web.servlet.ResultActions result) throws Exception {
+        String body = result.andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        return Long.parseLong(body.replaceAll("(?s).*?\"id\"\\s*:\\s*(\\d+).*", "$1"));
     }
 
     private long statements(MockHttpServletRequestBuilder request) throws Exception {

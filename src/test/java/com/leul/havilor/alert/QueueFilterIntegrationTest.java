@@ -78,6 +78,36 @@ class QueueFilterIntegrationTest {
     }
 
     @Test
+    void eachRowCarriesItsSignals() throws Exception {
+        String body = mockMvc.perform(post(ALERTS).contentType(MediaType.APPLICATION_JSON).content("""
+                        {"ticketNumber": "INC-IT-%s", "source": "TEST_GENERATOR", "caseType": "DETECTED_PHISHING",
+                         "priority": "HIGH", "receivedAt": "2099-02-01T00:00:00Z",
+                         "email": {"subject": "Shared document", "fromAddress": "no-reply@docs-share.example.org",
+                                   "spfResult": "NONE", "dkimResult": "PASS", "dmarcResult": "FAIL"},
+                         "recipients": [{"address": "alex@corp.example.com", "delivery": "DELIVERED"}],
+                         "urls": [{"address": "https://docs-share.example.org/verify", "onBadList": true}],
+                         "attachments": [{"fileName": "notes.txt", "verdict": "BENIGN"}],
+                         "clicks": [{"recipientAddress": "alex@corp.example.com",
+                                     "urlAddress": "https://docs-share.example.org/verify",
+                                     "clickedAt": "2099-02-01T00:02:00Z", "permitted": true}]}
+                        """.formatted(UUID.randomUUID())))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        long id = ((Number) JsonPath.read(body, "$.id")).longValue();
+        long plain = create("LOW", "2099-01-31T00:00:00Z"); // no links, no files, no clicks, no auth results
+
+        String page = list("size=100");
+        List<String> names = JsonPath.read(page, "$.content[?(@.id == %d)].signals[*].name".formatted(id));
+        List<Boolean> bad = JsonPath.read(page, "$.content[?(@.id == %d)].signals[*].bad".formatted(id));
+        // URL on a block list (bad), a benign file (neutral), a click let through (bad), SPF none (neutral),
+        // DMARC fail (bad); DKIM passed, so it's not a signal.
+        assertThat(names).containsExactly("URL", "FILE", "CLICK", "SPF", "DMARC");
+        assertThat(bad).containsExactly(true, false, true, false, true);
+        List<List<Object>> plainSignals = JsonPath.read(page, "$.content[?(@.id == %d)].signals".formatted(plain));
+        assertThat(plainSignals.getFirst()).isEmpty();
+    }
+
+    @Test
     void anUnknownStatusGives400() throws Exception {
         mockMvc.perform(get(ALERTS).param("status", "SLEEPING"))
                 .andExpect(status().isBadRequest())
