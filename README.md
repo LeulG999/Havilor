@@ -40,6 +40,13 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Batch F6 (names, roles, manager dashboard, readable AI)
+
+- [x] F24. Assignee names on alerts (header, queue, dashboard)
+- [ ] F25. Manager vs analyst rights, enforced in the backend
+- [ ] F26. Manager dashboard
+- [ ] F27. Readable AI assessment
+
 ## Batch F5 (AI standup note) ✅
 
 - [x] F21. AI-drafted standup note from the day's audit log, with a live preview in the editor
