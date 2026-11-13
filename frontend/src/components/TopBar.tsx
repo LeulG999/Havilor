@@ -13,6 +13,7 @@ function crumbFor(path: string): Crumb {
   if (path === '/standup') return { section: 'Standup', page: 'My notes' };
   if (path === '/team-standups') return { section: 'Manager', page: 'Team standups' };
   if (path === '/audit') return { section: 'Manager', page: 'Audit log' };
+  if (path === '/team') return { section: 'Manager', page: 'Team' };
   return { section: 'Havilor', page: '' };
 }
 

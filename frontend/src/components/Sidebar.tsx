@@ -1,25 +1,21 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router';
-import { api, clearToken } from '../api/api';
+import { clearToken } from '../api/api';
 import type { User } from '../api/types';
 import Avatar from './Avatar';
-import ErrorMessage from './ErrorMessage';
-import { AuditIcon, DashboardIcon, LogoutIcon, NoteIcon, PlusIcon, QueueIcon, TeamIcon } from './icons';
+import ChangePasswordForm from './ChangePasswordForm';
+import { AuditIcon, DashboardIcon, KeyIcon, LogoutIcon, NoteIcon, PeopleIcon, PlusIcon, QueueIcon, TeamIcon } from './icons';
+import Modal from './Modal';
 
 // The 64px icon rail on the left of every logged-in page (docs/design/mockups/s1-queue.png): the logo, one icon per
 // page (the name shows as a tooltip on hover or keyboard focus), the manager pages only for a MANAGER (from
-// GET /api/v1/users/me; the backend refuses them for anyone else anyway), and at the bottom the user's avatar, which
-// opens a small menu with the name, role and "Log out".
-export default function Sidebar() {
+// GET /api/v1/users/me, loaded by LoggedInLayout; the backend refuses them for anyone else anyway), and at the bottom
+// the user's avatar, which opens a small menu with the name, role, "Change password" and "Log out".
+export default function Sidebar({ user }: { user: User | null }) {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [error, setError] = useState<unknown>(null);
-
-  // Runs once, when the rail first appears.
-  useEffect(() => {
-    api<User>('/users/me').then(setUser).catch(setError);
-  }, []);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [passwordChanged, setPasswordChanged] = useState(false);
 
   function logout() {
     clearToken(); // the token is only in this tab's sessionStorage, so forgetting it logs out
@@ -40,12 +36,12 @@ export default function Sidebar() {
             <span className="rail-divider" aria-hidden="true" />
             <RailLink to="/team-standups" label="Team standups" icon={<TeamIcon />} />
             <RailLink to="/audit" label="Audit log" icon={<AuditIcon />} />
+            <RailLink to="/team" label="Team" icon={<PeopleIcon />} />
           </>
         )}
       </nav>
 
       <div className="rail-bottom">
-        <ErrorMessage error={error} />
         {user && (
           <>
             <button type="button" className="rail-avatar" onClick={() => setMenuOpen(!menuOpen)}
@@ -56,14 +52,26 @@ export default function Sidebar() {
               <div className="rail-menu" role="menu">
                 <div className="rail-menu-name">{user.name}</div>
                 <div className="rail-menu-role">{user.role}</div>
-                <button type="button" className="secondary small" role="menuitem" onClick={logout}>
-                  <LogoutIcon size={14} /> Log out
-                </button>
+                <div className="rail-menu-buttons">
+                  <button type="button" className="secondary small" role="menuitem"
+                          onClick={() => { setMenuOpen(false); setPasswordChanged(false); setPasswordOpen(true); }}>
+                    <KeyIcon size={14} /> Change password
+                  </button>
+                  <button type="button" className="secondary small" role="menuitem" onClick={logout}>
+                    <LogoutIcon size={14} /> Log out
+                  </button>
+                </div>
               </div>
             )}
           </>
         )}
       </div>
+
+      <Modal open={passwordOpen} title="Change password" onClose={() => setPasswordOpen(false)}>
+        {passwordChanged
+          ? <p className="muted">Your password was changed. Use it the next time you log in.</p>
+          : <ChangePasswordForm currentLabel="Current password" onDone={() => setPasswordChanged(true)} />}
+      </Modal>
     </aside>
   );
 }

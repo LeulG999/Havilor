@@ -67,6 +67,25 @@ export function AuditIcon(props: IconProps) {
   );
 }
 
+export function PeopleIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="7" cy="6" r="2.6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <path d="M2.5 15c.5-2.8 2.2-4.2 4.5-4.2 1.3 0 2.4.4 3.2 1.3M13.5 10v5M11 12.5h5" fill="none" stroke="currentColor"
+            strokeWidth="1.5" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function KeyIcon(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle cx="6" cy="9" r="3.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M9.2 9H16M13.5 9v2.5M16 9v2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function LogoutIcon(props: IconProps) {
   return (
     <Svg {...props}>

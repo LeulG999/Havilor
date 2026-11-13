@@ -5,6 +5,7 @@ export type LoginResponse = {
   accessToken: string;
   tokenType: string;
   expiresIn: number;
+  mustChangePassword: boolean; // true: the first thing to do is set a new password
 };
 
 export type User = {
@@ -12,6 +13,14 @@ export type User = {
   name: string;
   email: string;
   role: string;
+  active: boolean;
+  mustChangePassword: boolean; // true until the person replaced the temporary password
+};
+
+// POST /api/v1/users (managers): the new person and the temporary password, shown ONCE.
+export type CreatedUser = {
+  user: User;
+  temporaryPassword: string;
 };
 
 // The backend's page shape (PageResponse) for every list endpoint.

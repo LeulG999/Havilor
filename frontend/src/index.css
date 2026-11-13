@@ -2149,3 +2149,28 @@ input[type='file']::file-selector-button {
 .intake-body > button[type='submit'] {
   align-self: flex-start;
 }
+
+/* ---------- Passwords (components/ChangePasswordForm.tsx, pages/SetPasswordPage.tsx) ---------- */
+.password-form input {
+  width: 100%;
+}
+
+.rail-menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rail-menu-buttons button {
+  justify-content: flex-start;
+}
+
+.small-print {
+  margin-top: 22px;
+  font-size: 13px;
+}
+
+/* The white first-login panel: its links in the panel's teal. */
+.login-card button.link {
+  color: #0891b2;
+}
