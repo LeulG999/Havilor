@@ -32,17 +32,26 @@ public class AlertAiService {
     // How many knowledge chunks (similar closed alerts, playbook steps) an assessment gets.
     static final int REFERENCE_LIMIT = 5;
 
+    // The readable assessment's limits (Flow F27): also in the instructions, and enforced here in case Claude sends more.
+    static final int MAX_EVIDENCE = 6;
+    static final int MAX_NEXT_STEPS = 5;
+
     static final String ASSESS_INSTRUCTIONS = """
             You help a security analyst investigate a phishing / email alert in Havilor. You get the alert (email \
             details, recipients, URLs, attachments, clicks) and the findings Havilor and the analyst recorded.
 
             Answer with:
-            - summary: 2 to 4 plain sentences on what happened and what matters most, written so a junior analyst \
-            learns from it.
             - suggestedVerdict: MALICIOUS, BENIGN or FALSE_POSITIVE; UNDECIDED if the evidence is not enough to say.
-            - suggestionReason: the evidence behind that verdict, naming the specific findings or fields, and what \
-            would change your mind.
+            - confidence: LOW, MEDIUM or HIGH: how sure you are of that verdict.
+            - oneLineSummary: one sentence of at most 25 words: what happened and what matters most.
+            - keyEvidence: at most 6 items, most important first. Each has "text" (one short sentence) and \
+            "severity" (HIGH, MEDIUM or LOW: how strongly it points to a threat).
+            - nextSteps: at most 5 short lines, each starting with a verb, e.g. "Block the sender's domain".
+            - wouldChangeMyMindIf: one line: the fact that would change the verdict.
 
+            Write in plain everyday English, so a junior analyst understands it. No paragraphs: short sentences only. \
+            Never use internal field names (such as onBadList, phishScore, spfResult, dmarcResult, deliveryStatus); \
+            say what they mean instead, e.g. "the link is on a block list", "the email failed DMARC". \
             The analyst makes the final decision. Say plainly what you are unsure about.
 
             "referenceKnowledge" holds up to 5 pieces of reference knowledge found by similarity: past closed alerts \
@@ -80,9 +89,9 @@ public class AlertAiService {
         this.jsonMapper = jsonMapper;
     }
 
-    // Unknown alert → 404; closed alert → 409, checked before paying for an API call. The suggestion is saved
-    // on the alert (suggestedVerdict, suggestionReason). RAG: the most similar knowledge goes into the prompt, and
-    // the response says which chunks those were.
+    // Unknown alert → 404; closed alert → 409, checked before paying for an API call. Saved on the alert:
+    // suggestedVerdict, suggestionReason (= the one-line summary) and the whole assessment as lastAssessment (JSON).
+    // RAG: the most similar knowledge goes into the prompt, and the response says which chunks those were.
     public AiAssessmentResponse assess(Long alertId, Long actorId) {
         AlertDetailResponse alert = alertQueryService.getById(alertId);
         if (alert.status() == AlertStatus.CLOSED) {
@@ -94,9 +103,18 @@ public class AlertAiService {
                 Map.of("alert", alert, "findings", findings, "referenceKnowledge", knowledge));
 
         AiAssessment answer = aiClient.structured(ASSESS_INSTRUCTIONS, AiInput.text(caseJson), AiAssessment.class);
-        alertService.recordSuggestion(alertId, answer.suggestedVerdict(), answer.suggestionReason(), null, actorId);
-        return new AiAssessmentResponse(answer.summary(), answer.suggestedVerdict(), answer.suggestionReason(),
+        AiAssessmentResponse assessment = new AiAssessmentResponse(answer.suggestedVerdict(), answer.confidence(),
+                answer.oneLineSummary(), first(answer.keyEvidence(), MAX_EVIDENCE), first(answer.nextSteps(), MAX_NEXT_STEPS),
+                answer.wouldChangeMyMindIf(),
                 knowledge.stream().map(k -> new AiAssessmentResponse.Reference(k.sourceType(), k.sourceId())).toList());
+        alertService.recordSuggestion(alertId, answer.suggestedVerdict(), answer.oneLineSummary(),
+                jsonMapper.writeValueAsString(assessment), actorId);
+        return assessment;
+    }
+
+    // At most `max` items (null → empty): the page and the saved JSON stay short whatever Claude sends.
+    private static <T> List<T> first(List<T> items, int max) {
+        return items == null ? List.of() : items.stream().limit(max).toList();
     }
 
     // The search uses the same kind of facts a closed alert is indexed with (AlertService.knowledgeText).

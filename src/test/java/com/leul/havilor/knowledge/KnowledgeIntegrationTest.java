@@ -19,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -96,7 +97,7 @@ class KnowledgeIntegrationTest {
         long past = createAlert("Urgent wire transfer request", "ceo@lookalike-corp.example.net");
         close(past, "MALICIOUS").andExpect(status().isOk());
         long now = createAlert("Urgent wire transfer request today", "ceo@lookalike-corp.example.net");
-        fakeAi.answer(AiAssessment.class, () -> new AiAssessment("CEO fraud again.", Verdict.MALICIOUS, "Like before."));
+        fakeAi.answer(AiAssessment.class, () -> new AiAssessment(Verdict.MALICIOUS, AiAssessment.Level.HIGH, "CEO fraud again.", List.of(), List.of(), "Like before."));
 
         mockMvc.perform(post(ALERTS + "/{id}/ai/assessment", now))
                 .andExpect(status().isOk())
@@ -114,7 +115,7 @@ class KnowledgeIntegrationTest {
     @Test
     void whenSearchFailsTheAssessmentStillWorksWithoutKnowledge() throws Exception {
         long id = createAlert("Password expires today", "it-support@helpdesk.example.net");
-        fakeAi.answer(AiAssessment.class, () -> new AiAssessment("Likely phishing.", Verdict.MALICIOUS, "Spoofed."));
+        fakeAi.answer(AiAssessment.class, () -> new AiAssessment(Verdict.MALICIOUS, AiAssessment.Level.MEDIUM, "Likely phishing.", List.of(), List.of(), "Spoofed."));
         fakeEmbeddings.failing = true;
 
         mockMvc.perform(post(ALERTS + "/{id}/ai/assessment", id))

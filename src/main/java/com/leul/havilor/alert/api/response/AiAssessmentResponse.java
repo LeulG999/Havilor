@@ -1,14 +1,19 @@
 package com.leul.havilor.alert.api.response;
 
 import com.leul.havilor.alert.domain.enums.Verdict;
+import com.leul.havilor.alert.service.AiAssessment;
 
 import java.util.List;
 
-// Claude's assessment of an alert, plus the reference knowledge it was given (similar closed alerts, playbook steps).
+// Claude's assessment of an alert (Flow F27), plus the reference knowledge it was given (similar closed alerts,
+// playbook steps). The same JSON is saved on the alert as lastAssessment.
 public record AiAssessmentResponse(
-        String summary,
         Verdict suggestedVerdict,
-        String suggestionReason,
+        AiAssessment.Level confidence,
+        String oneLineSummary,
+        List<AiAssessment.Evidence> keyEvidence,
+        List<String> nextSteps,
+        String wouldChangeMyMindIf,
         List<Reference> references
 ) {
 
