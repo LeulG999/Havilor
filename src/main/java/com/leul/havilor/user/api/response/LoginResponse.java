@@ -4,6 +4,7 @@ package com.leul.havilor.user.api.response;
 public record LoginResponse(
         String accessToken,
         String tokenType,
-        long expiresIn
+        long expiresIn,
+        boolean mustChangePassword   // true: the only thing to do is set a new password (Flow F30)
 ) {
 }

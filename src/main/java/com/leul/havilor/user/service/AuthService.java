@@ -46,17 +46,24 @@ public class AuthService {
                 .filter(u -> passwordEncoder.matches(request.password(), u.getPasswordHash()))
                 .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
 
+        return tokenFor(user);
+    }
+
+    // One signed access token. subject = user id (what the services need); role = what SecurityConfiguration turns
+    // into ROLE_...; mustChangePassword = what PasswordChangeFilter checks (Flow F30), so no database lookup is needed
+    // on every request. After a password change the person gets a new token without it.
+    LoginResponse tokenFor(User user) {
         Instant now = clock.instant();
-        // subject = user id (what the services need); role = what SecurityConfiguration turns into ROLE_...
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("havilor")
                 .subject(user.getId().toString())
                 .issuedAt(now)
                 .expiresAt(now.plus(TOKEN_LIFETIME))
                 .claim("role", user.getRole().name())
+                .claim("mustChangePassword", user.isMustChangePassword())
                 .build();
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
         String token = jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
-        return new LoginResponse(token, "Bearer", TOKEN_LIFETIME.toSeconds());
+        return new LoginResponse(token, "Bearer", TOKEN_LIFETIME.toSeconds(), user.isMustChangePassword());
     }
 }

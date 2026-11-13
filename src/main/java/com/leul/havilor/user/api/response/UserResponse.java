@@ -8,10 +8,12 @@ public record UserResponse(
         String name,
         String email,
         String role,
-        boolean active
+        boolean active,
+        boolean mustChangePassword   // true until the person replaced the temporary password (Flow F30)
 ) {
 
     public static UserResponse from(User user) {
-        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), user.isActive());
+        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole().name(), user.isActive(),
+                user.isMustChangePassword());
     }
 }

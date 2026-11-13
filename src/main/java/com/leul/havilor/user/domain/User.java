@@ -41,6 +41,11 @@ public class User {
     @Column(nullable = false)
     private boolean active;
 
+    // True after a manager created the account with a temporary password (Flow F30): until the person sets their
+    // own, the API only lets them do that.
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword;
+
     // passwordHash must already be hashed (BCrypt). A new user is active.
     public User(String name, String email, String passwordHash, Role role) {
         this.name = name;
@@ -48,6 +53,27 @@ public class User {
         this.passwordHash = passwordHash;
         this.role = role;
         this.active = true;
+    }
+
+    // Created by a manager: a temporary password (already hashed) that must be replaced at the first login.
+    public static User withTemporaryPassword(String name, String email, String temporaryPasswordHash, Role role) {
+        User user = new User(name, email, temporaryPasswordHash, role);
+        user.mustChangePassword = true;
+        return user;
+    }
+
+    // The person's own new password (already hashed): the temporary one is gone.
+    public void changePassword(String newPasswordHash) {
+        this.passwordHash = newPasswordHash;
+        this.mustChangePassword = false;
+    }
+
+    public void changeActive(boolean active) {
+        this.active = active;
+    }
+
+    public void changeRole(Role role) {
+        this.role = role;
     }
 
     public static String normalizeEmail(String email) {
