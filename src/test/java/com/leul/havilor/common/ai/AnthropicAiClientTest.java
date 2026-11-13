@@ -33,6 +33,17 @@ class AnthropicAiClientTest {
     }
 
     @Test
+    void severalFilesGoInOneRequestBeforeTheText() {
+        List<ContentBlockParam> blocks = AnthropicAiClient.content(AiInput.files("Read these.", List.of(
+                new AiInput.AiFile(new byte[]{1}, "image/png"), new AiInput.AiFile(new byte[]{2}, "application/pdf"))));
+
+        assertThat(blocks).hasSize(3);
+        assertThat(blocks.get(0).isImage()).isTrue();
+        assertThat(blocks.get(1).isDocument()).isTrue();
+        assertThat(blocks.get(2).isText()).isTrue();
+    }
+
+    @Test
     void anImageOrAPdfGoesBeforeTheText() {
         List<ContentBlockParam> image = AnthropicAiClient.content(
                 AiInput.file("Read this screenshot.", new byte[]{1, 2, 3}, "image/png"));

@@ -84,12 +84,12 @@ class AnthropicAiClient implements AiClient {
                 .build();
     }
 
-    // The file block (if any) goes before the text, as the API recommends.
+    // The file blocks (if any) go before the text, as the API recommends: one block per image or PDF, in order.
     static List<ContentBlockParam> content(AiInput input) {
         List<ContentBlockParam> blocks = new ArrayList<>();
-        if (input.hasFile()) {
-            String data = Base64.getEncoder().encodeToString(input.file());
-            if ("application/pdf".equals(input.mediaType())) {
+        for (AiInput.AiFile file : input.files()) {
+            String data = Base64.getEncoder().encodeToString(file.data());
+            if ("application/pdf".equals(file.mediaType())) {
                 blocks.add(ContentBlockParam.ofDocument(DocumentBlockParam.builder()
                         .source(Base64PdfSource.builder().data(data).build())
                         .build()));
@@ -97,7 +97,7 @@ class AnthropicAiClient implements AiClient {
                 blocks.add(ContentBlockParam.ofImage(ImageBlockParam.builder()
                         .source(Base64ImageSource.builder()
                                 .data(data)
-                                .mediaType(Base64ImageSource.MediaType.of(input.mediaType()))
+                                .mediaType(Base64ImageSource.MediaType.of(file.mediaType()))
                                 .build())
                         .build()));
             }

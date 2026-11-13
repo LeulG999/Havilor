@@ -1,18 +1,31 @@
 package com.leul.havilor.common.ai;
 
-// What Claude reads: always some text, and optionally one file (an image or a PDF) for Claude's vision.
-public record AiInput(String text, byte[] file, String mediaType) {
+import java.util.List;
 
-    public static AiInput text(String text) {
-        return new AiInput(text, null, null);
+// What Claude reads: always some text, and optionally files (images or PDFs) for Claude's vision, all in ONE request.
+public record AiInput(String text, List<AiFile> files) {
+
+    // One image or PDF. mediaType: image/png, image/jpeg, image/gif, image/webp or application/pdf.
+    public record AiFile(byte[] data, String mediaType) {
     }
 
-    // mediaType: image/png, image/jpeg, image/gif, image/webp or application/pdf.
+    public AiInput {
+        files = files == null ? List.of() : List.copyOf(files);
+    }
+
+    public static AiInput text(String text) {
+        return new AiInput(text, List.of());
+    }
+
     public static AiInput file(String text, byte[] file, String mediaType) {
-        return new AiInput(text, file, mediaType);
+        return new AiInput(text, List.of(new AiFile(file, mediaType)));
+    }
+
+    public static AiInput files(String text, List<AiFile> files) {
+        return new AiInput(text, files);
     }
 
     public boolean hasFile() {
-        return file != null;
+        return !files.isEmpty();
     }
 }

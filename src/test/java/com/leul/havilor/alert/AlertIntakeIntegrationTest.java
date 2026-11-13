@@ -111,12 +111,12 @@ class AlertIntakeIntegrationTest {
     void anImageOrAPdfGoesToClaudesVision() throws Exception {
         mockMvc.perform(multipart(EXTRACT).file(new MockMultipartFile("file", "shot.png", "image/png", new byte[]{1, 2})))
                 .andExpect(status().isOk());
-        assertThat(fakeAi.lastInput.mediaType()).isEqualTo("image/png");
-        assertThat(fakeAi.lastInput.file()).containsExactly(1, 2);
+        assertThat(fakeAi.lastInput.files().getFirst().mediaType()).isEqualTo("image/png");
+        assertThat(fakeAi.lastInput.files().getFirst().data()).containsExactly(1, 2);
 
         mockMvc.perform(multipart(EXTRACT).file(new MockMultipartFile("file", "mail.pdf", "application/pdf", new byte[]{3})))
                 .andExpect(status().isOk());
-        assertThat(fakeAi.lastInput.mediaType()).isEqualTo("application/pdf");
+        assertThat(fakeAi.lastInput.files().getFirst().mediaType()).isEqualTo("application/pdf");
     }
 
     @Test
