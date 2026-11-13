@@ -62,7 +62,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: {
     { name: 'Steps', count: `${done}/${steps.length}` },
     { name: 'Evidence', count: String(findings.length) },
     { name: 'Actions', count: String(actions.length) },
-    { name: 'History', count: String(history.length) },
+    { name: 'History', count: String(history.length + 1) }, // + "Alert received"
   ];
 
   return (
@@ -126,7 +126,12 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: {
                   <EscalationList escalations={escalations} editable={canWork} onChanged={changed} />
                 </>
               )}
-              {tab === 'History' && <HistoryTimeline entries={history} me={me} />}
+              {tab === 'History' && (
+                <section className="sec">
+                  <HistoryTimeline entries={history} steps={steps} me={me}
+                                   received={{ at: alert.receivedAt, source: alert.source }} />
+                </section>
+              )}
             </div>
 
             {canWork && alertIsOpen && (

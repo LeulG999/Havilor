@@ -557,28 +557,67 @@ textarea.draft {
 }
 
 /* ---------- History timeline (components/HistoryTimeline.tsx) ---------- */
-.timeline {
+/* A round icon per event, joined by a thin line; title + detail; the time in mono on the right. */
+.tl {
   list-style: none;
   margin: 0;
-  padding: 0 0 0 18px;
-  border-left: 1px solid var(--border2);
+  padding: 4px 16px 14px;
 }
 
-.timeline li {
+.tl li {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 10px;
+  padding: 9px 0;
   position: relative;
-  padding: 0 0 16px;
 }
 
-.timeline li::before {
+/* The line from this icon down to the next one. */
+.tl li::before {
   content: '';
   position: absolute;
-  left: -24px;
-  top: 3px;
-  width: 9px;
-  height: 9px;
+  left: 13px;
+  top: 37px;
+  bottom: -9px;
+  width: 1px;
+  background: var(--border2);
+}
+
+.tl li:last-child::before {
+  display: none;
+}
+
+.tl-icon {
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--border2);
   background: var(--surface2);
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+.tl b {
+  font-weight: 500;
+  display: block;
+}
+
+.tl small {
+  color: var(--faint);
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+
+.tl time {
+  color: var(--faint);
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.timeline-empty {
+  padding: 14px 16px;
+  margin: 0;
 }
 
 /* ---------- Dashboard ---------- */

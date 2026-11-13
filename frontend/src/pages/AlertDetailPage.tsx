@@ -43,7 +43,7 @@ export default function AlertDetailPage() {
     { name: 'Evidence', count: String(findings.length) },
     { name: 'Actions', count: String(actions.length) },
     { name: 'AI' },
-    { name: 'History', count: String(history.length) },
+    { name: 'History', count: String(history.length + 1) }, // + "Alert received"
   ];
 
   return (
@@ -109,11 +109,12 @@ export default function AlertDetailPage() {
                 <div className="sec-head">
                   <b>History</b>
                   <button type="button" className="link quiet" onClick={() => setTab('History')}>
-                    All {history.length} ›
+                    All {history.length + 1} ›
                   </button>
                 </div>
-                {/* The newest entries first in the side column. */}
-                <HistoryTimeline entries={history.slice(-SIDE_HISTORY).reverse()} me={me} />
+                {/* The latest events, oldest of them at the top, like the full History tab. */}
+                <HistoryTimeline entries={history} steps={steps} me={me} limit={SIDE_HISTORY}
+                                 received={{ at: alert.receivedAt, source: alert.source }} />
               </section>
             </div>
           )}
@@ -144,7 +145,13 @@ export default function AlertDetailPage() {
                   : <p className="muted">No AI assessment was made.</p>}
               </section>
             ))}
-          {tab === 'History' && <HistoryTimeline entries={history} me={me} />}
+          {tab === 'History' && (
+            <section className="sec">
+              <div className="sec-head"><b>History</b><span className="muted">{history.length + 1} events</span></div>
+              <HistoryTimeline entries={history} steps={steps} me={me}
+                               received={{ at: alert.receivedAt, source: alert.source }} />
+            </section>
+          )}
         </>
       )}
     </main>
