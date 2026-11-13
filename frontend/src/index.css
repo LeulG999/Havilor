@@ -2174,3 +2174,44 @@ input[type='file']::file-selector-button {
 .login-card button.link {
   color: #0891b2;
 }
+
+/* ---------- Team page (pages/TeamPage.tsx, components/AddPersonButton.tsx) ---------- */
+tr.inactive td {
+  opacity: 0.55;
+}
+
+.queue-table select {
+  padding: 4px 8px;
+  font-size: 12.5px;
+}
+
+/* The temporary password: shown once, mono, with Copy, and a clear warning. */
+.temp-password-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+
+.temp-password-box code {
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  user-select: all; /* one click selects it all */
+}
+
+.temp-password-box button {
+  margin-left: auto;
+}
+
+.temp-password-note {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(234, 179, 8, 0.45);
+  color: var(--med);
+  font-size: 12.5px;
+}
