@@ -40,13 +40,13 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
-## Design batch D1 (Midnight Signal)
+## Design batch D1 (Midnight Signal) ✅
 
 - [x] D1. Brand base: tokens, fonts, favicon, restyled controls
 - [x] D2. Login page
 - [x] D3. App shell: icon rail + top bar
 - [x] D4. Alert queue: filters, signals, expandable rows
-- [ ] D5. Slide-over alert panel
+- [x] D5. Slide-over alert panel
 
 ## Batch F6 (names, roles, manager dashboard, readable AI) ✅
 
@@ -285,8 +285,10 @@ export HAVILOR_JWT_SECRET="<at least 32 characters>" HAVILOR_DEV_PASSWORD="<any 
 cd frontend && npm install && npm run dev
 ```
 
-Open http://localhost:5173 and log in as `analyst@havilor.example.com` with your `HAVILOR_DEV_PASSWORD`. A dark
-sidebar links the pages: **Dashboard** (start page: stat cards, alerts per day, recent alerts), **Alert queue**, and
+Open http://localhost:5173 and log in as `analyst@havilor.example.com` with your `HAVILOR_DEV_PASSWORD`. The app
+uses the "Midnight Signal" design (`docs/design/`): a 64px icon rail links the pages (hover for names), the alert queue
+has priority/status filters with counts, an "Assigned to me" switch, signals per alert, rows that expand (›) and open
+in a slide-over panel (click). Pages: **Dashboard** (start page: stat cards, alerts per day, recent alerts), **Alert queue**, and
 **New alert** (paste an email or upload `.eml`/`.txt`/image/PDF → the AI drafts it → check → save), and **Standup
 notes** (AI-first: "Write my standup with AI" drafts it from your day, or write it yourself; live preview,
 mentioned alerts as removable chips; edit while it's a draft, share it). Alert detail has a fixed header
