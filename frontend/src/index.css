@@ -1710,3 +1710,117 @@ tr.row-details td {
 .ai-panel-actions {
   margin: 12px 0;
 }
+
+/* ---------- Alert detail page (pages/AlertDetailPage.tsx, components/AlertCards.tsx, EmailCard.tsx) ---------- */
+.detail-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.detail-title {
+  margin: 4px 0 0;
+}
+
+.detail-actions {
+  margin-left: auto;
+}
+
+/* Four summary cards on the detail page (three in the panel). */
+.cards4 {
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 16px;
+}
+
+/* The priority card's select looks like the card's value. */
+.pick-select {
+  align-self: flex-start;
+  padding: 0 4px 0 0;
+  border: none;
+  background: transparent;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.priority-text-critical { color: var(--crit); }
+.priority-text-high { color: var(--high); }
+.priority-text-medium { color: var(--med); }
+.priority-text-low { color: var(--low); }
+
+/* Overview: the AI card and the email on the left, the latest history on the right. */
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.overview-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.overview-main .ai-card {
+  margin-top: 0;
+}
+
+@media (max-width: 1000px) {
+  .overview-grid,
+  .cards4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* A section with a header line (title left, a small action right). */
+.sec {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.sec-padded {
+  padding: 14px 16px;
+}
+
+.sec-padded p {
+  margin: 8px 0 0;
+}
+
+.sec-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sec-head b,
+.sec-padded > b {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+button.link.quiet {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.props {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 10px 16px;
+  padding: 14px 16px;
+  margin: 0;
+}
+
+.props dt {
+  color: var(--muted);
+}
+
+.props dd {
+  margin: 0;
+}
