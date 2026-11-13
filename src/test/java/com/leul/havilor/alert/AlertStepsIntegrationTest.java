@@ -113,7 +113,8 @@ class AlertStepsIntegrationTest {
     @Test
     void readingStepsTakesTwoQueries() throws Exception {
         long id = createAlert("DETECTED_PHISHING");
-        cacheManager.getCache("playbookSteps").clear(); // count a cold read (warm: the steps come from Redis)
+        // invalidate(), not clear(): clear() may be deferred, invalidate() empties the cache right now (Spring docs).
+        cacheManager.getCache("playbookSteps").invalidate(); // count a cold read (warm: the steps come from Redis)
         Statistics statistics = entityManagerFactory.unwrap(SessionFactory.class).getStatistics();
         statistics.clear();
 
