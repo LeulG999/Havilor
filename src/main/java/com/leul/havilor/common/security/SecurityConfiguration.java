@@ -53,6 +53,15 @@ public class SecurityConfiguration {
                         .requestMatchers("/actuator/**").denyAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/audit").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.GET, "/api/v1/standup/team").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/users").hasRole("MANAGER")
+                        // The investigation itself is the analyst's work (Flow F25): steps, findings, actions, the AI
+                        // assistant, escalations and closing. Managers read everything and may change priority and
+                        // assignment (the assignment rules are in AlertService.update).
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/alerts/*/steps/*", "/api/v1/escalations/*")
+                        .hasRole("ANALYST")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/alerts/*/findings", "/api/v1/alerts/*/actions",
+                                "/api/v1/alerts/*/ai/**", "/api/v1/alerts/*/escalations", "/api/v1/alerts/*/close")
+                        .hasRole("ANALYST")
                         .requestMatchers("/api/v1/**").authenticated()
                         // Nothing else is served; unknown paths still get their normal 404.
                         .anyRequest().permitAll())

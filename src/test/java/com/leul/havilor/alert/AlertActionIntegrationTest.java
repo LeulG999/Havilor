@@ -58,11 +58,12 @@ class AlertActionIntegrationTest {
                 .andExpect(jsonPath("$.note").value("Blocked invoices.example.net"))
                 .andExpect(jsonPath("$.performedBy").value(testUsers.analystId()))
                 .andExpect(jsonPath("$.performedAt").value(FixedClockConfiguration.NOW.toString()));
-        // performedBy follows the token: the manager records the second one.
-        mockMvc.perform(post(ALERTS + "/{id}/actions", id).header(HttpHeaders.AUTHORIZATION, testUsers.managerBearer())
-                        .contentType(MediaType.APPLICATION_JSON).content("{\"type\": \"RESET_PASSWORD\", \"result\": \"PENDING\"}"))
-                .andExpect(jsonPath("$.performedBy").value(testUsers.managerId()))
+        record(id, "{\"type\": \"RESET_PASSWORD\", \"result\": \"PENDING\"}")
                 .andExpect(jsonPath("$.note").doesNotExist());
+        // Recording actions is the analyst's work (Flow F25): the manager gets 403.
+        mockMvc.perform(post(ALERTS + "/{id}/actions", id).header(HttpHeaders.AUTHORIZATION, testUsers.managerBearer())
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"type\": \"OTHER\", \"result\": \"DONE\"}"))
+                .andExpect(status().isForbidden());
 
         mockMvc.perform(get(ALERTS + "/{id}/actions", id))
                 .andExpect(status().isOk())

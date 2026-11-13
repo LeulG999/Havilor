@@ -114,9 +114,9 @@ class StandupAiIntegrationTest {
     void onlyTheCurrentUsersActivityIsUsed() throws Exception {
         String managersTicket = "INC-IT-" + UUID.randomUUID();
         long managersAlert = createAlert(managersTicket);
-        mockMvc.perform(post("/api/v1/alerts/{id}/actions", managersAlert)
+        mockMvc.perform(patch("/api/v1/alerts/{id}", managersAlert) // a manager may change the priority
                         .header(HttpHeaders.AUTHORIZATION, testUsers.managerBearer())
-                        .contentType(MediaType.APPLICATION_JSON).content("{\"type\": \"OTHER\", \"result\": \"DONE\"}"))
+                        .contentType(MediaType.APPLICATION_JSON).content("{\"priority\": \"HIGH\"}"))
                 .andExpect(status().is2xxSuccessful());
         long analystsAlert = createAlert("INC-IT-" + UUID.randomUUID());
         send(post("/api/v1/alerts/{id}/actions", analystsAlert), "{\"type\": \"OTHER\", \"result\": \"DONE\"}");

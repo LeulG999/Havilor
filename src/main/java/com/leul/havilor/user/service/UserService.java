@@ -2,6 +2,7 @@ package com.leul.havilor.user.service;
 
 import com.leul.havilor.common.error.NotFoundException;
 import com.leul.havilor.user.api.response.UserResponse;
+import com.leul.havilor.user.domain.enums.Role;
 import com.leul.havilor.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,12 @@ public class UserService {
             userRepository.findAllById(known).forEach(user -> names.put(user.getId(), user.getName()));
         }
         return names;
+    }
+
+    // Active users with this role, by name (e.g. the analysts a manager can assign an alert to).
+    @Transactional(readOnly = true)
+    public List<UserResponse> activeByRole(Role role) {
+        return userRepository.findByRoleAndActiveTrueOrderByName(role).stream().map(UserResponse::from).toList();
     }
 
     @Transactional(readOnly = true)
