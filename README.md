@@ -43,7 +43,7 @@ but the analyst always makes the decision.
 ## Batch F6 (names, roles, manager dashboard, readable AI)
 
 - [x] F24. Assignee names on alerts (header, queue, dashboard)
-- [ ] F25. Manager vs analyst rights, enforced in the backend
+- [x] F25. Manager vs analyst rights, enforced in the backend
 - [ ] F26. Manager dashboard
 - [ ] F27. Readable AI assessment
 
@@ -170,6 +170,7 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 |---|---|---|
 | `POST` | `/api/v1/auth/login` | `{email, password}` → **200** `{accessToken, tokenType: "Bearer", expiresIn}` (8 hours); **401** `Invalid email or password`. The only call without a token |
 | `GET` | `/api/v1/users/me` | **200** with the logged-in user (id, name, email, role, active) |
+| `GET` | `/api/v1/users?role=ANALYST` | **MANAGER only**: active users with that role (the "Assign to" list) |
 | `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps. New alerts get their automatic findings; a click on a bad-list URL makes the priority **CRITICAL** |
 | `POST` | `/api/v1/alerts/manual/extract` | `multipart/form-data` with ONE part: `text` (pasted email / raw headers) or `file` (.eml, image, PDF, max 10 MB) → **200** a draft `CreateAlertRequest` (source `MANUAL`, nothing saved). POST it to `/api/v1/alerts`: a manual alert without a ticket gets `MAN-<yyyyMMdd>-<n>` |
 | `GET` | `/api/v1/alerts/dashboard` | **200** `{openAlerts, assignedToMe, criticalOpen, closedLast7Days, alertsPerDay (14 UTC days), recent (5 newest)}` |
