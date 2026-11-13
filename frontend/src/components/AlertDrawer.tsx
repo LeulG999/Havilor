@@ -8,7 +8,7 @@ import AiAssessmentPanel from './AiAssessmentPanel';
 import AlertChildrenSection from './AlertChildrenSection';
 import AssessmentCard from './AssessmentCard';
 import CloseAlertButton from './CloseAlertButton';
-import DrawerCards from './DrawerCards';
+import AlertCards from './AlertCards';
 import EmailDetailsSection from './EmailDetailsSection';
 import ErrorMessage from './ErrorMessage';
 import EscalateButton from './EscalateButton';
@@ -94,7 +94,7 @@ export default function AlertDrawer({ alertId, onClose, onChanged }: {
               </div>
             </div>
 
-            <DrawerCards alert={alert} me={me} onChanged={changed} />
+            <AlertCards alert={alert} me={me} onChanged={changed} />
 
             <nav className="tabs drawer-tabs" role="tablist">
               {tabs.map((t) => (

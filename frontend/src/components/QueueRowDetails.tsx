@@ -52,7 +52,7 @@ export default function QueueRowDetails({ alertId, columns }: { alertId: number;
 }
 
 // "SPF NONE" / "DKIM FAIL" / "DMARC PASS": green for pass, red for fail, neutral for none or unknown.
-function AuthTag({ check, result }: { check: string; result: string | null }) {
+export function AuthTag({ check, result }: { check: string; result: string | null }) {
   const tone = result === 'PASS' ? 'pass' : result === 'FAIL' ? 'fail' : 'none';
   return <b className={`auth-${tone}`}>{check} {result ?? '?'}</b>;
 }
