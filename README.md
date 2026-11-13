@@ -40,12 +40,12 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
-## Batch F6 (names, roles, manager dashboard, readable AI)
+## Batch F6 (names, roles, manager dashboard, readable AI) ✅
 
 - [x] F24. Assignee names on alerts (header, queue, dashboard)
 - [x] F25. Manager vs analyst rights, enforced in the backend
 - [x] F26. Manager dashboard
-- [ ] F27. Readable AI assessment
+- [x] F27. Readable AI assessment
 
 ## Batch F5 (AI standup note) ✅
 
@@ -188,7 +188,7 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `PATCH` | `/api/v1/escalations/{id}` | `{externalStatus, outcome}` (both optional). An `outcome` sends the alert back to `INVESTIGATING` |
 | `GET` | `/api/v1/alerts/{id}/findings` | **200** with the alert's findings (automatic and manual), each with *why it matters* |
 | `POST` | `/api/v1/alerts/{id}/findings` | Add a manual finding `{type, severity, title, teachingText}` → **201** |
-| `POST` | `/api/v1/alerts/{id}/ai/assessment` | Claude reads the alert + findings + the 5 most similar knowledge chunks → **200** `{summary, suggestedVerdict, suggestionReason, references}`; the suggestion is saved on the alert (the analyst still decides). **502** if the assistant can't answer |
+| `POST` | `/api/v1/alerts/{id}/ai/assessment` | Claude reads the alert + findings + the 5 most similar knowledge chunks → **200** `{suggestedVerdict, confidence, oneLineSummary, keyEvidence[{text, severity}], nextSteps, wouldChangeMyMindIf, references}`; saved on the alert (`lastAssessment` on the detail) (the analyst still decides). **502** if the assistant can't answer |
 | `POST` | `/api/v1/alerts/{id}/ai/draft-email` | `{type: USER_NOTICE \| ESCALATION}` → **200** `{type, draft}` (not saved, not sent) |
 | `GET` | `/api/v1/alerts/{id}/audit` | **200** with the alert's history (updates, close, steps, actions, findings, escalations), oldest first |
 | `GET` | `/api/v1/audit?page=0&size=20` | **MANAGER only** (**403** otherwise): the whole audit log, newest first |
