@@ -2227,3 +2227,22 @@ tr.inactive td {
   color: #ffffff;
   font-size: 15px;
 }
+
+/* ---------- Alert actions (components/AlertActionButtons.tsx) ---------- */
+/* "⇡ Escalated to <team> · waiting": an orange chip-like button that opens the Actions tab. */
+button.escalated-chip {
+  border-radius: 999px;
+  color: var(--high);
+  border-color: rgba(249, 115, 22, 0.5);
+  background: rgba(249, 115, 22, 0.08);
+}
+
+/* Text for screen readers only (e.g. why a button is disabled). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
