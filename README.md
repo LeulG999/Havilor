@@ -45,7 +45,7 @@ but the analyst always makes the decision.
 - [x] D1. Brand base: tokens, fonts, favicon, restyled controls
 - [x] D2. Login page
 - [x] D3. App shell: icon rail + top bar
-- [ ] D4. Alert queue: filters, signals, expandable rows
+- [x] D4. Alert queue: filters, signals, expandable rows
 - [ ] D5. Slide-over alert panel
 
 ## Batch F6 (names, roles, manager dashboard, readable AI) ✅
@@ -182,8 +182,9 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps. New alerts get their automatic findings; a click on a bad-list URL makes the priority **CRITICAL** |
 | `POST` | `/api/v1/alerts/manual/extract` | `multipart/form-data` with ONE part: `text` (pasted email / raw headers) or `file` (.eml, image, PDF, max 10 MB) → **200** a draft `CreateAlertRequest` (source `MANUAL`, nothing saved). POST it to `/api/v1/alerts`: a manual alert without a ticket gets `MAN-<yyyyMMdd>-<n>` |
 | `GET` | `/api/v1/alerts/dashboard` | **200** `{openAlerts, assignedToMe, criticalOpen, closedLast7Days, alertsPerDay (14 UTC days), recent (5 newest)}` |
+| `GET` | `/api/v1/alerts/counts?status=OPEN&assignedToMe=true` | `{open, criticalOpen, unassignedOpen, byPriority}` for the queue's filters |
 | `GET` | `/api/v1/alerts/team-dashboard` | **MANAGER only**: `{unassignedOpen, criticalOpen, oldestOpen {ticketNumber, ageHours}, analysts [{name, openAlerts, closedLast7Days}], standupsSharedToday}` |
-| `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries*, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100 |
+| `GET` | `/api/v1/alerts?page=0&size=20` | **200** with a page of alert *summaries*, newest first: `{content, page, size, totalElements, totalPages}`. `size` defaults to 20, maximum 100. Optional filters: `priority`, `status` (`OPEN` = not closed, or one status), `assignedToMe=true`. Each row has `assigneeName` and `signals` |
 | `GET` | `/api/v1/alerts/{id}` | **200** with the full alert: email details, recipients, URLs, attachments, clicks, playbook and `version`; **404** if unknown |
 | `PATCH` | `/api/v1/alerts/{id}` | Change `priority`, `assigneeId`, `waitingOn`, `externalCaseNumber`, `followUpOn` (only the fields sent). The assignee must be an existing user (else **400**). Assigning a `NEW` alert makes it `INVESTIGATING`. **409** if the alert is closed or another request changed it at the same time (`@Version`) |
 | `GET` | `/api/v1/alerts/{id}/steps` | **200** with the alert's playbook steps in order: what to check, *why it matters*, how, and the alert's progress (`PENDING`/`DONE`/`SKIPPED`) |
