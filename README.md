@@ -40,6 +40,14 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Design batch D1 (Midnight Signal)
+
+- [x] D1. Brand base: tokens, fonts, favicon, restyled controls
+- [ ] D2. Login page
+- [ ] D3. App shell: icon rail + top bar
+- [ ] D4. Alert queue: filters, signals, expandable rows
+- [ ] D5. Slide-over alert panel
+
 ## Batch F6 (names, roles, manager dashboard, readable AI) ✅
 
 - [x] F24. Assignee names on alerts (header, queue, dashboard)
