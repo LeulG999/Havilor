@@ -1161,3 +1161,264 @@ textarea.draft {
   color: var(--text);
   font-weight: 500;
 }
+
+/* ---------- Alert queue (pages/QueuePage.tsx, components/Queue*.tsx) ---------- */
+.page-sub {
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.page-sub b {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.page-sub b.crit-text {
+  color: var(--crit);
+}
+
+.page-sub b.high-text {
+  color: var(--high);
+}
+
+.queue-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+/* Segmented filter: buttons joined in one bordered strip; the chosen one is raised with a cyan underline. */
+.seg {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface2);
+}
+
+.seg button {
+  height: auto;
+  padding: 7px 12px;
+  border: none;
+  border-right: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  gap: 6px;
+}
+
+.seg button:last-child {
+  border-right: none;
+}
+
+.seg button:hover {
+  color: var(--text);
+}
+
+.seg button.on {
+  background: var(--raise);
+  color: var(--text);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.seg em {
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: none;
+}
+
+.dot-critical { background: var(--crit); }
+.dot-high { background: var(--high); }
+.dot-medium { background: var(--med); }
+.dot-low { background: var(--low); }
+
+/* "Assigned to me": a checkbox drawn as a switch. */
+.switch {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 0 auto;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 400;
+  cursor: pointer;
+  position: relative;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0; /* still focusable and clickable through the label */
+  width: 1px;
+  height: 1px;
+}
+
+.switch-track {
+  width: 30px;
+  height: 17px;
+  border-radius: 9px;
+  background: var(--border2);
+  position: relative;
+  transition: background 0.15s;
+}
+
+.switch-track::after {
+  content: '';
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #9fb0c8;
+  top: 2px;
+  left: 2px;
+  transition: left 0.15s;
+}
+
+.switch input:checked + .switch-track {
+  background: var(--accent);
+}
+
+.switch input:checked + .switch-track::after {
+  left: 15px;
+  background: var(--accent-text);
+}
+
+.switch input:focus-visible + .switch-track {
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.25);
+}
+
+/* The table sits in a panel without inner padding. */
+.table-panel {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.queue-table td {
+  white-space: nowrap;
+}
+
+.queue-table td.subject {
+  width: 100%;
+  white-space: normal;
+  font-weight: 500;
+}
+
+.right {
+  text-align: right;
+}
+
+.chev {
+  width: 18px;
+  padding-right: 0;
+}
+
+.chev-button {
+  height: 22px;
+  width: 22px;
+  padding: 0;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--faint);
+  font-weight: 400;
+}
+
+tr.open td {
+  background: var(--raise);
+}
+
+.empty {
+  text-align: center;
+  padding: 28px;
+}
+
+/* Signals: small mono tags, red when bad. */
+.signals {
+  display: flex;
+  gap: 4px;
+}
+
+.signal {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.signal.bad {
+  color: var(--danger-text);
+  border-color: rgba(240, 82, 90, 0.35);
+}
+
+.who {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* The expanded row: label / value pairs side by side. */
+tr.row-details td {
+  background: var(--surface2);
+  padding: 14px 18px 16px 40px;
+  white-space: normal;
+}
+
+.kv {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 28px;
+  align-items: flex-end;
+}
+
+.kv > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.kv-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.auth {
+  display: flex;
+  gap: 5px;
+}
+
+.auth b {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.auth-fail { color: var(--danger-text); background: rgba(240, 82, 90, 0.1); }
+.auth-pass { color: var(--ok); background: rgba(52, 211, 153, 0.1); }
+.auth-none { color: var(--muted); background: var(--raise); }
+
+.bad-url {
+  color: var(--danger-text);
+}
+
+.kv-link a {
+  font-weight: 500;
+}
