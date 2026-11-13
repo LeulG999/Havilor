@@ -14,6 +14,7 @@ import com.leul.havilor.alert.domain.enums.StepStatus;
 import com.leul.havilor.alert.domain.enums.Verdict;
 import com.leul.havilor.alert.repository.AlertRepository;
 import com.leul.havilor.alert.service.AlertFactory;
+import com.leul.havilor.alert.service.AlertFilter;
 import com.leul.havilor.alert.service.AlertQueryService;
 import com.leul.havilor.alert.service.AlertService;
 import com.leul.havilor.alert.service.CreateAlertResult;
@@ -38,6 +39,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
@@ -178,13 +180,13 @@ class AlertServiceTest {
     @Test
     void listAsksForNewestFirstAndMapsToSummaries() {
         Alert alert = withId(TestAlerts.alert(TICKET, "Fake invoice overdue", RECEIVED_AT), 5L);
-        when(alertRepository.findAll(any(Pageable.class)))
-                .thenAnswer(call -> new PageImpl<>(List.of(alert), call.getArgument(0), 41));
+        when(alertRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenAnswer(call -> new PageImpl<>(List.of(alert), call.getArgument(1), 41));
 
-        PageResponse<AlertSummaryResponse> page = alertService.list(2, 20);
+        PageResponse<AlertSummaryResponse> page = alertService.list(2, 20, AlertFilter.none());
 
         ArgumentCaptor<Pageable> asked = ArgumentCaptor.forClass(Pageable.class);
-        verify(alertRepository).findAll(asked.capture());
+        verify(alertRepository).findAll(any(Specification.class), asked.capture());
         assertThat(asked.getValue().getPageNumber()).isEqualTo(2);
         assertThat(asked.getValue().getPageSize()).isEqualTo(20);
         assertThat(asked.getValue().getSort())
@@ -199,10 +201,10 @@ class AlertServiceTest {
 
     @Test
     void listCapsOversizedPages() {
-        when(alertRepository.findAll(any(Pageable.class)))
-                .thenAnswer(call -> new PageImpl<>(List.of(), call.getArgument(0), 0));
+        when(alertRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenAnswer(call -> new PageImpl<>(List.of(), call.getArgument(1), 0));
 
-        PageResponse<AlertSummaryResponse> page = alertService.list(0, 500);
+        PageResponse<AlertSummaryResponse> page = alertService.list(0, 500, AlertFilter.none());
 
         assertThat(page.size()).isEqualTo(100);
     }

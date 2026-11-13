@@ -5,13 +5,15 @@ import com.leul.havilor.alert.domain.ClickEvent;
 import com.leul.havilor.alert.domain.enums.AlertStatus;
 import com.leul.havilor.alert.domain.enums.Priority;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
-public interface AlertRepository extends JpaRepository<Alert, Long> {
+// JpaSpecificationExecutor: findAll / count with a Specification (the queue's optional filters, AlertFilter).
+public interface AlertRepository extends JpaRepository<Alert, Long>, JpaSpecificationExecutor<Alert> {
 
     // Only the id: the duplicate check doesn't need the whole alert.
     @Query("select a.id from Alert a where a.ticketNumber = :ticketNumber")

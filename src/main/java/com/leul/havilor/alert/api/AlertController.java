@@ -6,6 +6,9 @@ import com.leul.havilor.alert.api.request.UpdateAlertRequest;
 import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
 import com.leul.havilor.alert.api.response.DashboardResponse;
+import com.leul.havilor.alert.api.response.QueueCountsResponse;
+import com.leul.havilor.alert.domain.enums.Priority;
+import com.leul.havilor.alert.service.AlertFilter;
 import com.leul.havilor.alert.service.AlertQueryService;
 import com.leul.havilor.alert.service.AlertService;
 import com.leul.havilor.alert.service.CreateAlertResult;
@@ -54,11 +57,29 @@ public class AlertController {
     }
 
     // Newest first. Out-of-range page/size are corrected by the service (max size 100).
+    // Optional filters (Flow D4): priority, status (OPEN = not closed, or one status), assignedToMe.
     @GetMapping
     public PageResponse<AlertSummaryResponse> list(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "" + Paging.DEFAULT_SIZE) int size) {
-        return alertService.list(page, size);
+            @RequestParam(defaultValue = "" + Paging.DEFAULT_SIZE) int size,
+            @RequestParam(required = false) Priority priority,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "false") boolean assignedToMe,
+            @AuthenticationPrincipal Jwt token) {
+        return alertService.list(page, size, filter(priority, status, assignedToMe, token));
+    }
+
+    // The queue's counts: the whole queue's open / critical / unassigned, and per priority with the same
+    // status / assignedToMe filter as the list.
+    @GetMapping("/counts")
+    public QueueCountsResponse counts(@RequestParam(required = false) String status,
+                                      @RequestParam(defaultValue = "false") boolean assignedToMe,
+                                      @AuthenticationPrincipal Jwt token) {
+        return alertQueryService.queueCounts(filter(null, status, assignedToMe, token));
+    }
+
+    private static AlertFilter filter(Priority priority, String status, boolean assignedToMe, Jwt token) {
+        return new AlertFilter(priority, status, assignedToMe ? Long.valueOf(token.getSubject()) : null);
     }
 
     // The analyst's start page. "/dashboard" doesn't clash with "/{id}": Spring prefers the exact path.

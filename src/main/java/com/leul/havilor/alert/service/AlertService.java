@@ -100,10 +100,11 @@ public class AlertService {
         return CreateAlertResult.newlyCreated(alertQueryService.getById(saved.getId()));
     }
 
-    // Summaries only: the list never touches the child tables.
+    // One page of the queue, newest first, with the optional filters (Flow D4).
     @Transactional(readOnly = true)
-    public PageResponse<AlertSummaryResponse> list(int page, int size) {
-        Page<Alert> alerts = alertRepository.findAll(Paging.pageRequest(page, size, NEWEST_FIRST));
+    public PageResponse<AlertSummaryResponse> list(int page, int size, AlertFilter filter) {
+        Page<Alert> alerts = alertRepository.findAll(filter.toSpecification(),
+                Paging.pageRequest(page, size, NEWEST_FIRST));
         List<AlertSummaryResponse> rows = alertQueryService.summaries(alerts.getContent()); // + the assignees' names
         return new PageResponse<>(rows, alerts.getNumber(), alerts.getSize(), alerts.getTotalElements(),
                 alerts.getTotalPages());

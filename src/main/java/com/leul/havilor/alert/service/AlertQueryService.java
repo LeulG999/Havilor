@@ -3,6 +3,7 @@ package com.leul.havilor.alert.service;
 import com.leul.havilor.alert.api.response.AlertDetailResponse;
 import com.leul.havilor.alert.api.response.AlertSummaryResponse;
 import com.leul.havilor.alert.api.response.DashboardResponse;
+import com.leul.havilor.alert.api.response.QueueCountsResponse;
 import com.leul.havilor.alert.api.response.TeamAlertsResponse;
 import com.leul.havilor.alert.domain.Alert;
 import com.leul.havilor.alert.domain.enums.AlertStatus;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +59,21 @@ public class AlertQueryService {
     List<AlertSummaryResponse> summaries(List<Alert> alerts) {
         Map<Long, String> names = userService.namesByIds(alerts.stream().map(Alert::getAssigneeId).toList());
         return alerts.stream().map(alert -> AlertSummaryResponse.from(alert, names.get(alert.getAssigneeId()))).toList();
+    }
+
+    // The numbers above the queue (Flow D4): three for the whole queue, and one per priority with the queue's
+    // status / assignee filter (that's what the priority buttons will show). 7 small count queries.
+    @Transactional(readOnly = true)
+    public QueueCountsResponse queueCounts(AlertFilter filter) {
+        Map<Priority, Long> byPriority = new LinkedHashMap<>();
+        for (Priority priority : Priority.values()) {
+            byPriority.put(priority, alertRepository.count(filter.withPriority(priority).toSpecification()));
+        }
+        return new QueueCountsResponse(
+                alertRepository.countByStatusNot(AlertStatus.CLOSED),
+                alertRepository.countByStatusNotAndPriority(AlertStatus.CLOSED, Priority.CRITICAL),
+                alertRepository.countByStatusNotAndAssigneeIdIsNull(AlertStatus.CLOSED),
+                byPriority);
     }
 
     // The manager's view (Flow F26): simple counts, one pair of counts per active analyst, and the oldest open alert.
