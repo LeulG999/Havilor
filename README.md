@@ -40,6 +40,10 @@ but the analyst always makes the decision.
 - [x] 18. AI assistant (Claude): assessment + email drafts
 - [x] 19. Manual intake (text, .eml, headers, image/PDF → draft alert)
 
+## Batch F7 (manual intake) ✅
+
+- [x] F28. Clearer manual intake: source cards, several files in one AI call, what's missing
+
 ## Design batch D2 (detail page, history, all pages) ✅
 
 - [x] D6. Design pack committed (`docs/design/`)
@@ -187,7 +191,7 @@ common/           CaseType, ClockConfiguration (the one Clock for "now")
 | `GET` | `/api/v1/users/me` | **200** with the logged-in user (id, name, email, role, active) |
 | `GET` | `/api/v1/users?role=ANALYST` | **MANAGER only**: active users with that role (the "Assign to" list) |
 | `POST` | `/api/v1/alerts` | Create an alert with its email details, recipients, URLs, attachments and clicks. **201** + `Location` for a new `ticketNumber`; **200** with the stored alert if that ticket already exists (idempotent); **409** if another request is creating the same ticket at that moment. Phishing alerts get the active playbook's steps. New alerts get their automatic findings; a click on a bad-list URL makes the priority **CRITICAL** |
-| `POST` | `/api/v1/alerts/manual/extract` | `multipart/form-data` with ONE part: `text` (pasted email / raw headers) or `file` (.eml, image, PDF, max 10 MB) → **200** a draft `CreateAlertRequest` (source `MANUAL`, nothing saved). POST it to `/api/v1/alerts`: a manual alert without a ticket gets `MAN-<yyyyMMdd>-<n>` |
+| `POST` | `/api/v1/alerts/manual/extract` | multipart: `text` and/or up to 5 `files` (.eml, image, PDF; 10 MB each), read together in one AI call → **200** a draft alert (nothing saved). **400** nothing sent, more than 5 files or an unreadable file type; **502** AI unavailable |
 | `GET` | `/api/v1/alerts/dashboard` | **200** `{openAlerts, assignedToMe, criticalOpen, closedLast7Days, alertsPerDay (14 UTC days), recent (5 newest)}` |
 | `GET` | `/api/v1/alerts/counts?status=OPEN&assignedToMe=true` | `{open, criticalOpen, unassignedOpen, byPriority}` for the queue's filters |
 | `GET` | `/api/v1/alerts/team-dashboard` | **MANAGER only**: `{unassignedOpen, criticalOpen, oldestOpen {ticketNumber, ageHours}, analysts [{name, openAlerts, closedLast7Days}], standupsSharedToday}` |
