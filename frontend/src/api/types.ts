@@ -31,7 +31,21 @@ export type AlertSummary = {
   status: string;
   assigneeName: string | null; // null = unassigned
   subject: string;
+  fromAddress: string;
   receivedAt: string; // an ISO date-time, e.g. "2026-10-28T14:00:00Z"
+  signals: Signal[]; // the queue's Signals column
+};
+
+// A short tag on a queue row: URL, FILE, CLICK, SPF, DKIM or DMARC. bad = it points to a threat (red).
+export type Signal = { name: string; bad: boolean };
+
+// GET /api/v1/alerts/counts: open / critical / unassigned for the whole queue, and per priority with the
+// status and "assigned to me" filters applied.
+export type QueueCounts = {
+  open: number;
+  criticalOpen: number;
+  unassignedOpen: number;
+  byPriority: Record<'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW', number>;
 };
 
 // GET /api/v1/alerts/{id} (AlertDetailResponse) and its parts.
